@@ -16,7 +16,7 @@ BEGIN
 			, TIME_FORMAT(SEC_TO_TIME(stdev_duration_minutes * 60), @time_format) AS std_dev
 			, TIME_FORMAT(SEC_TO_TIME((remaining_minutes + 1.282 * stdev_duration_minutes) * 60), @time_format) AS `90% CI UB`
 		FROM report_incomplete_chores
-		WHERE due_date <= until_inclusive
+		WHERE due_date BETWEEN from_inclusive AND until_inclusive
 			AND chore NOT IN (SELECT chore
 				FROM chores
                 NATURAL JOIN chore_categories
