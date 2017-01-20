@@ -22,6 +22,11 @@ BEGIN
 		INTO @chore_id
 		FROM chores
 		WHERE chore = chore_name;
+	IF @chore_id IS NULL
+    THEN
+		SET @message = 'Could not find ID of chore "' + chore_name + '."';
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = message;
+    END IF;
 	IF chore_due_date IS NULL
     THEN
 		SET chore_due_date = when_completed;
@@ -32,9 +37,7 @@ BEGIN
         NATURAL JOIN chore_schedule
 		WHERE chore_id = @chore_id
 			AND is_completed = 0
-			AND YEAR(chore_schedule.due_date) = YEAR(chore_due_date)
-			AND MONTH(chore_schedule.due_date) = MONTH(chore_due_date)
-			AND DAY(chore_schedule.due_date) = DAY(chore_due_date);
+			AND DATE(chore_schedule.due_date) = DATE(chore_due_date);
 	IF create_if_not_exists = 1 AND found_chore_completion_id IS NULL
     THEN
 		INSERT INTO chore_completions
@@ -46,6 +49,10 @@ BEGIN
 			(chore_completion_id, due_date)
             VALUES
             (found_chore_completion_id, chore_due_date);
+    END IF;
+    IF found_chore_completion_id IS NULL
+    THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Could not find chore completion record matching the specified criteria.';
     END IF;
     IF @duration_minutes IS NOT NULL
     THEN

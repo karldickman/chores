@@ -1,5 +1,5 @@
 USE chores;
-DROP procedure IF EXISTS schedule_next_chore;
+DROP PROCEDURE IF EXISTS schedule_next_chore;
 
 DELIMITER $$
 USE chores$$
@@ -25,17 +25,11 @@ this_procedure:BEGIN
     END IF;
     /* Leave the procedure if there is a later completion date than this one */
     SELECT when_completed INTO @when_completed
-		FROM chore_completion_durations
-        WHERE chore_completion_durations.chore_completion_id = completed_chore_completion_id;
+		FROM chore_completions_when_completed
+        WHERE chore_completions_when_completed.chore_completion_id = completed_chore_completion_id;
 	IF @when_completed IS NULL
     THEN
-		SELECT when_completed INTO @when_completed
-			FROM chore_completion_times
-			WHERE chore_completion_times.chore_completion_id = completed_chore_completion_id;
-		IF @when_completed IS NULL
-        THEN
-			SET @when_completed = CURRENT_TIMESTAMP;
-        END IF;
+		SET @when_completed = CURRENT_TIMESTAMP;
     END IF;
     IF EXISTS(SELECT *
 		FROM chore_completion_durations
@@ -49,7 +43,14 @@ this_procedure:BEGIN
     SELECT frequency_days INTO @frequency
 		FROM chore_frequencies
         WHERE chore_id = @chore_id;
-	SET @next_due_date = DATE(DATE_ADD(@when_completed, INTERVAL @frequency DAY));
+	/* Get the next chore schedule date */
+	SELECT next_due_date INTO @next_due_date 
+		FROM chore_completion_next_due_dates
+        WHERE chore_completion_next_due_dates.chore_completion_id = completed_chore_completion_id;
+	IF @next_due_date IS NULL
+    THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Could not find next due date for chore.';
+    END IF;
 	/* If 7 or more days between chores, find the closest Sunday and use that */
     IF @frequency >= 7
     THEN
