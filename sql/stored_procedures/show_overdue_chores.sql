@@ -3,7 +3,7 @@ DROP procedure IF EXISTS show_overdue_chores;
 
 DELIMITER $$
 USE chores$$
-CREATE DEFINER=root@localhost PROCEDURE show_overdue_chores(from_inclusive DATETIME, until_inclusive DATETIME)
+CREATE DEFINER=root@localhost PROCEDURE show_overdue_chores(from_inclusive DATETIME, until_inclusive DATETIME, include_meals BOOL)
 BEGIN
 	SET from_inclusive = COALESCE(from_inclusive, '1989-02-09');
 	SET @date_format = '%Y-%m-%d %H:%i';
@@ -17,11 +17,12 @@ BEGIN
 			, TIME_FORMAT(SEC_TO_TIME((remaining_minutes + 1.282 * stdev_duration_minutes) * 60), @time_format) AS `90% CI UB`
 		FROM report_incomplete_chores
 		WHERE due_date BETWEEN from_inclusive AND until_inclusive
-			AND chore NOT IN (SELECT chore
-				FROM chores
-                NATURAL JOIN chore_categories
-				NATURAL JOIN categories
-                WHERE category = 'meals');
+			AND (include_meals = 1
+				OR chore NOT IN (SELECT chore
+					FROM chores
+					NATURAL JOIN chore_categories
+					NATURAL JOIN categories
+					WHERE category = 'meals'));
 	SELECT category
 			, SUM(number_of_chores) AS number_of_chores
 			, TIME_FORMAT(SEC_TO_TIME(SUM(backlog_hours) * 60 * 60), @time_format) AS backlog

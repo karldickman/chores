@@ -71,6 +71,7 @@ BEGIN
 		UPDATE chore_completions
 			SET is_completed = 1
 			WHERE chore_completion_id = found_chore_completion_id;
+		CALL schedule_next_chore(found_chore_completion_id, @next_chore_completion_id);
     END IF;
 END$$
 
