@@ -50,7 +50,7 @@ BEGIN
 		INSERT INTO chore_completions
 			(chore_id, is_completed)
             VALUES
-            (@chore_id, is_complete);
+            (@chore_id, 0);
 		SET found_chore_completion_id = LAST_INSERT_ID();
 		INSERT INTO chore_schedule
 			(chore_completion_id, due_date)

@@ -47,6 +47,10 @@ this_procedure:BEGIN
     SELECT frequency_days INTO @frequency
 		FROM chore_frequencies
         WHERE chore_id = @chore_id;
+	IF @frequency IS NULL
+    THEN
+		LEAVE this_procedure;
+	END IF;
 	/* Get the next chore schedule date */
 	SELECT next_due_date INTO @next_due_date 
 		FROM chore_completion_next_due_dates
