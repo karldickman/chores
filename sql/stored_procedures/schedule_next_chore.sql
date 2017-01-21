@@ -12,6 +12,10 @@ this_procedure:BEGIN
     SET @frequency = NULL;
     SET @next_due_date = NULL;
     SET @adjustment = NULL;
+	IF completed_chore_completion_id IS NULL
+    THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Parameter completed_chore_completion_id cannot be NULL.';
+    END IF;
 	/* Leave the procedure if not completed */
 	SELECT is_completed INTO @is_completed
 		FROM chore_completions
@@ -49,8 +53,9 @@ this_procedure:BEGIN
         WHERE chore_completion_next_due_dates.chore_completion_id = completed_chore_completion_id;
 	IF @next_due_date IS NULL
     THEN
-		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Could not find next due date for chore.';
+		SET @next_due_date = DATE_ADD(@when_completed, INTERVAL @frequency DAY);
     END IF;
+    SET @next_due_date = DATE(@next_due_date);
 	/* If 7 or more days between chores, find the closest Sunday and use that */
     IF @frequency >= 7
     THEN
