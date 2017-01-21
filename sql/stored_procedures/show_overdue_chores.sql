@@ -6,6 +6,7 @@ USE chores$$
 CREATE DEFINER=root@localhost PROCEDURE show_overdue_chores(from_inclusive DATETIME, until_inclusive DATETIME, include_meals BOOL)
 BEGIN
 	SET from_inclusive = COALESCE(from_inclusive, '1989-02-09');
+    SET until_inclusive = COALESCE(until_inclusive, '2161-10-11');
 	SET @date_format = '%Y-%m-%d %H:%i';
     SET @time_format = '%H:%i:%S';
 	SELECT chore
