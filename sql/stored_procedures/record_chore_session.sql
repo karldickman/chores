@@ -62,14 +62,10 @@ BEGIN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Procedure record_chore_session: Could not find chore completion record matching the specified criteria.';
     END IF;
 	INSERT INTO chore_sessions
-		(when_completed, duration_minutes)
+		(when_completed, duration_minutes, chore_completion_id)
 		VALUES
-		(when_completed, @duration_minutes);
+		(when_completed, @duration_minutes, found_chore_completion_id);
 	SET new_chore_session_id = LAST_INSERT_ID();
-	INSERT INTO chore_completion_sessions
-		(chore_completion_id, chore_session_id)
-		VALUES
-		(found_chore_completion_id, new_chore_session_id);
 END$$
 
 DELIMITER ;
