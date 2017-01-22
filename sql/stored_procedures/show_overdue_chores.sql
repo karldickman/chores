@@ -9,7 +9,8 @@ BEGIN
     SET until_inclusive = COALESCE(until_inclusive, '2161-10-11');
 	SET @date_format = '%Y-%m-%d %H:%i';
     SET @time_format = '%H:%i:%S';
-	SELECT chore
+	SELECT chore_completion_id
+			, chore
 			, DATE_FORMAT(due_date, @date_format) AS due_date
             , DATE_FORMAT(last_completed, @date_format) AS last_completed
             , TIME_FORMAT(SEC_TO_TIME(completed_minutes * 60), @time_format) AS completed
