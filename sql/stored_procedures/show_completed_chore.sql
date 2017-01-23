@@ -5,7 +5,8 @@ DELIMITER $$
 USE chores$$
 CREATE DEFINER=root@localhost PROCEDURE show_completed_chore(chore_completion_id_to_show INT)
 BEGIN
-	SELECT chore
+	SELECT chore_session_id
+			, chore
 			, duration_minutes
 			, when_completed
 			, when_recorded
