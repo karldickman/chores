@@ -17,5 +17,6 @@ SELECT chore_completions.chore_id
 	WHERE is_completed = 0
 		AND NOT EXISTS(SELECT *
 				FROM chore_completions AS exists_subclause_chore_completions
+                NATURAL JOIN chore_sessions
                 WHERE exists_subclause_chore_completions.is_completed = 1
 					AND exists_subclause_chore_completions.chore_id = chore_completions.chore_id)
