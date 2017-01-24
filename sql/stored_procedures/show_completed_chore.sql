@@ -14,7 +14,7 @@ BEGIN
 		NATURAL JOIN chore_completions
 		NATURAL JOIN chore_sessions
 		WHERE chore_completion_id = chore_completion_id_to_show
-			AND is_completed = 1;
+			AND chore_completion_status_id = 4;
 END$$
 
 DELIMITER ;

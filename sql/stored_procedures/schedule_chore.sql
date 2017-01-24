@@ -1,5 +1,5 @@
 USE chores;
-DROP procedure IF EXISTS schedule_chore;
+DROP PROCEDURE IF EXISTS schedule_chore;
 
 DELIMITER $$
 USE chores$$
@@ -14,9 +14,9 @@ BEGIN
 			WHERE chore = chore_name;
 	END IF;
 	INSERT INTO chore_completions
-		(chore_id, is_completed)
+		(chore_id, chore_completion_status_id)
         VALUES
-        (chore_to_schedule_id, 0);
+        (chore_to_schedule_id, 1);
 	SET new_chore_completion_id = LAST_INSERT_ID();
     INSERT INTO chore_schedule
 		(chore_completion_id, due_date)

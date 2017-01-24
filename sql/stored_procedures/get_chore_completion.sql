@@ -11,7 +11,7 @@ this_procedure:BEGIN
 		NATURAL JOIN chores
 		NATURAL JOIN chore_schedule
 		WHERE chores.chore = chore_name
-			AND is_completed = 0;
+			AND chore_completion_status_id = 1;
 	IF @earliest_due_date IS NULL
 	THEN
 		LEAVE this_procedure;
@@ -21,7 +21,7 @@ this_procedure:BEGIN
 		NATURAL JOIN chores
 		NATURAL JOIN chore_schedule
 		WHERE chores.chore = chore_name
-			AND is_completed = 0
+			AND chore_completion_status_id = 1
 			AND due_date = @earliest_due_date;
 END$$
 

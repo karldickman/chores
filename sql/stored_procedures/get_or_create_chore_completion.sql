@@ -15,27 +15,7 @@ this_procedure:BEGIN
     THEN
 		LEAVE this_procedure;
 	END IF;
-	SELECT chore_id INTO @chore_id
-		FROM chores
-		WHERE chore = chore_name;
-	IF @chore_id IS NULL
-	THEN
-		SET @message = 'Could not find chore record for "' + chore_name + '."';
-		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @message;
-	END IF;
-	IF chore_due_date IS NULL
-	THEN
-		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Parameter chore_due_date cannot be NULL.';
-	END IF;
-	INSERT INTO chore_completions
-		(chore_id, is_completed)
-		VALUES
-		(@chore_id, 0);
-	SET found_chore_completion_id = LAST_INSERT_ID();
-	INSERT INTO chore_schedule
-		(chore_completion_id, due_date)
-		VALUES
-		(found_chore_completion_id, chore_due_date);
+	CALL create_chore_completion(chore_name, chore_due_date, found_chore_completion_id);
 END$$
 
 DELIMITER ;
