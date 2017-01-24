@@ -14,9 +14,9 @@ SELECT chore_completions.chore_id
 		ON chore_completions.chore_completion_id = chore_completion_durations.chore_completion_id
 	LEFT OUTER JOIN last_chore_completion_times
 		ON chore_completions.chore_id = last_chore_completion_times.chore_id
-	WHERE is_completed = 0
+	WHERE chore_completion_status_id = 1
 		AND NOT EXISTS(SELECT *
 				FROM chore_completions AS exists_subclause_chore_completions
                 NATURAL JOIN chore_sessions
-                WHERE exists_subclause_chore_completions.is_completed = 1
+                WHERE exists_subclause_chore_completions.chore_completion_status_id = 4
 					AND exists_subclause_chore_completions.chore_id = chore_completions.chore_id)

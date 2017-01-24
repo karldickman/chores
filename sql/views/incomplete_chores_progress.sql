@@ -13,4 +13,4 @@ SELECT chore_id
 	LEFT OUTER JOIN chore_completion_durations
 		ON chore_completions.chore_completion_id = chore_completion_durations.chore_completion_id
 	CROSS JOIN all_chore_durations
-    WHERE is_completed = 0
+    WHERE chore_completion_status_id = 1
