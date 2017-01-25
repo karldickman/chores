@@ -13,7 +13,7 @@ CREATE PROCEDURE complete_unscheduled_chore(
 BEGIN
 	CALL create_chore_completion(chore_name, when_completed, new_chore_completion_id);
     CALL record_chore_session(new_chore_completion_id, when_completed, minutes, seconds, @new_chore_session_id);
-    CALL record_chore_completed(new_chore_completion_id, NULL, next_chore_completion_id);
+    CALL record_chore_completed(new_chore_completion_id, NULL, 4, next_chore_completion_id, FALSE);
 END$$
 
 DELIMITER ;
