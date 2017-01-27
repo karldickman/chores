@@ -27,19 +27,16 @@ this_procedure:BEGIN
     THEN
 		LEAVE this_procedure;
     END IF;
-    /* Leave the procedure if there is a later completion date than this one */
-    SELECT when_completed INTO @when_completed
-		FROM chore_completions_when_completed
-        WHERE chore_completions_when_completed.chore_completion_id = completed_chore_completion_id;
-	IF @when_completed IS NULL
-    THEN
-		SET @when_completed = CURRENT_TIMESTAMP;
-    END IF;
+    /* Leave the procedure if there is a later due date than this one */
+    SELECT due_date INTO @due_date
+		FROM chore_completions
+        NATURAL JOIN chore_schedule
+        WHERE chore_completion_id = completed_chore_completion_id;
     IF EXISTS(SELECT *
-		FROM chore_completion_durations
-        NATURAL JOIN chore_completions
+		FROM chore_completions
+        NATURAL JOIN chore_schedule
         WHERE chore_id = @chore_id
-			AND when_completed > @when_completed)
+			AND due_date > @due_date)
 	THEN
 		LEAVE this_procedure;
     END IF;        
@@ -57,6 +54,10 @@ this_procedure:BEGIN
         WHERE chore_completion_next_due_dates.chore_completion_id = completed_chore_completion_id;
 	IF @next_due_date IS NULL
     THEN
+		SELECT when_completed INTO @when_completed
+			FROM chore_completions_when_completed
+			WHERE chore_completions_when_completed.chore_completion_id = completed_chore_completion_id;
+		SET @when_completed = COALESCE(@when_completed, CURRENT_TIMESTAMP);
 		SET @next_due_date = DATE_ADD(@when_completed, INTERVAL @frequency DAY);
     END IF;
     SET @next_due_date = DATE(@next_due_date);
