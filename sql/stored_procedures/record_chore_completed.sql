@@ -15,9 +15,9 @@ BEGIN
 			VALUES
 			(completed_chore_completion_id, when_completed);
 	END IF;
+	SET @status_since = CURRENT_TIMESTAMP;
     IF update_history = TRUE
     THEN
-		SET @status_since = CURRENT_TIMESTAMP;
 		INSERT INTO chore_completion_status_history
 			(chore_completion_id, `from`, `to`, chore_completion_status_id)
 			SELECT chore_completion_id, chore_completion_status_since, @status_since, chore_completion_status_id
