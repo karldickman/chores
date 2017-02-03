@@ -1,5 +1,5 @@
 USE chores;
-DROP procedure IF EXISTS get_chore_completion;
+DROP PROCEDURE IF EXISTS get_chore_completion;
 
 DELIMITER $$
 USE chores$$
