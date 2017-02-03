@@ -26,20 +26,7 @@ this_procedure:BEGIN
 	IF @chore_completion_status_id = 1
     THEN
 		LEAVE this_procedure;
-    END IF;
-    /* Leave the procedure if there is a later due date than this one */
-    SELECT due_date INTO @due_date
-		FROM chore_completions
-        NATURAL JOIN chore_schedule
-        WHERE chore_completion_id = completed_chore_completion_id;
-    IF EXISTS(SELECT *
-		FROM chore_completions
-        NATURAL JOIN chore_schedule
-        WHERE chore_id = @chore_id
-			AND due_date > @due_date)
-	THEN
-		LEAVE this_procedure;
-    END IF;        
+    END IF;       
     /* Find the frequency between chores */
     SELECT frequency_days INTO @frequency
 		FROM chore_frequencies
@@ -63,7 +50,20 @@ this_procedure:BEGIN
     SET @next_due_date = DATE(@next_due_date);
 	/* If 7 or more days between chores, find the closest Sunday and use that */
     IF @frequency >= 7
-    THEN
+    THEN    
+		/* Leave the procedure if there is a later due date than this one */
+		SELECT due_date INTO @due_date
+			FROM chore_completions
+			NATURAL JOIN chore_schedule
+			WHERE chore_completion_id = completed_chore_completion_id;
+		IF EXISTS(SELECT *
+			FROM chore_completions
+			NATURAL JOIN chore_schedule
+			WHERE chore_id = @chore_id
+				AND due_date > @due_date)
+		THEN
+			LEAVE this_procedure;
+		END IF;
         SET @adjustment = 3 - MOD(WEEKDAY(@next_due_date) - 3, 7);
         SET @next_due_date = DATE_ADD(@next_due_date, INTERVAL @adjustment DAY);
 	END IF;
