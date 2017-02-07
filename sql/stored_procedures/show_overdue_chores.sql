@@ -38,11 +38,7 @@ BEGIN
 						ELSE 0
 					END) AS backlog_minutes
 				, SUM(remaining_minutes) AS non_truncated_backlog_minutes
-				, SQRT(SUM(CASE
-					WHEN remaining_minutes > 0
-						THEN POWER(stdev_duration_minutes, 2)
-						ELSE 0
-					END)) AS stdev_backlog_minutes
+				, SQRT(SUM(POWER(stdev_duration_minutes, 2))) AS stdev_backlog_minutes
 			FROM incomplete_chores_progress
 			LEFT OUTER JOIN chore_categories
 				ON incomplete_chores_progress.chore_id = chore_categories.chore_id
@@ -59,11 +55,7 @@ BEGIN
 						ELSE 0
 					END) AS backlog_minutes
 				, SUM(remaining_minutes) AS non_truncated_backlog_minutes
-				, SUM(CASE
-					WHEN remaining_minutes > 0
-						THEN stdev_duration_minutes
-						ELSE 0
-					END) AS stdev_backlog_minutes
+				, SUM(stdev_duration_minutes) AS stdev_backlog_minutes
 			FROM never_measured_chores_progress
 			LEFT OUTER JOIN chore_categories
 				ON never_measured_chores_progress.chore_id = chore_categories.chore_id
