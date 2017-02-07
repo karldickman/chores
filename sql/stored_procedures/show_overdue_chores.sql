@@ -1,9 +1,9 @@
 USE chores;
-DROP procedure IF EXISTS show_overdue_chores;
+DROP PROCEDURE IF EXISTS show_overdue_chores;
 
 DELIMITER $$
 USE chores$$
-CREATE DEFINER=root@localhost PROCEDURE show_overdue_chores(from_inclusive DATETIME, until_inclusive DATETIME, include_meals BOOL)
+CREATE PROCEDURE show_overdue_chores(from_inclusive DATETIME, until_inclusive DATETIME, include_meals BOOL)
 BEGIN
 	SET from_inclusive = COALESCE(from_inclusive, '1989-02-09');
     SET until_inclusive = COALESCE(until_inclusive, '2161-10-11');
@@ -27,21 +27,22 @@ BEGIN
 					WHERE category = 'meals'));
 	SELECT category
 			, SUM(number_of_chores) AS number_of_chores
-			, TIME_FORMAT(SEC_TO_TIME(SUM(backlog_hours) * 60 * 60), @time_format) AS backlog
-			, TIME_FORMAT(SEC_TO_TIME(SUM(stdev_backlog_hours) * 60 * 60), @time_format) AS std_dev
-			, TIME_FORMAT(SEC_TO_TIME((SUM(backlog_hours) + 1.282 * SUM(stdev_backlog_hours)) * 60 * 60), @time_format) AS `90% CI UB`
+			, TIME_FORMAT(SEC_TO_TIME(SUM(backlog_minutes) * 60), @time_format) AS backlog
+			, TIME_FORMAT(SEC_TO_TIME(SUM(stdev_backlog_minutes) * 60), @time_format) AS std_dev
+			, TIME_FORMAT(SEC_TO_TIME((SUM(non_truncated_backlog_minutes) + 1.282 * SUM(stdev_backlog_minutes)) * 60), @time_format) AS `90% CI UB`
 		FROM (SELECT category
 				, COUNT(incomplete_chores_progress.chore_id) AS number_of_chores
 				, SUM(CASE
 					WHEN remaining_minutes > 0
 						THEN remaining_minutes
 						ELSE 0
-					END) / 60 AS backlog_hours
+					END) AS backlog_minutes
+				, SUM(remaining_minutes) AS non_truncated_backlog_minutes
 				, SQRT(SUM(CASE
 					WHEN remaining_minutes > 0
 						THEN POWER(stdev_duration_minutes, 2)
 						ELSE 0
-					END)) / 60 AS stdev_backlog_hours
+					END)) AS stdev_backlog_minutes
 			FROM incomplete_chores_progress
 			LEFT OUTER JOIN chore_categories
 				ON incomplete_chores_progress.chore_id = chore_categories.chore_id
@@ -56,12 +57,13 @@ BEGIN
 					WHEN remaining_minutes > 0
 						THEN remaining_minutes
 						ELSE 0
-					END) / 60 AS backlog_hours
+					END) AS backlog_minutes
+				, SUM(remaining_minutes) AS non_truncated_backlog_minutes
 				, SUM(CASE
 					WHEN remaining_minutes > 0
 						THEN stdev_duration_minutes
 						ELSE 0
-					END) / 60 AS stdev_backlog_hours
+					END) AS stdev_backlog_minutes
 			FROM never_measured_chores_progress
 			LEFT OUTER JOIN chore_categories
 				ON never_measured_chores_progress.chore_id = chore_categories.chore_id
