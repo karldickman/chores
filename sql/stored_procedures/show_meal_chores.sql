@@ -1,12 +1,10 @@
 USE chores;
-DROP PROCEDURE IF EXISTS show_overdue_chores;
+DROP PROCEDURE IF EXISTS show_meal_chores;
 
 DELIMITER $$
 USE chores$$
-CREATE PROCEDURE show_overdue_chores(from_inclusive DATETIME, until_inclusive DATETIME)
+CREATE PROCEDURE show_meal_chores(`date` DATETIME)
 BEGIN
-	SET from_inclusive = COALESCE(from_inclusive, '1989-02-09');
-    SET until_inclusive = COALESCE(until_inclusive, '2161-10-11');
 	SET @date_format = '%Y-%m-%d %H:%i';
     SET @time_format = '%H:%i:%S';
 	SELECT chore_completion_id
@@ -18,8 +16,8 @@ BEGIN
 			, TIME_FORMAT(SEC_TO_TIME(stdev_duration_minutes * 60), @time_format) AS std_dev
 			, TIME_FORMAT(SEC_TO_TIME((remaining_minutes + 1.282 * stdev_duration_minutes) * 60), @time_format) AS `90% CI UB`
 		FROM report_incomplete_chores
-		WHERE due_date BETWEEN from_inclusive AND until_inclusive
-			AND chore NOT IN (SELECT chore
+		WHERE DATE(due_date) = DATE(`date`)
+			AND chore IN (SELECT chore
 				FROM chores
 				NATURAL JOIN chore_categories
 				NATURAL JOIN categories
@@ -37,8 +35,8 @@ BEGIN
 				, SUM(remaining_minutes) AS non_truncated_backlog_minutes
 				, SQRT(SUM(POWER(stdev_duration_minutes, 2))) AS stdev_backlog_minutes
 			FROM incomplete_chores_progress
-			WHERE due_date BETWEEN from_inclusive AND until_inclusive
-				AND chore_id NOT IN (SELECT chore_id
+			WHERE DATE(due_date) = DATE(`date`)
+				AND chore_id IN (SELECT chore_id
 					FROM chore_categories
 					NATURAL JOIN categories
 					WHERE category = 'meals')
@@ -52,8 +50,8 @@ BEGIN
 				, SUM(remaining_minutes) AS non_truncated_backlog_minutes
 				, SUM(stdev_duration_minutes) AS stdev_backlog_minutes
 			FROM never_measured_chores_progress
-			WHERE due_date BETWEEN from_inclusive AND until_inclusive
-				AND chore_id NOT IN (SELECT chore_id
+			WHERE DATE(due_date) = DATE(`date`)
+				AND chore_id IN (SELECT chore_id
 					FROM chore_categories
 					NATURAL JOIN categories
 					WHERE category = 'meals')) AS backlog_calculations;
