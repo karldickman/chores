@@ -16,7 +16,7 @@ BEGIN
 			, TIME_FORMAT(SEC_TO_TIME(stdev_duration_minutes * 60), @time_format) AS std_dev
 			, TIME_FORMAT(SEC_TO_TIME((remaining_minutes + 1.282 * stdev_duration_minutes) * 60), @time_format) AS `90% CI UB`
 		FROM report_incomplete_chores
-		WHERE DATE(due_date) = DATE(`date`)
+		WHERE due_date < DATE_ADD(DATE(`date`), INTERVAL 1 DAY)
 			AND chore IN (SELECT chore
 				FROM chores
 				NATURAL JOIN chore_categories
@@ -35,7 +35,7 @@ BEGIN
 				, SUM(remaining_minutes) AS non_truncated_backlog_minutes
 				, SQRT(SUM(POWER(stdev_duration_minutes, 2))) AS stdev_backlog_minutes
 			FROM incomplete_chores_progress
-			WHERE DATE(due_date) = DATE(`date`)
+			WHERE due_date < DATE_ADD(DATE(`date`), INTERVAL 1 DAY)
 				AND chore_id IN (SELECT chore_id
 					FROM chore_categories
 					NATURAL JOIN categories
@@ -50,7 +50,7 @@ BEGIN
 				, SUM(remaining_minutes) AS non_truncated_backlog_minutes
 				, SUM(stdev_duration_minutes) AS stdev_backlog_minutes
 			FROM never_measured_chores_progress
-			WHERE DATE(due_date) = DATE(`date`)
+			WHERE due_date < DATE_ADD(DATE(`date`), INTERVAL 1 DAY)
 				AND chore_id IN (SELECT chore_id
 					FROM chore_categories
 					NATURAL JOIN categories
