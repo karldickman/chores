@@ -23,7 +23,8 @@ BEGIN
 				FROM chores
 				NATURAL JOIN chore_categories
 				NATURAL JOIN categories
-				WHERE category = 'meals');
+				WHERE category = 'meals')
+		ORDER BY remaining_minutes, stdev_duration_minutes;
 	SELECT SUM(number_of_chores) AS number_of_chores
 			, TIME_FORMAT(SEC_TO_TIME(SUM(backlog_minutes) * 60), @time_format) AS backlog
 			, TIME_FORMAT(SEC_TO_TIME(SUM(stdev_backlog_minutes) * 60), @time_format) AS std_dev
