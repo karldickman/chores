@@ -1,6 +1,6 @@
 ALTER VIEW incomplete_chores_progress
 AS
-SELECT chore_id
+SELECT chore_completions.chore_id
 		, chore_completions.chore_completion_id
         , due_date
         , last_completed
@@ -12,5 +12,7 @@ SELECT chore_id
     NATURAL JOIN chore_durations
 	LEFT OUTER JOIN chore_completion_durations
 		ON chore_completions.chore_completion_id = chore_completion_durations.chore_completion_id
+	LEFT OUTER JOIN last_chore_completion_times
+		ON chore_completions.chore_id = last_chore_completion_times.chore_id
 	CROSS JOIN all_chore_durations
     WHERE chore_completion_status_id = 1
