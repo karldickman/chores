@@ -67,7 +67,7 @@ this_procedure:BEGIN
         SET @adjustment = 3 - MOD(WEEKDAY(@next_due_date) - 3, 7);
         SET @next_due_date = DATE_ADD(@next_due_date, INTERVAL @adjustment DAY);
 	END IF;
-	CALL schedule_chore(@chore_id, NULL, @next_due_date, new_chore_completion_id);
+	CALL schedule_chore_by_id(@chore_id, @next_due_date, new_chore_completion_id);
 END$$
 
 DELIMITER ;
