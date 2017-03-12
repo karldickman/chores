@@ -20,5 +20,5 @@ SELECT chore_completion_id
 			INNER JOIN chore_completions
 				ON parent_chore_completion_id = chore_completions.chore_completion_id
 			NATURAL JOIN chores
-			WHERE measure_duration_recursively) AS recursive_chore_sessions
+            NATURAL JOIN chores_measured_recursively) AS recursive_chore_sessions
     GROUP BY chore_completion_id
