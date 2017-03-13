@@ -5,7 +5,7 @@ DELIMITER $$
 USE chores$$
 CREATE PROCEDURE schedule_next_chore (completed_chore_completion_id INT, OUT new_chore_completion_id INT)
 this_procedure:BEGIN
-	/* Change variables to NULL */
+	# Change variables to NULL
     SET @chore_completion_status_id = NULL;
     SET @chore_id = NULL;
     SET @when_completed = NULL;
@@ -16,7 +16,7 @@ this_procedure:BEGIN
     THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Parameter completed_chore_completion_id cannot be NULL.';
     END IF;
-	/* Leave the procedure if not completed */
+	# Leave the procedure if not completed
 	SELECT chore_completion_status_id INTO @chore_completion_status_id
 		FROM chore_completions
         WHERE chore_completions.chore_completion_id = completed_chore_completion_id;
@@ -26,8 +26,13 @@ this_procedure:BEGIN
 	IF @chore_completion_status_id = 1
     THEN
 		LEAVE this_procedure;
-    END IF;       
-    /* Find the frequency between chores */
+    END IF;
+    # Leave the procedure if scheduled in advance
+    IF EXISTS(SELECT * FROM chore_schedule_in_advance WHERE chore_id = @chore_id)
+    THEN
+		LEAVE this_procedure;
+	END IF;
+    # Find the frequency between chores
     SELECT frequency_days INTO @frequency
 		FROM chore_frequencies
         WHERE chore_id = @chore_id;
@@ -35,7 +40,7 @@ this_procedure:BEGIN
     THEN
 		LEAVE this_procedure;
 	END IF;
-	/* Get the next chore schedule date */
+	# Get the next chore schedule date
 	SELECT next_due_date INTO @next_due_date 
 		FROM chore_completion_next_due_dates
         WHERE chore_completion_next_due_dates.chore_completion_id = completed_chore_completion_id;
@@ -48,10 +53,10 @@ this_procedure:BEGIN
 		SET @next_due_date = DATE_ADD(@when_completed, INTERVAL @frequency DAY);
     END IF;
     SET @next_due_date = DATE(@next_due_date);
-	/* If 7 or more days between chores, find the closest Sunday and use that */
+	# If 7 or more days between chores, find the closest Sunday and use that
     IF @frequency >= 7
     THEN    
-		/* Leave the procedure if there is a later due date than this one */
+		# Leave the procedure if there is a later due date than this one
 		SELECT due_date INTO @due_date
 			FROM chore_completions
 			NATURAL JOIN chore_schedule
