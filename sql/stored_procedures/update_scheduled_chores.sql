@@ -19,7 +19,6 @@ BEGIN
 			LEAVE read_loop;
 		END IF;
         CALL schedule_chore_by_id(chore_to_schedule_id, due_date, @c);
-        CALL show_chore_completion(@c);
     END LOOP;
     CLOSE to_schedule_cursor;
 END$$
