@@ -27,10 +27,11 @@ this_procedure:BEGIN
     THEN
 		LEAVE this_procedure;
     END IF;
-    # If the chore is scheduled in advance, simply invoke the update chore schedule procedure
+    # Schedule the remaining chores
+	CALL update_chore_schedule();
+    # If the chore is scheduled in advance, leave the procedure
     IF EXISTS(SELECT * FROM chore_schedule_in_advance WHERE chore_id = @chore_id)
     THEN
-		CALL update_chore_schedule();
 		LEAVE this_procedure;
 	END IF;
     # Find the frequency between chores
