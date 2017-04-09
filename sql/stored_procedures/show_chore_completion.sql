@@ -35,7 +35,8 @@ BEGIN
 			ON chore_completions.chore_completion_id = chore_sessions_and_child_sessions.chore_completion_id
 		LEFT OUTER JOIN chores AS child_chores
 			ON chore_sessions_and_child_sessions.chore_id = child_chores.chore_id
-		WHERE chore_completions.chore_completion_id = chore_completion_id_to_show;
+		WHERE chore_completions.chore_completion_id = chore_completion_id_to_show
+        ORDER BY when_completed;
 END$$
 
 DELIMITER ;
