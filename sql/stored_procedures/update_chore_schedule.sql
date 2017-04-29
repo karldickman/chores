@@ -2,7 +2,6 @@ USE chores;
 DROP PROCEDURE IF EXISTS update_chore_schedule;
 
 DELIMITER $$
-USE chores$$
 CREATE PROCEDURE update_chore_schedule()
 BEGIN
 	DECLARE cursor_done INT DEFAULT FALSE;
