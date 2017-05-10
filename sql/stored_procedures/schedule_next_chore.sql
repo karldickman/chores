@@ -17,10 +17,10 @@ this_procedure:BEGIN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Parameter completed_chore_completion_id cannot be NULL.';
     END IF;
 	# Leave the procedure if not completed
-	SELECT chore_completion_status_id INTO @chore_completion_status_id
+	SELECT chore_id INTO @chore_id
 		FROM chore_completions
         WHERE chore_completions.chore_completion_id = completed_chore_completion_id;
-	SELECT chore_id INTO @chore_id
+	SELECT chore_completion_status_id INTO @chore_completion_status_id
 		FROM chore_completions
         WHERE chore_completions.chore_completion_id = completed_chore_completion_id;
 	IF @chore_completion_status_id = 1
@@ -35,10 +35,13 @@ this_procedure:BEGIN
 		LEAVE this_procedure;
 	END IF;
     # Find the frequency between chores
-    SELECT frequency_days INTO @frequency
+    SELECT frequency INTO @frequency
 		FROM chore_frequencies
         WHERE chore_id = @chore_id;
-	IF @frequency IS NULL
+    SELECT frequency_unit_id INTO @frequency_unit_id
+		FROM chore_frequencies
+        WHERE chore_id = @chore_id;
+	IF @frequency IS NULL OR @frequency_unit_id IS NULL
     THEN
 		LEAVE this_procedure;
 	END IF;
@@ -52,11 +55,15 @@ this_procedure:BEGIN
 			FROM chore_completions_when_completed
 			WHERE chore_completions_when_completed.chore_completion_id = completed_chore_completion_id;
 		SET @when_completed = COALESCE(@when_completed, CURRENT_TIMESTAMP);
-		SET @next_due_date = DATE_ADD(@when_completed, INTERVAL @frequency DAY);
+        IF @frequency_unit_id = 1 THEN
+			SET @next_due_date = DATE_ADD(@when_completed, INTERVAL @frequency DAY);
+		ELSEIF @frequency_unit_id = 2 THEN
+			SET @next_due_date = DATE_ADD(@when_completed, INTERVAL @frequency MONTH);
+        END IF;
     END IF;
     SET @next_due_date = DATE(@next_due_date);
 	# If 7 or more days between chores, find the closest Sunday and use that
-    IF @frequency >= 7
+    IF @frequency >= 7 AND @frequency_unit_id = 1
     THEN    
 		# Leave the procedure if there is a later due date than this one
 		SELECT due_date INTO @due_date
