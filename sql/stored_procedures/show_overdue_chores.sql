@@ -24,6 +24,10 @@ BEGIN
 				NATURAL JOIN chore_categories
 				NATURAL JOIN categories
 				WHERE category = 'meals')
+			AND chore_completion_id NOT IN (SELECT parent_chore_completion_id
+				FROM chore_completion_hierarchy
+                NATURAL JOIN chore_completions
+                WHERE chore_completion_status_id = 1)
 		ORDER BY remaining_minutes, stdev_duration_minutes;
 	SELECT SUM(number_of_chores) AS number_of_chores
 			, TIME_FORMAT(SEC_TO_TIME(SUM(backlog_minutes) * 60), @time_format) AS backlog
@@ -43,6 +47,10 @@ BEGIN
 					FROM chore_categories
 					NATURAL JOIN categories
 					WHERE category = 'meals')
+				AND chore_completion_id NOT IN (SELECT parent_chore_completion_id
+					FROM chore_completion_hierarchy
+					NATURAL JOIN chore_completions
+					WHERE chore_completion_status_id = 1)
 		UNION
 		SELECT COUNT(never_measured_chores_progress.chore_id) AS number_of_chores
 				, SUM(CASE
@@ -57,7 +65,11 @@ BEGIN
 				AND chore_id NOT IN (SELECT chore_id
 					FROM chore_categories
 					NATURAL JOIN categories
-					WHERE category = 'meals')) AS backlog_calculations;
+					WHERE category = 'meals')
+				AND chore_completion_id NOT IN (SELECT parent_chore_completion_id
+					FROM chore_completion_hierarchy
+					NATURAL JOIN chore_completions
+					WHERE chore_completion_status_id = 1)) AS backlog_calculations;
 END$$
 
 DELIMITER ;
