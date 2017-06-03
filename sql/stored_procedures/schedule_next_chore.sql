@@ -63,7 +63,7 @@ this_procedure:BEGIN
     END IF;
     SET @next_due_date = DATE(@next_due_date);
 	# If 7 or more days between chores, find the closest Sunday and use that
-    IF @frequency >= 7 AND @frequency_unit_id = 1
+    IF @frequency >= 7 AND @frequency_unit_id = 1 OR @frequency > 0.25 AND @frequency_unit_id = 2
     THEN    
 		# Leave the procedure if there is a later due date than this one
 		SELECT due_date INTO @due_date
