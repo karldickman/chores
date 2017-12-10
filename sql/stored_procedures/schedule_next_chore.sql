@@ -34,6 +34,12 @@ this_procedure:BEGIN
     THEN
 		LEAVE this_procedure;
 	END IF;
+    # If the chore is scheduled by due date, use that to schedule the next chore
+    IF EXISTS(SELECT * FROM chore_due_dates WHERE chore_id = @chore_id)
+    THEN
+		CALL schedule_next_chore_by_due_date(@chore_id, new_chore_completion_id);
+		LEAVE this_procedure;
+    END IF;
     # Find the frequency between chores
     SELECT frequency INTO @frequency
 		FROM chore_frequencies
@@ -78,8 +84,7 @@ this_procedure:BEGIN
 		THEN
 			LEAVE this_procedure;
 		END IF;
-        SET @adjustment = 3 - MOD(WEEKDAY(@next_due_date) - 3, 7);
-        SET @next_due_date = DATE_ADD(@next_due_date, INTERVAL @adjustment DAY);
+        CALL get_nearest_sunday(@next_due_date, @next_due_date);
 	END IF;
 	CALL schedule_chore_by_id(@chore_id, @next_due_date, new_chore_completion_id);
 END$$
