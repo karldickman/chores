@@ -10,6 +10,10 @@ BEGIN
 	THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Parameter chore_to_schedule_id cannot be NULL.';
 	END IF;
+    IF NOT EXISTS(SELECT * FROM chores WHERE chore_id = chore_to_schedule_id)
+    THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Parameter chore_to_schedule_id does not refer to a valid chore record.';
+    END IF;
 	INSERT INTO chore_completions
 		(chore_id, chore_completion_status_id)
         VALUES
