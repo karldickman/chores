@@ -9,12 +9,12 @@ BEGIN
     SET @time_format = '%H:%i:%S';
 	SELECT chore_completion_id
 			, chore
-			, DATE_FORMAT(due_date, @date_format) AS due_date
-            , DATE_FORMAT(last_completed, @date_format) AS last_completed
-            , TIME_FORMAT(SEC_TO_TIME(completed_minutes * 60), @time_format) AS completed
-            , TIME_FORMAT(SEC_TO_TIME(remaining_minutes * 60), @time_format) AS remaining
-			, TIME_FORMAT(SEC_TO_TIME(stdev_duration_minutes * 60), @time_format) AS std_dev
-			, TIME_FORMAT(SEC_TO_TIME((remaining_minutes + 1.282 * stdev_duration_minutes) * 60), @time_format) AS `90% CI UB`
+			, due_date
+            , last_completed
+            , completed
+            , remaining
+			, std_dev
+			, `90% CI UB`
 		FROM report_incomplete_chores
 		WHERE due_date < DATE_ADD(DATE(`date`), INTERVAL 1 DAY)
 			AND chore IN (SELECT chore
