@@ -22,6 +22,16 @@ BEGIN
 					FROM chore_frequencies
 					NATURAL JOIN chore_completions
 					WHERE frequency_unit_id = 1
+						AND frequency <= 7
+				UNION
+				SELECT chore_completions.chore_completion_id
+					FROM chore_completions
+                    NATURAL JOIN chore_completion_hierarchy
+                    INNER JOIN chore_completions AS parent_chore_completions
+						ON parent_chore_completion_id = parent_chore_completions.chore_completion_id
+					INNER JOIN chore_frequencies
+						ON parent_chore_completions.chore_id = chore_frequencies.chore_id
+					WHERE frequency_unit_id = 1
 						AND frequency <= 7)
 		ORDER BY remaining, std_dev;
 	SET @date_format = '%Y-%m-%d %H:%i';
@@ -39,6 +49,13 @@ BEGIN
 				AND chore_id IN (SELECT chore_id
 					FROM chore_frequencies
                     WHERE frequency_unit_id = 1
+						AND frequency <= 7
+				UNION
+                SELECT chore_hierarchy.chore_id
+					FROM chore_frequencies
+                    INNER JOIN chore_hierarchy
+						ON chore_frequencies.chore_id = chore_hierarchy.parent_chore_id
+                    WHERE frequency_unit_id = 1
 						AND frequency <= 7)
 		UNION
 		SELECT COUNT(chore_id) AS number_of_chores
@@ -49,6 +66,13 @@ BEGIN
 			WHERE due_date <= until_inclusive
 				AND chore_id IN (SELECT chore_id
 					FROM chore_frequencies
+                    WHERE frequency_unit_id = 1
+						AND frequency <= 7
+				UNION
+                SELECT chore_hierarchy.chore_id
+					FROM chore_frequencies
+                    INNER JOIN chore_hierarchy
+						ON chore_frequencies.chore_id = chore_hierarchy.parent_chore_id
                     WHERE frequency_unit_id = 1
 						AND frequency <= 7))
 		AS backlog_calculations;
