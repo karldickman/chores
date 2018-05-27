@@ -2,7 +2,6 @@ USE chores;
 DROP PROCEDURE IF EXISTS show_overdue_chores;
 
 DELIMITER $$
-USE chores$$
 CREATE PROCEDURE show_overdue_chores(from_inclusive DATETIME, until_inclusive DATETIME)
 BEGIN
 	SET from_inclusive = COALESCE(from_inclusive, '1989-02-09');
