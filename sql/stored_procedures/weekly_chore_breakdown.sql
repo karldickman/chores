@@ -6,10 +6,15 @@ USE chores$$
 CREATE PROCEDURE weekly_chore_breakdown ()
 BEGIN
 	SELECT chore
+			, frequency * CASE
+				WHEN frequency_unit_id = 2
+					THEN 365.0 / 12
+				ELSE 1.0
+				END AS `frequency (days)`
 			, CASE
 				WHEN frequency_unit_id = 1
 					THEN 7.0
-				ELSE 12 / 52
+				ELSE 12.0 / 52
 				END / frequency * avg_duration_minutes AS `duration/weekend`
 			, avg_duration_minutes AS `duration/chore`
 		FROM chores
