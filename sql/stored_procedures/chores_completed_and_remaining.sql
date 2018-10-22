@@ -44,7 +44,7 @@ BEGIN
 			AND chore_completion_status_since BETWEEN @saturday AND @sunday_midnight)
 	SELECT chore
 			, due_date
-			, frequency = 7 AND frequency_unit_id = 1 /*Days*/ AS weekly
+			, frequency <= 7 AND frequency_unit_id = 1 /*Days*/ AS weekly
 			, duration_minutes
 			, completed_minutes
 			, remaining_minutes
