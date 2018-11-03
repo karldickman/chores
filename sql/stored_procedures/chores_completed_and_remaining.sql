@@ -34,6 +34,8 @@ BEGIN
 			, 0 AS stdev_duration_minutes
 			, 0 AS `90% CI UB`
 		FROM chore_completions
+        LEFT OUTER JOIN chore_completions_when_completed
+			ON chore_completions.chore_completion_id = chore_completions_when_completed.chore_completion_id
 		LEFT OUTER JOIN chore_schedule
 			ON chore_completions.chore_completion_id = chore_schedule.chore_completion_id
 		LEFT OUTER JOIN chore_completion_durations
@@ -41,7 +43,7 @@ BEGIN
 		LEFT OUTER JOIN chore_durations
 			ON chore_completions.chore_id = chore_durations.chore_id
 		WHERE chore_completion_status_id IN (3, 4) # completed
-			AND chore_completion_status_since BETWEEN `from` AND @until
+			AND chore_completions_when_completed.when_completed BETWEEN `from` AND @until
             AND chore_completions.chore_completion_id NOT IN (SELECT parent_chore_completion_id
 					FROM chore_completion_hierarchy
                     INNER JOIN chore_completions
