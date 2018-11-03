@@ -3,7 +3,7 @@ CREATE VIEW chore_completion_next_due_dates
 AS
 SELECT chore_completion_id
 		, schedule_from_date
-        , schedule_from_id
+        , chore_completions_schedule_from_dates.schedule_from_id
         , frequency
         , frequency_unit_id
         , time_unit AS frequency_unit
@@ -15,7 +15,8 @@ SELECT chore_completion_id
 			END AS next_due_date
 	FROM chore_completions_schedule_from_dates
     NATURAL JOIN chore_completions
-    NATURAL JOIN chore_frequencies
+    INNER JOIN chore_frequencies
+		ON chore_completions.chore_id = chore_frequencies.chore_id
     INNER JOIN time_units
 		ON frequency_unit_id = time_units.time_unit_id
     ORDER BY chore_completion_id
