@@ -3,10 +3,9 @@ DROP PROCEDURE IF EXISTS chores_completed_and_remaining;
 
 DELIMITER $$
 
-CREATE PROCEDURE chores_completed_and_remaining(sunday DATETIME)
+CREATE PROCEDURE chores_completed_and_remaining(`from` DATE, `until` DATE)
 BEGIN
-	SET @sunday_midnight = DATE_ADD(DATE(sunday), INTERVAL 1 DAY);
-	SET @saturday = DATE_ADD(@sunday_midnight, INTERVAL -2 DAY);
+	SET @until = DATE_ADD(DATE(`until`), INTERVAL 1 DAY);
 	WITH time_remaining_by_chore AS (SELECT incomplete_chores.chore_id
 			, chore_completion_id
 			, due_date
@@ -20,7 +19,7 @@ BEGIN
 		FROM incomplete_chores
 		INNER JOIN chore_durations
 			ON incomplete_chores.chore_id = chore_durations.chore_id
-		WHERE due_date < @sunday_midnight
+		WHERE due_date < @until
 			AND chore_completion_id NOT IN (SELECT chore_completion_id
 					FROM do_not_show_in_overdue_chores)
 	UNION
@@ -42,7 +41,7 @@ BEGIN
 		LEFT OUTER JOIN chore_durations
 			ON chore_completions.chore_id = chore_durations.chore_id
 		WHERE chore_completion_status_id IN (3, 4) # completed
-			AND chore_completion_status_since BETWEEN @saturday AND @sunday_midnight
+			AND chore_completion_status_since BETWEEN `from` AND @until
             AND chore_completions.chore_completion_id NOT IN (SELECT parent_chore_completion_id
 					FROM chore_completion_hierarchy
                     INNER JOIN chore_completions
