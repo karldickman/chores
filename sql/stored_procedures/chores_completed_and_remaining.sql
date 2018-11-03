@@ -51,6 +51,7 @@ BEGIN
 					WHERE chore_completion_status_id = 4))
 	SELECT chore
 			, due_date
+            , is_completed
 			, frequency IS NOT NULL AND frequency <= 7 AND frequency_unit_id = 1 /*Days*/ AS weekly
 			, duration_minutes
 			, completed_minutes
