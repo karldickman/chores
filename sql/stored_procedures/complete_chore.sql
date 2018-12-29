@@ -19,7 +19,8 @@ BEGIN
 	ELSE
 		CALL get_chore_completion(chore_name, found_chore_completion_id);
 	END IF;
-    CALL record_chore_completed(found_chore_completion_id, when_completed, 4, next_chore_completion_id, TRUE);
+    CALL record_chore_completed(found_chore_completion_id, when_completed, 4, TRUE);
+    CALL schedule_next_chore(found_chore_completion_id, next_chore_completion_id);
 END$$
 
 DELIMITER ;
