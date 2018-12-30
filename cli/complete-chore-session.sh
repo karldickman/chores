@@ -49,15 +49,16 @@ seconds=${time_components[1]}
 if [[ "$seconds" == "" ]]
 then
 	seconds=0
-fi;
+fi
+duration_minutes=$(echo "$minutes + $seconds / 60" | bc -l)
 when_completed=${arguments[2]//\'/\\\'}
 if [[ "$when_completed" == "" ]]
 then
 	when_completed=$(date "+%F %H:%M:%S")
-fi;
+fi
 
 # Invoke SQL
-sql="CALL complete_chore_session('$chore', '$when_completed', $minutes, $seconds, @c, @n)"
+sql="CALL complete_chore_session('$chore', '$when_completed', $duration_minutes, @c, @n)"
 if [[ $verbose -eq 1 ]]
 then
 	echo "$sql"
