@@ -33,6 +33,7 @@ do
 	if [[ $arg == "--preview" ]]
 	then
 		execute=0
+		verbose=1
 	fi
 	if [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
 	then
