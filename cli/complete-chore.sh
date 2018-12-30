@@ -59,9 +59,17 @@ then
 	exit 1
 fi
 chore=${arguments[0]//\'/\\\'}
+time_components=(${arguments[1]//:/ })
+minutes=${time_components[0]}
+seconds=${time_components[1]}
+if [[ "$seconds" == "" ]]
+then
+	seconds=0
+fi
+duration_minutes=$(echo "$minutes + $seconds / 60" | bc -l)
 if [[ $when_completed_known -eq 1 ]]
 then
-	when_completed=${arguments[1]//\'/\\\'}
+	when_completed=${arguments[2]//\'/\\\'}
 	if [[ "$when_completed" == "" ]]
 	then
 		when_completed=$(date "+%F %H:%M:%S")
@@ -74,8 +82,13 @@ fi
 # Invoke SQL
 if [[ $incomplete_data -eq 0 ]]
 then
-	echo "Mandatory option --incomplete-data is missing."
-	exit 1
+	if [[ $when_completed_known -eq 0 ]]
+	then
+		echo "Option --when-completed-unkown requires option --incomplete-data"
+		echo "$usage"
+		exit 1
+	fi
+	sql="CALL complete_chore('$chore', $when_completed, $duration_minutes, @c, @n)"
 else
 	sql="CALL complete_chore_without_data('$chore', $when_completed, @c, @n)"
 fi
