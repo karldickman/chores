@@ -1,12 +1,10 @@
 #!/bin/bash
 
-usage="$(basename "$0") CHORE [DURATION] [WHEN_COMPLETED] [OPTIONS]
+usage="$(basename "$0") CHORE [WHEN_COMPLETED] [OPTIONS]
 
-Record a chore completion.
+Record a chore completion of unknown duration.
 Arguments:
     CHORE                    The name of the chore completed.
-    DURATION                 How long it took to complete the chore in MM:SS.SS
-                             format.
     WHEN_COMPLETED           (Optional) When the chore was completed in
                              YYYY-MM-DD HH:MM:SS format.
 Options:
@@ -18,6 +16,7 @@ Options:
 i=0
 execute=1
 verbose=0
+when_completed_known=1
 for arg in "$@"
 do
 	if [[ $arg != -* ]]
@@ -50,27 +49,18 @@ then
 fi
 
 chore=${arguments[0]//\'/\\\'}
-if [[ ${#arguments[@]} -eq 1 ]]
+when_completed=${arguments[1]//\'/\\\'}
+if [[ "$when_completed" == "UNKNOWN" ]]
 then
-	sql="CALL complete_chore('$chore', NULL, NULL, @c, @n)"
+	when_completed="NULL"
 else
-	# Duration
-	time_components=(${arguments[1]//:/ })
-	minutes=${time_components[0]}
-	seconds=${time_components[1]}
-	if [[ "$seconds" == "" ]]
-	then
-		seconds=0
-	fi
-	duration_minutes=$(echo "$minutes + $seconds / 60" | bc -l)
-	# When completed
-	when_completed=${arguments[2]//\'/\\\'}
 	if [[ "$when_completed" == "" ]]
 	then
 		when_completed=$(date "+%F %H:%M:%S")
 	fi
-	sql="CALL complete_chore('$chore', '$when_completed', $duration_minutes, @c, @n)"
+	when_completed="'$when_completed'"
 fi
+sql="CALL complete_chore_without_data('$chore', $when_completed, @c, @n)"
 
 # Invoke SQL
 if [[ $verbose -eq 1 ]]
