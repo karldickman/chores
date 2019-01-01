@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS record_chore_completed;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE record_chore_completed (completed_chore_completion_id INT, when_completed DATETIME, new_chore_completion_status_id INT, update_history BIT)
 BEGIN
 	IF when_completed IS NOT NULL
