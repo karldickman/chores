@@ -1,10 +1,12 @@
 #!/bin/bash
 
-usage="$(basename "$0") CHORE [WHEN_COMPLETED] [OPTIONS]
+usage="$(basename "$0") CHORE [DURATION] [WHEN_COMPLETED] [OPTIONS]
 
 Record a chore completion.
 Arguments:
     CHORE                    The name of the chore completed.
+    DURATION                 How long it took to complete the chore in MM:SS.SS
+                             format.
     WHEN_COMPLETED           (Optional) When the chore was completed in
                              YYYY-MM-DD HH:MM:SS format.
 Options:
@@ -58,42 +60,50 @@ then
 	echo "$usage"
 	exit 1
 fi
+
 chore=${arguments[0]//\'/\\\'}
-time_components=(${arguments[1]//:/ })
-minutes=${time_components[0]}
-seconds=${time_components[1]}
-if [[ "$seconds" == "" ]]
+if [[ $incomplete_data -eq 1 ]]
 then
-	seconds=0
-fi
-duration_minutes=$(echo "$minutes + $seconds / 60" | bc -l)
-if [[ $when_completed_known -eq 1 ]]
+	if [[ $when_completed_known -eq 0 ]]
+	then
+		sql="CALL complete_chore_without_data('$chore', NULL, @c, @n)"
+	else
+		when_completed=${arguments[1]//\'/\\\'}
+		if [[ "$when_completed" == "" ]]
+		then
+			when_completed=$(date "+%F %H:%M:%S")
+		fi
+		sql="CALL complete_chore_without_data('$chore', '$when_completed', @c, @n)"
+	fi
+elif [[ ${#arguments[@]} -eq 1 ]]
 then
+	sql="CALL complete_chore('$chore', NULL, NULL, @c, @n)"
+else
+	if [[ ${#arguments[@]} -lt 2 ]]
+	then
+		echo "Missing required argument DURATION_MINUTES."
+		echo "$usage"
+		exit 1
+	fi
+	# Duration
+	time_components=(${arguments[1]//:/ })
+	minutes=${time_components[0]}
+	seconds=${time_components[1]}
+	if [[ "$seconds" == "" ]]
+	then
+		seconds=0
+	fi
+	duration_minutes=$(echo "$minutes + $seconds / 60" | bc -l)
+	# When completed
 	when_completed=${arguments[2]//\'/\\\'}
 	if [[ "$when_completed" == "" ]]
 	then
 		when_completed=$(date "+%F %H:%M:%S")
 	fi
-	when_completed="'$when_completed'"
-else
-	when_completed="NULL"
+	sql="CALL complete_chore('$chore', '$when_completed', $duration_minutes, @c, @n)"
 fi
 
 # Invoke SQL
-if [[ $incomplete_data -eq 0 ]]
-then
-	if [[ $when_completed_known -eq 0 ]]
-	then
-		echo "Option --when-completed-unkown requires option --incomplete-data"
-		echo "$usage"
-		exit 1
-	fi
-	sql="CALL complete_chore('$chore', $when_completed, $duration_minutes, @c, @n)"
-else
-	sql="CALL complete_chore_without_data('$chore', $when_completed, @c, @n)"
-fi
-
-
 if [[ $verbose -eq 1 ]]
 then
 	echo "$sql"
