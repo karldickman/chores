@@ -49,12 +49,11 @@ chore=${arguments[0]//\'/\\\'}
 # Invoke SQL
 sql="CALL skip_chore('$chore', @c, @n)"
 
-
 if [[ $verbose -eq 1 ]]
 then
 	echo "$sql"
 fi
 if [[ $execute -eq 1 ]]
 then
-	mysql chores -u chores -pM2TEncult7v3TrC90SUs -e "$sql"
+	mysql --login-path=chores chores -e "$sql"
 fi
