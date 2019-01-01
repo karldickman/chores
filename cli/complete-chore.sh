@@ -110,5 +110,5 @@ then
 	then
 		sql="$sql;SELECT @c;"
 	fi
-	mysql chores -u chores -pM2TEncult7v3TrC90SUs -e "$sql"
+	mysql chores -u chores -pM2TEncult7v3TrC90SUs -e "$sql" --silent --skip-column-names
 fi
