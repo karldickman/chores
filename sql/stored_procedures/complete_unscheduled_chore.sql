@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS complete_unscheduled_chore;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE complete_unscheduled_chore(
 	chore_name NVARCHAR(256),
     when_completed DATETIME,
@@ -12,7 +12,7 @@ CREATE PROCEDURE complete_unscheduled_chore(
     OUT next_chore_completion_id INT)
 BEGIN
 	CALL create_chore_completion(chore_name, new_chore_completion_id);
-    CALL record_chore_session(new_chore_completion_id, when_completed, minutes, seconds, @new_chore_session_id);
+    CALL record_chore_session(new_chore_completion_id, when_completed, minutes + seconds / 60.0, @new_chore_session_id);
     CALL record_chore_completed(new_chore_completion_id, NULL, 4, FALSE);
     IF next_chore_completion_id = TRUE
     THEN
