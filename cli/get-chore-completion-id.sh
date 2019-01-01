@@ -2,19 +2,17 @@
 
 usage="$(basename "$0") CHORE [OPTIONS]
 
-Record a chore completion.
+Get the most recent completion identifier of the specified chore.
 Arguments:
-    CHORE          The name of the chore completed.
+    CHORE          The name of the chore whose completion identifier to get.
 Options:
     -h, --help     Show this help text and exit.
     --preview      Show the SQL command to be executed.
-    -q, --quiet    Suppress output.
     -v, --verbose  Show SQL commands as they are executed."
 
 # Process options
 i=0
 execute=1
-quiet=0
 verbose=0
 for arg in "$@"
 do
@@ -33,10 +31,6 @@ do
 		execute=0
 		verbose=1
 	fi
-	if [[ $arg == "-q" ]] || [[ $arg == "--quiet" ]]
-	then
-		quiet=1
-	fi
 	if [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
 	then
 		verbose=1
@@ -53,7 +47,7 @@ fi
 chore=${arguments[0]//\'/\\\'}
 
 # Invoke SQL
-sql="CALL skip_chore('$chore', @c, @n)"
+sql="CALL get_chore_completion('$chore', @c)"
 
 if [[ $verbose -eq 1 ]]
 then
@@ -61,9 +55,6 @@ then
 fi
 if [[ $execute -eq 1 ]]
 then
-	if [[ $quiet -eq 0 ]]
-	then
-		sql="$sql;SELECT @c;"
-	fi
+	sql="$sql;SELECT @c;"
 	mysql --login-path=chores chores -e "$sql" --silent --skip-column-names
 fi
