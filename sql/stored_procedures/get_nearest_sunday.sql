@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS get_nearest_sunday;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE get_nearest_sunday (`date` DATE, OUT nearest_sunday DATE)
 BEGIN
     SET @adjustment = 6 - WEEKDAY(`date`);
