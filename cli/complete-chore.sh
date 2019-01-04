@@ -12,11 +12,13 @@ Arguments:
 Options:
     -h, --help               Show this help text and exit.
     --preview                Show the SQL command to be executed.
+    --unscheduled            The completed chore was not scheduled.
     -v, --verbose            Show SQL commands as they are executed."
 
 # Process options
 i=0
 execute=1
+unscheduled=0
 verbose=0
 for arg in "$@"
 do
@@ -34,6 +36,10 @@ do
 	then
 		execute=0
 		verbose=1
+	fi
+	if [[ $arg == "--unscheduled" ]]
+	then
+		unscheduled=1
 	fi
 	if [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
 	then
@@ -69,7 +75,12 @@ else
 	then
 		when_completed=$(date "+%F %H:%M:%S")
 	fi
-	sql="CALL complete_chore('$chore', '$when_completed', $duration_minutes, @c, @n)"
+	procedure="complete_chore"
+	if [[ $unscheduled -eq 1 ]]
+	then
+		procedure="complete_unscheduled_chore"
+	fi
+	sql="CALL $procedure('$chore', '$when_completed', $duration_minutes, @c, @n)"
 fi
 
 # Invoke SQL
