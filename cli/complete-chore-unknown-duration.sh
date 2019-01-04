@@ -16,7 +16,6 @@ Options:
 i=0
 execute=1
 verbose=0
-when_completed_known=1
 for arg in "$@"
 do
 	if [[ $arg != -* ]]
