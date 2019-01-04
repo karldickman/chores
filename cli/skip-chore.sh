@@ -1,10 +1,10 @@
 #!/bin/bash
 
-usage="$(basename "$0") CHORE [OPTIONS]
+usage="$(basename "$0") CHORE [CHORE] [OPTIONS]
 
 Record a chore completion.
 Arguments:
-    CHORE          The name of the chore completed.
+    CHORE          The name of the chore skipped.
 Options:
     -h, --help     Show this help text and exit.
     --preview      Show the SQL command to be executed.
@@ -18,7 +18,7 @@ for arg in "$@"
 do
 	if [[ $arg != -* ]]
 	then
-		arguments[$i]=$arg
+		arguments[$i]="$arg"
 		((i++))
 	fi
 	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
@@ -44,16 +44,18 @@ then
 	echo "$usage"
 	exit 1
 fi
-chore=${arguments[0]//\'/\\\'}
+for chore in "${arguments[@]}"
+do
+	chore=${chore//\'/\\\'}
+	# Invoke SQL
+	sql="CALL skip_chore('$chore', @c, @n)"
 
-# Invoke SQL
-sql="CALL skip_chore('$chore', @c, @n)"
-
-if [[ $verbose -eq 1 ]]
-then
-	echo "$sql"
-fi
-if [[ $execute -eq 1 ]]
-then
-	mysql --login-path=chores chores -e "$sql"
-fi
+	if [[ $verbose -eq 1 ]]
+	then
+		echo "$sql"
+	fi
+	if [[ $execute -eq 1 ]]
+	then
+		mysql --login-path=chores chores -e "$sql"
+	fi
+done
