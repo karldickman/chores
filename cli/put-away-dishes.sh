@@ -13,11 +13,13 @@ Options:
                              format.
     -h, --help               Show this help text and exit.
     --preview                Show the SQL command to be executed.
+    -q, --quiet              Suppress output.
     -v, --verbose            Show SQL commands as they are executed."
 
 # Process options
 i=0
 execute=1
+quiet=0
 verbose=0
 for arg in "$@"
 do
@@ -43,6 +45,10 @@ do
 	then
 		execute=0
 		verbose=1
+	fi
+	if [[ $arg == "-q" ]] || [[ $arg == "--quiet" ]]
+	then
+		quiet=1
 	fi
 	if [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
 	then
@@ -78,5 +84,9 @@ then
 fi
 if [[ $execute -eq 1 ]]
 then
-	mysql --login-path=chores chores -e "$sql"
+	if [[ $quiet -eq 0 ]]
+	then
+		sql="$sql;SELECT @c;"
+	fi
+	mysql --login-path=chores chores -e "$sql" --silent --skip-column-names
 fi
