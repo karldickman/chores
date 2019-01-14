@@ -2,8 +2,13 @@ DROP VIEW IF EXISTS incomplete_chores_next_due_dates;
 CREATE VIEW incomplete_chores_next_due_dates
 AS
 SELECT chore_completion_id
+		, chore_id
+        , chore_completion_status_id
+        , chore_completion_status_since
 		, schedule_from_date
         , frequency
+        , frequency_unit_id
+        , frequency_unit
         , DATE_ADD(next_due_date, INTERVAL CASE
 			WHEN WEEKDAY(next_due_date) < 3
 				THEN -1 - WEEKDAY(next_due_date)

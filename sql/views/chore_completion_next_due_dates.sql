@@ -2,7 +2,9 @@ DROP VIEW IF EXISTS chore_completion_next_due_dates;
 CREATE VIEW chore_completion_next_due_dates
 AS
 SELECT chore_completions.chore_completion_id
+		, chore_completions.chore_id
 		, chore_completions.chore_completion_status_id
+        , chore_completion_status_since
 		, schedule_from_date
         , chore_completions_schedule_from_dates.schedule_from_id
         , frequency
