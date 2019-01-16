@@ -22,14 +22,14 @@ o=0
 unscheduled=0
 for arg in "$@"
 do
-	if [[ $arg != -* ]]
-	then
-		arguments[$a]=$arg
-		((a++))
-	elif [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
+	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
 	then
 		echo "$usage"
 		exit
+	elif [[ $arg != -* ]]
+	then
+		arguments[$a]=$arg
+		((a++))
 	elif [[ $arg == "--unscheduled" ]]
 	then
 		unscheduled=1
