@@ -23,34 +23,28 @@ quiet=0
 verbose=0
 for arg in "$@"
 do
-	if [[ $arg != -* ]]
-	then
-		arguments[$i]=$arg
-		((i++))
-	fi
-	if [[ $arg == --dishwasher* ]]
-	then
-		dishwasher=$(echo $arg | cut -d= -f2)
-	fi
-	if [[ $arg == --drainer* ]]
-	then
-		drainer=$(echo $arg | cut -d= -f2)
-	fi
 	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
 	then
 		echo "$usage"
 		exit
-	fi
-	if [[ $arg == "--preview" ]]
+	elif [[ $arg != -* ]]
+	then
+		arguments[$i]=$arg
+		((i++))
+	elif [[ $arg == --dishwasher* ]]
+	then
+		dishwasher=$(echo $arg | cut -d= -f2)
+	elif [[ $arg == --drainer* ]]
+	then
+		drainer=$(echo $arg | cut -d= -f2)
+	elif [[ $arg == "--preview" ]]
 	then
 		execute=0
 		verbose=1
-	fi
-	if [[ $arg == "-q" ]] || [[ $arg == "--quiet" ]]
+	elif [[ $arg == "-q" ]] || [[ $arg == "--quiet" ]]
 	then
 		quiet=1
-	fi
-	if [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
+	elif [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
 	then
 		verbose=1
 	fi
