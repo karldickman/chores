@@ -10,12 +10,12 @@ Arguments:
 Options:
     -h, --help     Show this help text and exit.
     --preview      Show the SQL command to be executed.
+    -q, --quiet    Suppress output.
     -v, --verbose  Show SQL commands as they are executed."
 
 # Process options
-i=0
-execute=1
-verbose=0
+a=0
+o=0
 for arg in "$@"
 do
 	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
@@ -24,15 +24,11 @@ do
 		exit
 	elif [[ $arg != -* ]]
 	then
-		arguments[$i]=$arg
-		((i++))
-	elif [[ $arg == "--preview" ]]
-	then
-		execute=0
-		verbose=1
-	elif [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
-	then
-		verbose=1
+		arguments[$a]=$arg
+		((a++))
+	else
+		options[$o]=$arg
+		((o++))
 	fi
 done
 
@@ -55,11 +51,4 @@ due_date=${arguments[1]//\'/\\\'}
 sql="CALL schedule_chore('$chore', '$due_date', @c)"
 
 # Invoke SQL
-if [[ $verbose -eq 1 ]]
-then
-	echo "$sql"
-fi
-if [[ $execute -eq 1 ]]
-then
-	mysql --login-path=chores chores -e "$sql"
-fi
+chore-database "$sql" ${options[@]}

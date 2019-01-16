@@ -11,9 +11,8 @@ Options:
     -v, --verbose  Show SQL commands as they are executed."
 
 # Process options
-i=0
-execute=1
-verbose=0
+a=0
+o=0
 for arg in "$@"
 do
 	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
@@ -22,15 +21,16 @@ do
 		exit
 	elif [[ $arg != -* ]]
 	then
-		arguments[$i]=$arg
-		((i++))
-	elif [[ $arg == "--preview" ]]
+		arguments[$a]=$arg
+		((a++))
+	elif [[ $arg == "-q" ]] || [[ $arg == "--quiet" ]]
 	then
-		execute=0
-		verbose=1
-	elif [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
-	then
-		verbose=1
+		echo "--quiet flag is not allowed."
+		echo "$usage"
+		exit 1
+	else
+		options[$o]=$arg
+		((o++))
 	fi
 done
 
@@ -44,14 +44,4 @@ fi
 chore=${arguments[0]//\'/\\\'}
 
 # Invoke SQL
-sql="CALL get_chore_completion('$chore', @c)"
-
-if [[ $verbose -eq 1 ]]
-then
-	echo "$sql"
-fi
-if [[ $execute -eq 1 ]]
-then
-	sql="$sql;SELECT @c;"
-	mysql --login-path=chores chores -e "$sql" --silent --skip-column-names
-fi
+chore-database "$sql" ${options[@]}
