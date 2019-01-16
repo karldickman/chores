@@ -17,10 +17,8 @@ Options:
     -v, --verbose            Show SQL commands as they are executed."
 
 # Process options
-i=0
-execute=1
-quiet=0
-verbose=0
+a=0
+o=0
 for arg in "$@"
 do
 	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
@@ -29,24 +27,17 @@ do
 		exit
 	elif [[ $arg != -* ]]
 	then
-		arguments[$i]=$arg
-		((i++))
+		arguments[$a]=$arg
+		((a++))
 	elif [[ $arg == --dishwasher* ]]
 	then
 		dishwasher=$(echo $arg | cut -d= -f2)
 	elif [[ $arg == --drainer* ]]
 	then
 		drainer=$(echo $arg | cut -d= -f2)
-	elif [[ $arg == "--preview" ]]
-	then
-		execute=0
-		verbose=1
-	elif [[ $arg == "-q" ]] || [[ $arg == "--quiet" ]]
-	then
-		quiet=1
-	elif [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
-	then
-		verbose=1
+	else
+		options[$o]=$arg
+		((o++))
 	fi
 done
 
@@ -72,15 +63,4 @@ fi
 sql="CALL put_away_dishes('$when_completed', $drainer_minutes, $dishwasher_minutes, @c, @n)"
 
 # Invoke SQL
-if [[ $verbose -eq 1 ]]
-then
-	echo "$sql"
-fi
-if [[ $execute -eq 1 ]]
-then
-	if [[ $quiet -eq 0 ]]
-	then
-		sql="$sql;SELECT @c;"
-	fi
-	mysql --login-path=chores chores -e "$sql" --silent --skip-column-names
-fi
+chore-database "$sql" ${options[@]}
