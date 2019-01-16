@@ -17,39 +17,25 @@ Options:
     -v, --verbose            Show SQL commands as they are executed."
 
 # Process options
-i=0
-execute=1
-quiet=0
+a=0
+o=0
 unscheduled=0
-verbose=0
 for arg in "$@"
 do
 	if [[ $arg != -* ]]
 	then
-		arguments[$i]=$arg
-		((i++))
-	fi
-	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
+		arguments[$a]=$arg
+		((a++))
+	elif [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
 	then
 		echo "$usage"
 		exit
-	fi
-	if [[ $arg == "--preview" ]]
-	then
-		execute=0
-		verbose=1
-	fi
-	if [[ $arg == "-q" ]] || [[ $arg == "--quiet" ]]
-	then
-		quiet=1
-	fi
-	if [[ $arg == "--unscheduled" ]]
+	elif [[ $arg == "--unscheduled" ]]
 	then
 		unscheduled=1
-	fi
-	if [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
-	then
-		verbose=1
+	else
+		options[$o]=$arg
+		((o++))
 	fi
 done
 
@@ -90,15 +76,4 @@ else
 fi
 
 # Invoke SQL
-if [[ $verbose -eq 1 ]]
-then
-	echo "$sql"
-fi
-if [[ $execute -eq 1 ]]
-then
-	if [[ $quiet -eq 0 ]]
-	then
-		sql="$sql;SELECT @c;"
-	fi
-	mysql --login-path=chores chores -e "$sql" --silent --skip-column-names
-fi
+chore-database "$sql" ${options[@]}
