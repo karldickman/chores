@@ -6,13 +6,13 @@ Record a chore session.
 Arguments:
     CHORE           The name of the chore completed.
     DURATION        How long it took to complete the chore in MM:SS.SS
-	                format.
+                    format.
     WHEN_COMPLETED  (Optional) When the chore was completed in
-	                YYYY-MM-DD HH:MM:SS format.
+                    YYYY-MM-DD HH:MM:SS format.
 Options:
     -h, --help      Show this help text and exit.
     --preview       Show the SQL command to be executed.
-	-v, --verbose   Show SQL commands as they are executed."
+    -v, --verbose   Show SQL commands as they are executed."
 
 # Process options
 i=0
