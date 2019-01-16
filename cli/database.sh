@@ -18,14 +18,14 @@ execute=1
 verbosity=1
 for arg in "$@"
 do
-	if [[ $arg != -* ]]
-	then
-		commands[$i]=$arg
-		((i++))
-	elif [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
+	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
 	then
 		echo "$usage"
 		exit
+	elif [[ $arg != -* ]]
+	then
+		commands[$i]=$arg
+		((i++))
 	elif [[ $arg == "--preview" ]]
 	then
 		execute=0
