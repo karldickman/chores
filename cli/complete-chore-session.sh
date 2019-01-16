@@ -24,18 +24,15 @@ do
 	then
 		echo "$usage"
 		exit
-	fi
-	if [[ $arg != -* ]]
+	elif [[ $arg != -* ]]
 	then
 		arguments[$i]=$arg
 		((i++))
-	fi
-	if [[ $arg == "--preview" ]]
+	elif [[ $arg == "--preview" ]]
 	then
 		execute=0
 		verbose=1
-	fi
-	if [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
+	elif [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
 	then
 		verbose=1
 	fi

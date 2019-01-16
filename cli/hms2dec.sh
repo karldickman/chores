@@ -14,8 +14,7 @@ do
 	then
 		echo "$usage"
 		exit
-	fi
-	if [[ $arg != -* ]]
+	elif [[ $arg != -* ]]
 	then
 		arguments[$i]=$arg
 		((i++))
