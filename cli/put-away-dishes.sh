@@ -21,6 +21,11 @@ execute=1
 verbose=0
 for arg in "$@"
 do
+	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
+	then
+		echo "$usage"
+		exit
+	fi
 	if [[ $arg != -* ]]
 	then
 		arguments[$i]=$arg
@@ -33,11 +38,6 @@ do
 	if [[ $arg == --drainer* ]]
 	then
 		drainer=$(echo $arg | cut -d= -f2)
-	fi
-	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
-	then
-		echo "$usage"
-		exit
 	fi
 	if [[ $arg == "--preview" ]]
 	then

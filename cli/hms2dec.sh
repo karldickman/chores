@@ -10,15 +10,15 @@ Options:
 i=0
 for arg in "$@"
 do
-	if [[ $arg != -* ]]
-	then
-		arguments[$i]=$arg
-		((i++))
-	fi
 	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
 	then
 		echo "$usage"
 		exit
+	fi
+	if [[ $arg != -* ]]
+	then
+		arguments[$i]=$arg
+		((i++))
 	fi
 done
 

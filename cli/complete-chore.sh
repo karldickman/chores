@@ -22,15 +22,15 @@ unscheduled=0
 verbose=0
 for arg in "$@"
 do
-	if [[ $arg != -* ]]
-	then
-		arguments[$i]=$arg
-		((i++))
-	fi
 	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
 	then
 		echo "$usage"
 		exit
+	fi
+	if [[ $arg != -* ]]
+	then
+		arguments[$i]=$arg
+		((i++))
 	fi
 	if [[ $arg == "--preview" ]]
 	then
