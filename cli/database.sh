@@ -22,34 +22,36 @@ do
 	then
 		commands[$i]=$arg
 		((i++))
-	fi
-	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
+	elif [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
 	then
 		echo "$usage"
 		exit
-	fi
-	if [[ $arg == "--preview" ]]
+	elif [[ $arg == "--preview" ]]
 	then
 		execute=0
 		verbosity=2
-	fi
-	if [[ $arg == "-q" ]] || [[ $arg == "--quiet" ]]
+	elif [[ $arg == "-q" ]] || [[ $arg == "--quiet" ]]
 	then
 		if [[ $verbosity -eq 2 ]]
 		then
 			echo "--verbose and --quiet cannot be used together."
+			echo "$usage"
 			exit 1
 		fi
 		verbosity=0
-	fi
-	if [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
+	elif [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
 	then
 		if [[ $verbosity -eq 0 ]]
 		then
 			echo "--verbose and --quiet cannot be used together."
+			echo "$usage"
 			exit 1
 		fi
 		verbosity=2
+	else
+		echo "Unknown option $arg."
+		echo "$usage"
+		exit 1
 	fi
 done
 
