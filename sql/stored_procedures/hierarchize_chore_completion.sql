@@ -5,10 +5,12 @@ DELIMITER $$
 
 CREATE PROCEDURE hierarchize_chore_completion(
 	chore_name NVARCHAR(256),
-    the_due_date DATETIME,
     OUT found_parent_chore_completion_id INT)
 this_procedure:BEGIN
 	CALL get_chore_completion(chore_name, found_parent_chore_completion_id);
+    SELECT due_date INTO @due_date
+		FROM chore_schedule
+        WHERE chore_completion_id = found_parent_chore_completion_id;
     INSERT INTO chore_completion_hierarchy
 		(chore_completion_id, parent_chore_completion_id)
 		SELECT chore_completions.chore_completion_id, found_parent_chore_completion_id
@@ -21,7 +23,7 @@ this_procedure:BEGIN
 				ON chore_completions.chore_completion_id = chore_completion_hierarchy.chore_completion_id
 			WHERE parent_chores.chore = chore_name
 				AND chore_completion_status_id = 1 # scheduled
-				AND due_date <= the_due_date
+				AND due_date <= @due_date
 				AND parent_chore_completion_id IS NULL;
 END$$
 
