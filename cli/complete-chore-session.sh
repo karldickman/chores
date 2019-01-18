@@ -35,6 +35,18 @@ do
 done
 
 # Process arguments
+if [[ ${#arguments[@]} -lt 1 ]]
+then
+	echo "Missing required argument CHORE."
+	echo "$usage"
+	exit 1
+elif [[ ${#arguments[@]} -lt 2 ]]
+then
+	echo "Missing required argument DURATION."
+	echo "$usage"
+	exit 1
+fi
+
 chore=${arguments[0]//\'/\\\'}
 time_components=(${arguments[1]//:/ })
 minutes=${time_components[0]}
