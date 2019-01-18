@@ -44,4 +44,5 @@ fi
 chore=${arguments[0]//\'/\\\'}
 
 # Invoke SQL
+sql="CALL get_chore_completion('$chore', @c)"
 chore-database "$sql" ${options[@]}
