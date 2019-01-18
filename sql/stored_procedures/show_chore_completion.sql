@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS show_chore_completion;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE show_chore_completion(chore_completion_id_to_show INT)
 BEGIN
 	SELECT chore_completions.chore_completion_id

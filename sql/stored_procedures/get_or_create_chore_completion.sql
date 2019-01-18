@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS get_or_create_chore_completion;
 
 DELIMITER $$
-USE chores$$
+
 CREATE DEFINER=root@localhost PROCEDURE get_or_create_chore_completion(
 	chore_name NVARCHAR(256),
     chore_due_date DATETIME,

@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS delete_chore_completion;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE delete_chore_completion(chore_completion_to_delete_id INT)
 BEGIN
 	DELETE FROM chore_schedule

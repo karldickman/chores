@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS skip_chore;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE skip_chore (chore_name NVARCHAR(256), OUT found_chore_completion_id INT, OUT next_chore_completion_id INT)
 BEGIN
 	SET found_chore_completion_id = NULL;

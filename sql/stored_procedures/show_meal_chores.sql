@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS show_meal_chores;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE show_meal_chores(`date` DATETIME)
 BEGIN
 	SET @date_format = '%Y-%m-%d %H:%i';

@@ -1,5 +1,8 @@
+USE chores;
 DROP PROCEDURE IF EXISTS show_chore_session;
+
 DELIMITER $$
+
 CREATE DEFINER=root@localhost PROCEDURE show_chore_session(the_chore_session_id INT)
 BEGIN
 	SELECT chore
