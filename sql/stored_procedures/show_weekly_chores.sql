@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS show_weekly_chores;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE show_weekly_chores(until_inclusive DATETIME)
 BEGIN
 	SET until_inclusive = COALESCE(until_inclusive, '2161-10-11');

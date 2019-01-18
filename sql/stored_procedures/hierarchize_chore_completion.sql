@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS hierarchize_chore_completion;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE hierarchize_chore_completion(
 	chore_name NVARCHAR(256),
     the_due_date DATETIME,

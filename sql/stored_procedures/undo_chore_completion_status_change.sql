@@ -2,7 +2,6 @@ USE chores;
 DROP PROCEDURE IF EXISTS undo_chore_completion_status_change;
 
 DELIMITER $$
-USE chores$$
 
 CREATE PROCEDURE undo_chore_completion_status_change(chore_completion_to_undo_id INT)
 BEGIN

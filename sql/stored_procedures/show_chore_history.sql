@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS show_chore_history;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE show_chore_history(chore_name NVARCHAR(256))
 BEGIN
 	SELECT chore_completions.chore_completion_id

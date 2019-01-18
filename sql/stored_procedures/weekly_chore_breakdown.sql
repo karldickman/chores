@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS weekly_chore_breakdown;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE weekly_chore_breakdown ()
 BEGIN
 	SELECT chore

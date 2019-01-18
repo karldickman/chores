@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS create_chore_completion;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE create_chore_completion(
 	chore_name NVARCHAR(256),
     OUT new_chore_completion_id INT)

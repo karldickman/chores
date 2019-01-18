@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS schedule_next_chore;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE schedule_next_chore (completed_chore_completion_id INT, OUT new_chore_completion_id INT)
 this_procedure:BEGIN
 	# Change variables to NULL

@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS update_chore_completion_status;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE update_chore_completion_status(chore_completion_to_update_id INT, new_chore_completion_status_id INT, update_history BIT)
 BEGIN
 	SET @status_since = CURRENT_TIMESTAMP;

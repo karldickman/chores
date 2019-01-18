@@ -2,7 +2,6 @@ USE chores;
 DROP PROCEDURE IF EXISTS undo_chore_completion;
 
 DELIMITER $$
-USE chores$$
 
 CREATE PROCEDURE undo_chore_completion(chore_name NVARCHAR(256))
 BEGIN

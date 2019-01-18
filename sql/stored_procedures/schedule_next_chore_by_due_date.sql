@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS schedule_next_chore_by_due_date;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE schedule_next_chore_by_due_date (chore_to_schedule_id INT, OUT new_chore_completion_id INT)
 this_procedure:BEGIN
 	SELECT MIN(due_date) INTO @next_due_date

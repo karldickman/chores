@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS postpone_yard_work;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE postpone_yard_work(OUT new_parent_chore_completion_id INT)
 BEGIN
 	DECLARE done BOOL DEFAULT FALSE;

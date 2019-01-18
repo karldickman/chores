@@ -2,7 +2,7 @@ USE chores;
 DROP PROCEDURE IF EXISTS schedule_chore_by_id;
 
 DELIMITER $$
-USE chores$$
+
 CREATE PROCEDURE schedule_chore_by_id(chore_to_schedule_id INT, due_date DATETIME, OUT new_chore_completion_id INT)
 BEGIN
 	SET new_chore_completion_id = NULL;
