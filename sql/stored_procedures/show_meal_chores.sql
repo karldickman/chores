@@ -32,6 +32,7 @@ BEGIN
 		FROM backlog_calculations),
 	by_chore_and_total AS (SELECT FALSE AS is_total
 			, chore
+            , order_hint
 			, due_date
             , last_completed
             , completed_minutes
@@ -40,10 +41,13 @@ BEGIN
 			, `90% CI UB`
 		FROM incomplete_chores
         NATURAL JOIN chores
+        LEFT OUTER JOIN chore_order
+			ON incomplete_chores.chore_id = chore_order.chore_id
         NATURAL JOIN relevant_chore_completions
 	UNION ALL
     SELECT TRUE AS is_total
 			, 'Total' AS chore
+            , NULL AS order_hint
 			, NULL AS due_date
             , NULL AS last_completed
             , completed_minutes
@@ -60,7 +64,7 @@ BEGIN
 			, format_duration(stdev_duration_minutes) AS std_dev
 			, format_duration(`90% CI UB`) AS `90% CI UB`
 		FROM by_chore_and_total
-        ORDER BY is_total, due_date;
+        ORDER BY is_total, due_date, order_hint;
 END$$
 
 DELIMITER ;
