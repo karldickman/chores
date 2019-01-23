@@ -3,6 +3,8 @@ echo "chore-complete
     Record that a chore is completed.
 chore-get-completion-id
     Get the database identifier of the active completion of a chore.
+chore-meals
+    Show incomplete meal chores.
 chore-put-away-dishes
     Record how long it took to put away the dishes.
 chore-session
