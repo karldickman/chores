@@ -58,7 +58,6 @@ do
 		verbosity=2
 	else
 		echo "Unknown option $arg."
-		echo "$usage"
 		exit 1
 	fi
 done
