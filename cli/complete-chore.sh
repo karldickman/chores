@@ -4,17 +4,16 @@ usage="$(basename "$0") CHORE [DURATION] [WHEN_COMPLETED] [OPTIONS]
 
 Record a chore completion.
 Arguments:
-    CHORE                    The name of the chore completed.
-    DURATION                 How long it took to complete the chore in MM:SS.SS
-                             format.
-    WHEN_COMPLETED           (Optional) When the chore was completed in
-                             YYYY-MM-DD HH:MM:SS format.
+    CHORE           The name of the chore completed.
+    DURATION        How long it took to complete the chore in MM:SS.SS format.
+    WHEN_COMPLETED  (Optional) When the chore was completed in
+                    YYYY-MM-DD HH:MM:SS format.
 Options:
-    -h, --help               Show this help text and exit.
-    --preview                Show the SQL command to be executed.
-    -q, --quiet              Suppress output.
-    --unscheduled            The completed chore was not scheduled.
-    -v, --verbose            Show SQL commands as they are executed."
+    -h, --help      Show this help text and exit.
+    --preview       Show the SQL command to be executed.
+    -q, --quiet     Suppress output.
+    --unscheduled   The completed chore was not scheduled.
+    -v, --verbose   Show SQL commands as they are executed."
 
 # Process options
 a=0
