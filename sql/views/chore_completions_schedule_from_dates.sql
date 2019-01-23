@@ -3,6 +3,7 @@ CREATE VIEW chore_completions_schedule_from_dates
 AS
 SELECT chore_completion_id
 		, chore_completion_status_id
+		, due_date
 		, when_completed AS schedule_from_date
         , schedule_from_id
 	FROM chore_completions_schedule_from
@@ -12,6 +13,7 @@ UNION
 SELECT chore_completion_id
 		, chore_completion_status_id
 		, due_date
+        , due_date AS schedule_from_date
         , schedule_from_id
 	FROM chore_completions_schedule_from
     NATURAL JOIN chore_schedule
@@ -20,6 +22,7 @@ UNION
 SELECT chore_completion_id
 		, chore_completion_status_id
 		, due_date
+        , due_date AS schedule_from_date
         , 2 AS schedule_from_id # Due date
 	FROM chore_completions
     NATURAL JOIN chore_schedule

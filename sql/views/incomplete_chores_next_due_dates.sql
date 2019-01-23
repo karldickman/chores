@@ -5,6 +5,7 @@ SELECT chore_completion_id
 		, chore_id
         , chore_completion_status_id
         , chore_completion_status_since
+        , due_date
 		, schedule_from_date
         , frequency
         , frequency_unit_id
