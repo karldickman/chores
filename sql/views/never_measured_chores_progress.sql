@@ -1,7 +1,8 @@
-ALTER VIEW never_measured_chores_progress
+DROP VIEW IF EXISTS never_measured_chores_progress;
+CREATE VIEW never_measured_chores_progress
 AS
-SELECT chore_completions.chore_id
-		, chore_completions.chore_completion_id
+SELECT chore_completions.chore_completion_id
+		, chore_completions.chore_id
 		, due_date
         , last_completed
         , COALESCE(duration_minutes, 0) AS completed_minutes
