@@ -4,7 +4,7 @@ DROP PROCEDURE IF EXISTS get_chore_completion;
 DELIMITER $$
 
 CREATE PROCEDURE get_chore_completion (chore_name NVARCHAR(256), OUT found_chore_completion_id INT)
-this_procedure:BEGIN
+BEGIN
 	SET @earliest_due_date = NULL;
 	SELECT MIN(due_date) INTO @earliest_due_date
 		FROM chore_completions
@@ -20,15 +20,20 @@ this_procedure:BEGIN
 			NATURAL JOIN chores
 			WHERE chores.chore = chore_name
 				AND chore_completion_status_id = 1;
-		LEAVE this_procedure;
+	ELSE
+		SELECT MIN(chore_completion_id) INTO found_chore_completion_id
+			FROM chore_completions
+			NATURAL JOIN chores
+			NATURAL JOIN chore_schedule
+			WHERE chores.chore = chore_name
+				AND chore_completion_status_id = 1
+				AND due_date = @earliest_due_date;
 	END IF;
-	SELECT MIN(chore_completion_id) INTO found_chore_completion_id
-		FROM chore_completions
-		NATURAL JOIN chores
-		NATURAL JOIN chore_schedule
-		WHERE chores.chore = chore_name
-			AND chore_completion_status_id = 1
-			AND due_date = @earliest_due_date;
+    IF found_chore_completion_id IS NULL
+    THEN
+		SET @error_message = CONCAT('No active completion found for chore "', chore_name, '".');
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @error_message;
+    END IF;
 END$$
 
 DELIMITER ;
