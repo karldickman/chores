@@ -1,8 +1,11 @@
 #!/bin/bash
 
-usage="$(basename "$0") [OPTIONS]
+usage="$(basename "$0") [DUE_DATE] [OPTIONS]
 
 Show overdue meal chores and exit.
+Arguments:
+    DUE_DATE       Show any chores whose due date is on or before this date.
+
 Options:
     -h, --help     Show this help text and exit.
     --preview      Show the SQL command to be executed.
@@ -10,6 +13,7 @@ Options:
     -v, --verbose  Show SQL commands as they are executed."
 
 # Process options
+a=0
 o=0
 show_totals="TRUE"
 for arg in "$@"
@@ -18,6 +22,10 @@ do
 	then
 		echo "$usage"
 		exit
+	elif [[ $arg != -* ]]
+	then
+		arguments[$a]=$arg
+		((a++))
 	elif [[ $arg == "-q" ]] || [[ $arg == "--quiet" ]]
 	then
 		echo "The --quiet flag is not supported."
@@ -32,7 +40,11 @@ do
 	fi
 done
 
-date=$(date "+%F")
+date=${arguments[0]//\'/\\\'}
+if [[ "$date" == "" ]]
+then
+	date=$(date "+%F")
+fi
 sql="CALL show_meal_chores('$date', $show_totals)"
 
 # Invoke SQL
