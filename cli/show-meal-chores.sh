@@ -9,22 +9,12 @@ Options:
     -v, --verbose  Show SQL commands as they are executed."
 
 # Process options
-i=0
-execute=1
-verbose=0
 for arg in "$@"
 do
 	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
 	then
 		echo "$usage"
 		exit
-	elif [[ $arg == "--preview" ]]
-	then
-		execute=0
-		verbose=1
-	elif [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
-	then
-		verbose=1
 	fi
 done
 
@@ -32,11 +22,4 @@ date=$(date "+%F")
 sql="CALL show_meal_chores('$date', TRUE)"
 
 # Invoke SQL
-if [[ $verbose -eq 1 ]]
-then
-	echo "$sql"
-fi
-if [[ $execute -eq 1 ]]
-then
-	mysql --login-path=chores chores -e "$sql"
-fi
+chore-database "$sql" ${options[@]} --silent=false --skip-column-names=false
