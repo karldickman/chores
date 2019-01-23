@@ -29,7 +29,8 @@ BEGIN
 			, backlog_minutes
 			, stdev_backlog_minutes
 			, non_truncated_backlog_minutes + 1.282 * stdev_backlog_minutes AS `90% CI UB`
-		FROM backlog_calculations),
+		FROM backlog_calculations
+        WHERE number_of_chores > 0),
 	by_chore_and_total AS (SELECT FALSE AS is_total
 			, chore
             , order_hint
