@@ -15,8 +15,9 @@ Options:
 # Process arguments
 i=0
 execute=1
+mysql_column_names="--skip-column-names"
+mysql_line_numbers="--skip-line-numbers"
 mysql_silent="--silent"
-mysql_skip_column_names="--skip-column-names"
 verbosity=1
 for arg in "$@"
 do
@@ -41,12 +42,6 @@ do
 			exit 1
 		fi
 		verbosity=0
-	elif [[ ${arg,,} == --silent=false ]]
-	then
-		mysql_silent=""
-	elif [[ ${arg,,} == --skip-column-names=false ]]
-	then
-		mysql_skip_column_names=""
 	elif [[ $arg == "-v" ]] || [[ $arg == "--verbose" ]]
 	then
 		if [[ $verbosity -eq 0 ]]
@@ -56,6 +51,15 @@ do
 			exit 1
 		fi
 		verbosity=2
+	elif [[ $arg == "--column-names" ]]
+	then
+		mysql_column_names=$arg
+	elif [[ $arg == "--line-numbers" ]]
+	then
+		mysql_line_numbers=$arg
+	elif [[ ${arg,,} == --silent=false ]]
+	then
+		mysql_silent=""
 	else
 		echo "Unknown option $arg."
 		exit 3
@@ -74,6 +78,6 @@ do
 		then
 			sql="$sql;SELECT @c"
 		fi
-		mysql --login-path=chores chores -e "$sql" $mysql_silent $mysql_skip_column_names
+		mysql --login-path=chores chores -e "$sql" $mysql_column_names $mysql_line_numbers $mysql_silent
 	fi
 done
