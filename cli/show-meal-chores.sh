@@ -29,7 +29,7 @@ do
 done
 
 date=$(date "+%F")
-sql="CALL show_meal_chores('$date')"
+sql="CALL show_meal_chores('$date', TRUE)"
 
 # Invoke SQL
 if [[ $verbose -eq 1 ]]

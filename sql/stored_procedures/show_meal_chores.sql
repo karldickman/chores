@@ -3,7 +3,7 @@ DROP PROCEDURE IF EXISTS show_meal_chores;
 
 DELIMITER $$
 
-CREATE PROCEDURE show_meal_chores(`date` DATETIME)
+CREATE PROCEDURE show_meal_chores(`date` DATETIME, show_totals BIT)
 BEGIN
 	SET @date_format = '%Y-%m-%d %H:%i';
     SET @time_format = '%H:%i:%S';
@@ -78,7 +78,8 @@ BEGIN
             , TIME_FORMAT(SEC_TO_TIME(backlog_minutes * 60), @time_format) AS remaining
 			, TIME_FORMAT(SEC_TO_TIME(stdev_backlog_minutes * 60), @time_format) AS std_dev
 			, TIME_FORMAT(SEC_TO_TIME(`90% CI UB` * 60), @time_format) AS `90% CI UB`
-		FROM total;
+		FROM total
+        WHERE show_totals = TRUE;
 END$$
 
 DELIMITER ;
