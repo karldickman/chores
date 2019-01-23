@@ -36,7 +36,7 @@ date=$(date "+%F")
 sql="CALL show_meal_chores('$date', $show_totals)"
 
 # Invoke SQL
-chore-database "$sql" ${options[@]} --silent=false --skip-column-names=false
+chore-database "$sql" ${options[@]} --column-names --silent=false
 exit_status=$?
 if [[ exit_status -eq 3 ]]
 then
