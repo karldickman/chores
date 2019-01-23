@@ -37,8 +37,9 @@ sql="CALL show_meal_chores('$date', $show_totals)"
 
 # Invoke SQL
 chore-database "$sql" ${options[@]} --silent=false --skip-column-names=false
-if [[ $? -ne 0 ]]
+exit_status=$?
+if [[ exit_status -eq 3 ]]
 then
 	echo "$usage"
-	exit $?
 fi
+exit $exit_status

@@ -58,7 +58,7 @@ do
 		verbosity=2
 	else
 		echo "Unknown option $arg."
-		exit 1
+		exit 3
 	fi
 done
 
