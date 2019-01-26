@@ -66,6 +66,13 @@ do
 	fi
 done
 
+if [[ ${#commands[@]} -eq 0 ]]
+then
+	echo "Missing required argument SQL_COMMAND."
+	echo "$usage"
+	exit 3
+fi
+
 for sql in "${commands[@]}"
 do
 	if [[ $verbosity -eq 2 ]]
