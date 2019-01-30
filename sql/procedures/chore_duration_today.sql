@@ -13,7 +13,7 @@ BEGIN
 	UNION
 	SELECT chore_id
 		FROM chores
-		WHERE chore IN ('close budget period'))
+		WHERE chore IN ('close budget period', 'recalculate contribution split'))
 	SELECT IFNULL(SUM(duration_minutes), 0) AS duration
 		FROM chore_sessions
 		NATURAL JOIN chore_completions
