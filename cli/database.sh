@@ -4,13 +4,16 @@ usage="$(basename "$0") SQL_COMMAND [SQL_COMMAND...] [OPTIONS]
 
 Execute one or more SQL commands in the chores database.
 Arguments:
-    SQL_COMMAND    SQL command to be excuted.
+    SQL_COMMAND     SQL command to be excuted.
 
 Options:
-    -h, --help     Show this help text and exit.
-    --preview      Show the SQL command but do not execute.
-    -q, --quiet    Suppress output.
-    -v, --verbose  Show SQL commands as they are executed."
+    --column-names  Write column names in results.
+    -h, --help      Show this help text and exit.
+    --line-numbers  Write line numbers for errors.
+    --preview       Show the SQL command but do not execute.
+    -q, --quiet     Suppress output.
+   --silent         Boolean.  Indicates whether --silent flag should be passed to mysql command.
+    -v, --verbose   Show SQL commands as they are executed."
 
 # Process arguments
 i=0
