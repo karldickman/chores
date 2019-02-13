@@ -1,6 +1,6 @@
 #!/bin/bash
 
-usage="$(basename $0) FROM TO [OPTIONS]
+usage="$(basename $0) FROM [TO] [OPTIONS]
 
 Arguments:
     FROM       The lower bound date from which to show completed and remaining chores.
@@ -36,7 +36,7 @@ do
 done
 
 # Process arguments
-if [[ ${#arguments} -lt 2 ]]
+if [[ ${#arguments} -lt 1 ]]
 then
 	echo "Invalid number of arguments."
 	echo "$usage"
@@ -44,7 +44,12 @@ then
 fi
 
 from=${arguments[0]//\'/\\\'}
-to=${arguments[1]//\'/\\\'}
+if [[ ${#arguments} -eq 1 ]]
+then
+	to=${arguments[1]//\'/\\\'}
+else
+	to=$(date --iso-8601)
+fi
 
 # Invoke SQL
 sql="CALL chores_completed_and_remaining('$from', '$to')"
