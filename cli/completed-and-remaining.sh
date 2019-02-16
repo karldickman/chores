@@ -46,9 +46,9 @@ fi
 from=${arguments[0]//\'/\\\'}
 if [[ ${#arguments} -eq 1 ]]
 then
-	to=${arguments[1]//\'/\\\'}
-else
 	to=$(date --iso-8601)
+else
+	to=${arguments[1]//\'/\\\'}
 fi
 
 # Invoke SQL
