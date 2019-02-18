@@ -36,7 +36,7 @@ do
 done
 
 # Process arguments
-if [[ ${#arguments} -lt 1 ]]
+if [[ ${#arguments[@]} -lt 1 ]]
 then
 	echo "Invalid number of arguments."
 	echo "$usage"
@@ -44,7 +44,7 @@ then
 fi
 
 from=${arguments[0]//\'/\\\'}
-if [[ ${#arguments} -eq 1 ]]
+if [[ ${#arguments[@]} -eq 1 ]]
 then
 	to=$(date --iso-8601)
 else
