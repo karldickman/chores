@@ -3,13 +3,13 @@
 usage="$(basename $0) FROM [TO] [OPTIONS]
 
 Arguments:
-    FROM       The lower bound date from which to show completed and remaining chores.
-    TO         The upper bound date to which to show completed and remaining chores.
+    FROM        The lower bound date from which to show completed and remaining chores.
+    TO          The upper bound date to which to show completed and remaining chores.
 
 Options:
-    -h, --help Show this help message and exit.
-    --preview  Show the SQL command but do not execute.
-    --verbose  Show SQL commands as they are executed."
+    -h, --help  Show this help message and exit.
+    --preview   Show the SQL command but do not execute.
+    --verbose   Show SQL commands as they are executed."
 
 # Process options
 a=0
