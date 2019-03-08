@@ -9,6 +9,7 @@ Arguments:
 Options:
     -h, --help  Show this help message and exit.
     --preview   Show the SQL command but do not execute.
+	--to=TO     The upper bound date to which to show completed and remaining chores.
     --verbose   Show SQL commands as they are executed."
 
 # Process options
@@ -29,6 +30,15 @@ do
 		echo "The --quiet flag is not supported.";
 		echo "$usage"
 		exit 1
+	elif [[ $arg == "--to" ]]
+	then
+		echo "The --to flag must have an argument."
+		echo "$usage"
+		exit 1
+	elif [[ $arg == --to=* ]]
+	then
+		to=$(echo $arg|cut -d= -f2)
+		to=${to//\'/\\\'}
 	else
 		options[$o]=$arg
 		((o++))
@@ -41,11 +51,14 @@ then
 else
 	from=${arguments[0]//\'/\\\'}
 fi
-if [[ ${#arguments[@]} -lt 2 ]]
+if [[ $to == "" ]]
 then
-	to=$(date --iso-8601)
-else
-	to=${arguments[1]//\'/\\\'}
+	if [[ ${#arguments[@]} -lt 2 ]]
+	then
+		to=$(date --iso-8601)
+	else
+		to=${arguments[1]//\'/\\\'}
+	fi
 fi
 
 # Invoke SQL
