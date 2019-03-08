@@ -35,16 +35,13 @@ do
 	fi
 done
 
-# Process arguments
-if [[ ${#arguments[@]} -lt 1 ]]
+if [[ ${#arguments[@]} -eq 0 ]]
 then
-	echo "Invalid number of arguments."
-	echo "$usage"
-	exit 1
+	from=$(date --iso-8601)
+else
+	from=${arguments[0]//\'/\\\'}
 fi
-
-from=${arguments[0]//\'/\\\'}
-if [[ ${#arguments[@]} -eq 1 ]]
+if [[ ${#arguments[@]} -lt 2 ]]
 then
 	to=$(date --iso-8601)
 else
