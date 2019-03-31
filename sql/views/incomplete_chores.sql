@@ -1,4 +1,7 @@
+USE chores;
+
 DROP VIEW IF EXISTS incomplete_chores;
+
 CREATE VIEW incomplete_chores
 AS
 WITH chore_progress AS (SELECT chore_id
