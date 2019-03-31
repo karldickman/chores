@@ -1,4 +1,7 @@
+USE chores;
+
 DROP VIEW IF EXISTS chore_completions_when_completed;
+
 CREATE VIEW chore_completions_when_completed
 AS
 WITH combined_completions AS (SELECT chore_completion_id, when_completed
