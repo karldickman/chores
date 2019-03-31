@@ -1,4 +1,7 @@
+USE chores;
+
 DROP VIEW IF EXISTS all_chore_completion_times;
+
 CREATE VIEW all_chore_completion_times
 AS
 SELECT chore_completion_id
