@@ -1,4 +1,8 @@
-ALTER VIEW chore_durations
+USE chores;
+
+DROP VIEW IF EXISTS chore_durations;
+
+CREATE VIEW chore_durations
 AS
 SELECT chore_id
 		, COUNT(chore_completion_id) AS times_completed
