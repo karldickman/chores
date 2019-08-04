@@ -5,6 +5,11 @@ DELIMITER $$
 
 CREATE PROCEDURE show_chore_history(chore_name NVARCHAR(256))
 BEGIN
+	IF NOT EXISTS(SELECT * FROM chores WHERE chore = chore_name)
+    THEN
+		SET @error_message = CONCAT('No chore found named "', chore_name, '".');
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @error_message;
+    END IF;
 	SELECT chore_completions.chore_completion_id
 			, due_date
             , chore_completion_durations.when_completed
