@@ -10,6 +10,7 @@ Arguments:
     WHEN_COMPLETED  (Optional) When the chore was completed in
                     YYYY-MM-DD HH:MM:SS format.
 Options:
+    --database-id   The CHORE argument is a database ID, not a name.
     -h, --help      Show this help text and exit.
     --preview       Show the SQL command to be executed.
     -q, --quiet     Suppress output.
@@ -18,6 +19,7 @@ Options:
 # Process options
 a=0
 o=0
+database_id=0
 for arg in "$@"
 do
 	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
@@ -28,6 +30,9 @@ do
 	then
 		arguments[$a]=$arg
 		((a++))
+	elif [[ "$arg" == "--database-id" ]]
+	then
+		database_id=1
 	else
 		options[$o]=$arg
 		((o++))
@@ -47,6 +52,7 @@ then
 	exit 1
 fi
 
+chore_completion_id=${arguments[0]}
 chore=${arguments[0]//\'/\\\'}
 time_components=(${arguments[1]//:/ })
 minutes=${time_components[0]}
@@ -63,5 +69,10 @@ then
 fi
 
 # Invoke SQL
-sql="CALL complete_chore_session('$chore', '$when_completed', $duration_minutes, @c, @n)"
+if [[ $database_id -eq 1 ]]
+then
+	sql="SET @c = $chore_completion_id; CALL record_chore_session(@c, '$when_completed', $duration_minutes, @n)"
+else
+	sql="CALL complete_chore_session('$chore', '$when_completed', $duration_minutes, @c, @n)"
+fi
 chore-database "$sql" ${options[@]}
