@@ -5,24 +5,33 @@ DELIMITER $$
 
 CREATE PROCEDURE chores_completed_and_remaining(`from` DATE, `until` DATE)
 BEGIN
-	SET @until = DATE_ADD(DATE(`until`), INTERVAL 1 DAY);
+	SET @`from` = `from`;
+	SET @`until` = DATE_ADD(DATE(`until`), INTERVAL 1 DAY);
 	WITH meal_chores AS (SELECT chore_completion_id
 		FROM chore_completions
 		NATURAL JOIN chores
 		NATURAL JOIN chore_categories
 		NATURAL JOIN categories
 		WHERE category = 'meals'),
-	hierarchical_chore_schedule AS (SELECT chore_completion_id, due_date
-		FROM chore_schedule
-	UNION
-    SELECT chore_completions.chore_completion_id, due_date
+	completed_chores AS (SELECT chore_completions.chore_id
+			, chore_completions.chore_completion_id
+			, due_date
+			, TRUE AS is_completed
+			, chore_completion_status_since AS last_completed
+			, 0 AS remaining_minutes
+			, 0 AS stdev_duration_minutes
+			, 0 AS `90% CI UB`
+            , chore_completion_status_id
 		FROM chore_completions
-        NATURAL JOIN chore_completion_hierarchy
-        INNER JOIN chore_schedule
-			ON parent_chore_completion_id = chore_schedule.chore_completion_id
-        WHERE chore_completions.chore_completion_id NOT IN (SELECT chore_completion_id
-				FROM chore_schedule)),
-    time_remaining_by_chore AS (SELECT incomplete_chores.chore_id
+        LEFT OUTER JOIN chore_completions_when_completed
+			ON chore_completions.chore_completion_id = chore_completions_when_completed.chore_completion_id
+		LEFT OUTER JOIN hierarchical_chore_schedule AS chore_schedule
+			ON chore_completions.chore_completion_id = chore_schedule.chore_completion_id
+		WHERE chore_completion_status_id IN (3, 4)
+			AND chore_completions_when_completed.when_completed BETWEEN @`from` AND @`until`),
+    time_remaining_by_chore AS (
+    # Incomplete
+    SELECT incomplete_chores.chore_id
 			, chore_completion_id
 			, due_date
 			, FALSE AS is_completed
@@ -41,32 +50,37 @@ BEGIN
 					NATURAL JOIN chore_completions
 					WHERE chore_completion_status_id = 1)
 	UNION
-	SELECT chore_completions.chore_id
-			, chore_completions.chore_completion_id
+    # Known duration
+	SELECT chore_id
+			, completed_chores.chore_completion_id
 			, due_date
-			, TRUE AS is_completed
-			, chore_completion_status_since AS last_completed
-			, COALESCE(duration_minutes, avg_duration_minutes) AS duration_minutes
-			, COALESCE(duration_minutes, avg_duration_minutes) AS completed_minutes
-			, 0 AS remaining_minutes
-			, 0 AS stdev_duration_minutes
-			, 0 AS `90% CI UB`
-		FROM chore_completions
-        LEFT OUTER JOIN chore_completions_when_completed
-			ON chore_completions.chore_completion_id = chore_completions_when_completed.chore_completion_id
-		LEFT OUTER JOIN hierarchical_chore_schedule AS chore_schedule
-			ON chore_completions.chore_completion_id = chore_schedule.chore_completion_id
-		LEFT OUTER JOIN chore_completion_durations
-			ON chore_completions.chore_completion_id = chore_completion_durations.chore_completion_id
+			, is_completed
+			, last_completed
+			, duration_minutes
+			, duration_minutes AS completed_minutes
+			, remaining_minutes
+			, stdev_duration_minutes
+			, `90% CI UB`
+		FROM completed_chores
+		INNER JOIN chore_completion_durations
+			ON completed_chores.chore_completion_id = chore_completion_durations.chore_completion_id
+		WHERE chore_completion_status_id = 4
+    UNION
+	# Unknown duration
+    SELECT completed_chores.chore_id
+			, chore_completion_id
+			, due_date
+			, is_completed
+			, last_completed
+			, avg_duration_minutes AS duration_minutes
+			, avg_duration_minutes AS completed_minutes
+			, remaining_minutes
+			, completed_chores.stdev_duration_minutes
+			, `90% CI UB`
+		FROM completed_chores
 		LEFT OUTER JOIN chore_durations
-			ON chore_completions.chore_id = chore_durations.chore_id
-		WHERE chore_completion_status_id IN (3, 4) # completed
-			AND chore_completions_when_completed.when_completed BETWEEN `from` AND @until
-            AND chore_completions.chore_completion_id NOT IN (SELECT parent_chore_completion_id
-					FROM chore_completion_hierarchy
-                    INNER JOIN chore_completions
-						ON parent_chore_completion_id = chore_completions.chore_completion_id
-					WHERE chore_completion_status_id = 4)),
+			ON completed_chores.chore_id = chore_durations.chore_id
+		WHERE chore_completion_status_id = 3),
 	meal_summary AS (SELECT due_date
 			, MIN(is_completed) AS is_completed
 			, SUM(duration_minutes) AS duration_minutes
