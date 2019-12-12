@@ -6,7 +6,7 @@ from sys import argv
 
 def main(arguments):
     sql = "SELECT * FROM skippable_chores"
-    command = ["chore-database", sql]
+    command = ["chore-database", sql, "--column-names", "--silent=false"]
     command.extend(argv[1:])
     call(command)
 
@@ -19,4 +19,3 @@ def parse_arguments():
 if __name__ == "__main__":
     arguments = parse_arguments()
     main(arguments)
-
