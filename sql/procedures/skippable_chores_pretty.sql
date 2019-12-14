@@ -16,7 +16,7 @@ BEGIN
 			, schedule_from
 			, DATE_FORMAT(schedule_from_date, @date_format) AS schedule_from_date
             , frequency
-            , frequency_unit
+            , frequency_unit AS unit
 		FROM chore_completion_next_due_dates
         NATURAL JOIN chores
         NATURAL JOIN schedule_from
