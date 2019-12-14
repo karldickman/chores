@@ -1,1 +1,17 @@
 *.pyc
+chore
+chore-complete
+chore-database
+chore-delete
+chore-get-completion-id
+chore-hierarchize
+chore-history
+chore-meals
+chore-progress
+chore-put-away-dishes
+chore-schedule
+chore-session
+chore-show-completion
+chore-skip
+chore-skippable
+chore-unknown-duration
