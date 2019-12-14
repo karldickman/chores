@@ -9,4 +9,4 @@ GRANT EXECUTE ON PROCEDURE record_chore_session TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE show_chore_completion TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE show_chore_history TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE show_meal_chores TO 'chores'@'localhost';
-
+GRANT EXECUTE ON PROCEDURE skippable_chores TO 'chores'@'localhost';
