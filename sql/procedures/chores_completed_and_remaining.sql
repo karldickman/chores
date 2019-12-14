@@ -44,7 +44,7 @@ BEGIN
 		FROM incomplete_chores
 		INNER JOIN chore_durations
 			ON incomplete_chores.chore_id = chore_durations.chore_id
-		WHERE due_date < @until
+		WHERE due_date < @`until`
 			AND chore_completion_id NOT IN (SELECT parent_chore_completion_id
 					FROM chore_completion_hierarchy
 					NATURAL JOIN chore_completions
