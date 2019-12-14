@@ -6,9 +6,11 @@ CREATE VIEW incomplete_measured_chores_progress
 AS
 SELECT chore_completions.chore_completion_id
 		, chore_completions.chore_id
+        , TRUE AS chore_measured
         , due_date
         , last_completed
         , times_completed
+        , chore_durations.avg_duration_minutes AS duration_minutes
         , COALESCE(chore_completion_durations.duration_minutes, 0) AS completed_minutes
         , chore_durations.avg_duration_minutes - COALESCE(hierarchical_chore_completion_durations.duration_minutes, 0) AS remaining_minutes
         , COALESCE(chore_durations.stdev_duration_minutes, all_chore_durations.stdev_duration_minutes) AS stdev_duration_minutes

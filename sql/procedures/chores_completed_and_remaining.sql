@@ -31,24 +31,22 @@ BEGIN
 			AND chore_completions_when_completed.when_completed BETWEEN @`from` AND @`until`),
     time_remaining_by_chore AS (
     # Incomplete
-    SELECT incomplete_chores.chore_id
+	SELECT incomplete_chores.chore_id
 			, chore_completion_id
 			, due_date
 			, FALSE AS is_completed
 			, last_completed
-			, avg_duration_minutes AS duration_minutes
+			, duration_minutes
 			, completed_minutes
 			, remaining_minutes
-			, incomplete_chores.stdev_duration_minutes
+			, stdev_duration_minutes
 			, `90% CI UB`
 		FROM incomplete_chores
-		INNER JOIN chore_durations
-			ON incomplete_chores.chore_id = chore_durations.chore_id
 		WHERE due_date < @`until`
 			AND chore_completion_id NOT IN (SELECT parent_chore_completion_id
 					FROM chore_completion_hierarchy
 					NATURAL JOIN chore_completions
-					WHERE chore_completion_status_id = 1)
+					WHERE chore_completion_status_id = 1 /* scheduled */)
 	UNION
     # Known duration
 	SELECT chore_id
