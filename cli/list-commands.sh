@@ -1,15 +1,36 @@
 #!/bin/bash
-echo "chore-complete
-    Record that a chore is completed.
-chore-get-completion-id
+echo "All commands are prefixed with \"chore-\".
+
+READ COMMANDS
+get-completion-id
     Get the database identifier of the active completion of a chore.
-chore-meals
+history
+    Show the history of a chory.
+meals
     Show incomplete meal chores.
-chore-put-away-dishes
-    Record how long it took to put away the dishes.
-chore-session
-    Record that some time was spent working on a chore.
-chore-skip
+progress
+    Shows progress made on overdue chores between two dates.
+show-completion
+    Show chore completion information.
+today
+    Show the number of minutes spent doing chores today.
+
+SCHEDULE COMMANDS
+delete
+    Delete a chore completion.
+hierarchize
+    Hierarchize a chore completion to match the chore hierarchy.
+schedule
+    Schedule a chore to be due on a particular date.
+skip
     Skip doing a chore.
-chore-unknown-duration
+
+WRITE COMMANDS
+complete
+    Record that a chore is completed.
+put-away-dishes
+    Record how long it took to put away the dishes.
+session
+    Record that some time was spent working on a chore.
+unknown-duration
     Record that was completed but it is not known how long it took."

@@ -32,7 +32,7 @@ done
 # Process argumetns
 if [[ ${#arguments[@]} -lt 1 ]]
 then
-	echo "Missing required argumet CHORE."
+	echo "Missing required argument CHORE."
 	echo "$usage"
 	exit 1
 fi

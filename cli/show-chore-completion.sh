@@ -4,7 +4,7 @@ usage="$(basename "$0") CHORE_COMPLETION_ID [OPTIONS]
 
 Show chore completion information.
 Arguments:
-	CHORE_COMPLETION_ID  The database identifier of the chore completion to show.
+    CHORE_COMPLETION_ID  The database identifier of the chore completion to show.
 
 Options:
     -h, --help           Show this help text and exit.

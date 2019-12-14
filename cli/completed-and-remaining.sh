@@ -1,7 +1,8 @@
 #!/bin/bash
 
-usage="$(basename $0) FROM [TO] [OPTIONS]
+usage="$(basename $0) [FROM=TODAY] [TO=TODAY] [OPTIONS]
 
+Of all the chores overdue as of FROM, shows the progress made as of TO.
 Arguments:
     FROM        The lower bound date from which to show completed and remaining chores.
     TO          The upper bound date to which to show completed and remaining chores.
@@ -9,7 +10,7 @@ Arguments:
 Options:
     -h, --help  Show this help message and exit.
     --preview   Show the SQL command but do not execute.
-	--to=TO     The upper bound date to which to show completed and remaining chores.
+    --to=TO     The upper bound date to which to show completed and remaining chores.
     --verbose   Show SQL commands as they are executed."
 
 # Process options
