@@ -69,8 +69,8 @@ BEGIN
         FROM relevant_chore_sessions
         WHERE when_completed BETWEEN @`from` AND @`until`),
     # Final chore sessions
-    final_chore_sessions AS (SELECT chore_session_id
-        FROM chore_completion_times
+    final_chore_sessions AS (SELECT DISTINCT chore_session_id
+        FROM chore_completions_when_completed
         NATURAL JOIN relevant_chore_sessions
         NATURAL JOIN chore_completions
         WHERE chore_completion_status_id = 4 /* completed */),
