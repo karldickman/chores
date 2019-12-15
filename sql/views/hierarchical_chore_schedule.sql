@@ -5,7 +5,7 @@ DROP VIEW IF EXISTS hierarchical_chore_schedule;
 CREATE VIEW hierarchical_chore_schedule
 AS 
 SELECT chore_completion_id, due_date
-		FROM chore_schedule
+	FROM chore_schedule
 UNION
 SELECT chore_completions.chore_completion_id, due_date
 	FROM chore_completions
