@@ -120,11 +120,11 @@ BEGIN
 			, DATE_FORMAT(due_date, '%Y-%m-%d') AS due_date
             , is_completed
             , weekly
-            , ROUND(duration_minutes, 2) AS duration
-            , ROUND(completed_minutes, 2) AS completed
-            , ROUND(remaining_minutes, 2) AS remaining
-            , ROUND(stdev_duration_minutes, 2) AS stdev_duration
-            , ROUND(`90% CI UB`, 2) AS `90% CI UB`
+            , duration_minutes
+            , completed_minutes
+            , remaining_minutes
+            , stdev_duration_minutes
+            , `90% CI UB`
 		FROM chores_and_meals
 		ORDER BY meal DESC
 			, weekly DESC
