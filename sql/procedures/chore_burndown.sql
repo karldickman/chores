@@ -68,19 +68,29 @@ BEGIN
             , chore_completion_id
         FROM relevant_chore_sessions
         WHERE when_completed BETWEEN @`from` AND @`until`),
+    # Final chore sessions
+    final_chore_sessions AS (SELECT chore_session_id
+        FROM chore_completion_times
+        NATURAL JOIN relevant_chore_sessions
+        NATURAL JOIN chore_completions
+        WHERE chore_completion_status_id = 4 /* completed */),
     # Timestamps on chores due this weekend
     timestamps AS (SELECT 'chore_sessions' AS `source`
-            , chore_session_id AS timestamp_id
+            , chore_sessions.chore_session_id AS timestamp_id
             , chore_completion_id
             , when_completed
+            , final_chore_sessions.chore_session_id IS NOT NULL AS is_chore_complete
             , duration_minutes
         FROM chore_sessions
         NATURAL JOIN due_this_weekend
+        LEFT OUTER JOIN final_chore_sessions
+            ON chore_sessions.chore_session_id = final_chore_sessions.chore_session_id
     UNION
     SELECT 'chore_completion_times' AS `source`
             , chore_completion_id AS timestamp_id
             , chore_completion_id
             , when_completed
+            , TRUE AS is_chore_complete
             , 0 AS duration_minutes
         FROM chore_completion_times
         NATURAL JOIN chore_completions
@@ -153,6 +163,7 @@ BEGIN
             , when_completed
             , duration_minutes AS session_duration_minutes
             , chore_completion_id
+            , is_chore_complete
             , remaining_duration_minutes
         FROM remaining_duration
         NATURAL JOIN timestamps
@@ -164,6 +175,7 @@ BEGIN
             , @`from` AS when_completed
             , 0 AS session_duration_minutes
             , NULL AS chore_completion_id
+            , NULL AS is_chore_complete
             , SUM(CASE
                 WHEN avg_duration_minutes > duration_minutes
                     THEN avg_duration_minutes - duration_minutes
@@ -181,10 +193,12 @@ BEGIN
             , @`until` AS when_completed
             , 0 AS session_duration_minutes
             , NULL AS chore_completion_id
+            , NULL AS is_chore_complete
             , NULL AS remaining_duration_minutes
         FROM still_incomplete)
     SELECT timestamp_source
             , chore
+            , is_chore_complete
             , when_completed
             , session_duration_minutes
             , number_of_chores
