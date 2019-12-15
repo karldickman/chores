@@ -12,7 +12,7 @@ BEGIN
     END IF;
 	SELECT chore_completions.chore_completion_id
 			, due_date
-            , chore_completion_durations.when_completed
+            , chore_completions_when_completed.when_completed
             , number_of_sessions
             , TIME_FORMAT(SEC_TO_TIME(duration_minutes * 60), '%H:%i:%S') AS duration
             , chore_completion_status
