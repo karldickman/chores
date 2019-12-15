@@ -1,5 +1,6 @@
 *.pyc
 chore
+chore-burndown
 chore-complete
 chore-database
 chore-delete
