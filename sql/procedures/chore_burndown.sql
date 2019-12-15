@@ -1,13 +1,11 @@
-/*USE chores;
+USE chores;
 DROP PROCEDURE IF EXISTS chore_burndown;
 
 DELIMITER $$
 CREATE PROCEDURE chore_burndown(`from` DATETIME, `until` DATETIME)
 BEGIN
 	SET @`from` = `from`;
-	SET @`until` = DATE_ADD(DATE(`until`), INTERVAL 1 DAY);*/
-    SET @`from` = '2019-12-14 00:00:00';
-    SET @`until` = '2019-12-16 00:00:00';
+	SET @`until` = DATE_ADD(DATE(`until`), INTERVAL 1 DAY);
 	SET @time_format = '%H:%i:%S';
     SET @scheduled_status_id = 1;
 	# Get all chore completions that are due this weekend
@@ -189,6 +187,6 @@ BEGIN
 		LEFT OUTER JOIN chores
 			ON chore_completions.chore_id = chores.chore_id
 		ORDER BY when_completed;
-/*END$$
+END$$
 
-DELIMITER ;*/
+DELIMITER ;
