@@ -110,6 +110,7 @@ BEGIN
 				AND when_completed < `to`)),
 	# Duration of all outstanding chores as of each chore session
 	required_duration AS (SELECT timestamp_id
+			, COUNT(DISTINCT chore_id) AS number_of_chores
 			, SUM(avg_duration_minutes) AS avg_duration_minutes
 			, SQRT(SUM(POWER(stdev_duration_minutes, 2))) AS stddev_duration_minutes
 		FROM incomplete_as_of_timestamp
@@ -124,6 +125,7 @@ BEGIN
 		GROUP BY `current`.timestamp_id),
 	# Subtract cumulative chore sessions from chore duration
 	remaining_duration AS (SELECT timestamp_id
+			, number_of_chores
             , avg_duration_minutes
             , stddev_duration_minutes
 			, CASE
@@ -146,6 +148,7 @@ BEGIN
 				WHERE when_completed < @`from`)),
 	remaining_durations_and_weekend_boundaries AS (SELECT `table` AS timestamp_table
             , timestamp_id
+			, number_of_chores
 			, when_completed
 			, duration_minutes AS session_duration_minutes
 			, chore_completion_id
@@ -156,6 +159,7 @@ BEGIN
 	UNION
 	SELECT NULL AS timestamp_table
 			, NULL AS timestamp_id
+            , NULL AS number_of_chores
 			, @`from` AS when_completed
 			, NULL AS session_duration_minutes
 			, NULL AS chore_completion_id
@@ -172,6 +176,7 @@ BEGIN
 	UNION
     SELECT NULL AS timestamp_table
 			, NULL AS timestamp_id
+            , NULL AS number_of_chores
 			, @`until` AS when_completed
             , NULL AS session_duration_minutes
             , NULL AS chore_completion_id
@@ -180,6 +185,7 @@ BEGIN
 			, chore
 			, when_completed
 			, session_duration_minutes
+            , number_of_chores
 			, remaining_duration_minutes
 		FROM remaining_durations_and_weekend_boundaries
         LEFT OUTER JOIN chore_completions
