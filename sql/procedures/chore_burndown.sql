@@ -86,7 +86,7 @@ BEGIN
         NATURAL JOIN due_this_weekend
         WHERE chore_completion_status_id = 3 /* unknown duration */
 	UNION
-    SELECT 'to parameter' AS `source`
+    SELECT 'to argument' AS `source`
 		, 1 AS timestamp_id
         , NULL AS chore_completion_id
         , @`until` AS when_completed
@@ -163,7 +163,7 @@ BEGIN
         NATURAL JOIN timestamps
 	# First record
 	UNION
-	SELECT NULL AS timestamp_table
+	SELECT 'from argument' AS timestamp_source
 			, NULL AS timestamp_id
             , NULL AS number_of_chores
 			, @`from` AS when_completed
