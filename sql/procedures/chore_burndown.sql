@@ -165,9 +165,9 @@ BEGIN
 	UNION
 	SELECT 'from argument' AS timestamp_source
 			, NULL AS timestamp_id
-            , NULL AS number_of_chores
+            , COUNT(DISTINCT chore_id) AS number_of_chores
 			, @`from` AS when_completed
-			, NULL AS session_duration_minutes
+			, 0 AS session_duration_minutes
 			, NULL AS chore_completion_id
 			, SUM(CASE
 				WHEN avg_duration_minutes > duration_minutes
