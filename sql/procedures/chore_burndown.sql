@@ -84,13 +84,7 @@ BEGIN
 		FROM chore_completion_times
         NATURAL JOIN chore_completions
         NATURAL JOIN due_this_weekend
-        WHERE chore_completion_status_id = 3 /* unknown duration */
-	UNION
-    SELECT 'to argument' AS `source`
-		, 1 AS timestamp_id
-        , NULL AS chore_completion_id
-        , @`until` AS when_completed
-        , 0 AS duration_minutes),
+        WHERE chore_completion_status_id = 3 /* unknown duration */),
 	# Get list of chore sessions after the start of the weekend
 	timestamps_this_weekend AS (SELECT `source`
 			, timestamp_id
@@ -177,7 +171,17 @@ BEGIN
 		FROM due_this_weekend
 		NATURAL JOIN chore_completions
 		NATURAL JOIN chore_durations
-		NATURAL JOIN completed_before_the_weekend)
+		NATURAL JOIN completed_before_the_weekend
+	# Last record
+	UNION
+    SELECT 'to parameter' AS timestamp_source
+			, NULL AS timestamp_id
+            , COUNT(DISTINCT chore_id) AS number_of_chores
+			, @`until` AS when_completed
+            , 0 AS session_duration_minutes
+            , NULL AS chore_completion_id
+            , NULL AS remaining_duration_minutes
+		FROM still_incomplete)
 	SELECT timestamp_source
 			, chore
 			, when_completed
