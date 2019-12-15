@@ -1,8 +1,8 @@
-all: list-commands burndown complete database delete get-completion-id hierarchize history meals progress put-away-dishes schedule session show-completion skip skippable unknown-duration
+all: list-commands burndown complete database delete get-completion-id hierarchize history meals postpone progress put-away-dishes schedule session show-completion skip skippable unknown-duration
 clean:
-	rm *.pyc chore chore-burndown chore-complete chore-database chore-delete chore-get-completion-id chore-hierarchize chore-history chore-meals chore-progress chore-put-away-dishes chore-schedule chore-session chore-show-completion chore-skip chore-skippable chore-unknown-duration
+	rm *.pyc chore chore-burndown chore-complete chore-database chore-delete chore-get-completion-id chore-hierarchize chore-history chore-meals chore-postpone chore-progress chore-put-away-dishes chore-schedule chore-session chore-show-completion chore-skip chore-skippable chore-unknown-duration
 install:
-	cp chore chore-burndown chore-complete chore-database chore-delete chore-get-completion-id chore-hierarchize chore-history chore-meals chore-progress chore-put-away-dishes chore-schedule chore-session chore-show-completion chore-skip chore-skippable chore-unknown-duration ~/.local/bin
+	cp chore chore-burndown chore-complete chore-database chore-delete chore-get-completion-id chore-hierarchize chore-history chore-meals chore-postpone chore-progress chore-put-away-dishes chore-schedule chore-session chore-show-completion chore-skip chore-skippable chore-unknown-duration ~/.local/bin
 # Copy scripts to installation names
 list-commands:
 	cp list-commands.sh chore
@@ -22,6 +22,8 @@ history:
 	cp chore-history.sh chore-history
 meals:
 	cp show-meal-chores.sh chore-meals
+postpone:
+	cp postpone_chore.py chore-postpone
 progress:
 	cp completed-and-remaining.sh chore-progress
 put-away-dishes:

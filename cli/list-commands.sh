@@ -22,6 +22,8 @@ delete
     Delete a chore completion.
 hierarchize
     Hierarchize a chore completion to match the chore hierarchy.
+postpone
+    Postpone a chore a specified number of days.
 schedule
     Schedule a chore to be due on a particular date.
 skip
