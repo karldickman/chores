@@ -18,7 +18,7 @@ BEGIN
     INSERT INTO chore_completions
         (chore_id, chore_completion_status_id)
         VALUES
-        (chore_to_schedule_id, 1);
+        (chore_to_schedule_id, 1); # Scheduled
     SET new_chore_completion_id = LAST_INSERT_ID();
     INSERT INTO chore_schedule
         (chore_completion_id, due_date)
