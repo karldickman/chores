@@ -13,6 +13,7 @@ this_procedure:BEGIN
     SET @frequency = NULL;
     SET @next_due_date = NULL;
     SET @adjustment = NULL;
+    # Parameter checking
     IF completed_chore_completion_id IS NULL
     THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Parameter completed_chore_completion_id cannot be NULL.';
@@ -40,10 +41,7 @@ this_procedure:BEGIN
         LEAVE this_procedure;
     END IF;
     # Find the frequency between chores
-    SELECT frequency INTO @frequency
-        FROM chore_frequencies
-        WHERE chore_id = @chore_id;
-    SELECT frequency_unit_id INTO @frequency_unit_id
+    SELECT frequency, frequency_unit_id INTO @frequency,  @frequency_unit_id
         FROM chore_frequencies
         WHERE chore_id = @chore_id;
     IF @frequency IS NULL OR @frequency_unit_id IS NULL
