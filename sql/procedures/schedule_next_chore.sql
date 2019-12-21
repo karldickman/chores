@@ -18,13 +18,11 @@ this_procedure:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Parameter completed_chore_completion_id cannot be NULL.';
     END IF;
     # Leave the procedure if not completed
-    SELECT chore_id INTO @chore_id
+    SELECT chore_id, chore_completion_status_id
+        INTO @chore_id, @chore_completion_status_id
         FROM chore_completions
         WHERE chore_completions.chore_completion_id = completed_chore_completion_id;
-    SELECT chore_completion_status_id INTO @chore_completion_status_id
-        FROM chore_completions
-        WHERE chore_completions.chore_completion_id = completed_chore_completion_id;
-    IF @chore_completion_status_id = 1
+    IF @chore_completion_status_id = 1 # Scheduled
     THEN
         LEAVE this_procedure;
     END IF;
