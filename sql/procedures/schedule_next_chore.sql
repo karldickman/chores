@@ -19,9 +19,11 @@ this_procedure:BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Parameter completed_chore_completion_id cannot be NULL.';
     END IF;
     # Leave the procedure if not completed
-    SELECT chore_id, chore_completion_status_id
-        INTO @chore_id, @chore_completion_status_id
+    SELECT chore_id, chore_completion_status_id, due_date
+        INTO @chore_id, @chore_completion_status_id, @due_date
         FROM chore_completions
+        LEFT OUTER JOIN chore_schedule
+            ON chore_completions.chore_completion_id = chore_schedule.chore_completion_id
         WHERE chore_completions.chore_completion_id = completed_chore_completion_id;
     IF @chore_completion_status_id = 1 # Scheduled
     THEN
@@ -41,7 +43,8 @@ this_procedure:BEGIN
         LEAVE this_procedure;
     END IF;
     # Find the frequency between chores
-    SELECT frequency, frequency_unit_id INTO @frequency,  @frequency_unit_id
+    SELECT frequency, frequency_unit_id
+        INTO @frequency,  @frequency_unit_id
         FROM chore_frequencies
         WHERE chore_id = @chore_id;
     IF @frequency IS NULL OR @frequency_unit_id IS NULL
@@ -64,23 +67,19 @@ this_procedure:BEGIN
             SET @next_due_date = DATE_ADD(@when_completed, INTERVAL @frequency MONTH);
         END IF;
     END IF;
-    SET @next_due_date = DATE(@next_due_date);
+    SET @next_due_date = DATE(@next_due_date);    
+    # Leave the procedure if there is a later due date than this one
+    IF EXISTS(SELECT *
+        FROM chore_completions
+        NATURAL JOIN chore_schedule
+        WHERE chore_id = @chore_id
+            AND due_date > @due_date)
+    THEN
+        LEAVE this_procedure;
+    END IF;
     # If 7 or more days between chores, find the closest Sunday and use that
     IF @frequency >= 7 AND @frequency_unit_id = 1 OR @frequency > 0.25 AND @frequency_unit_id = 2
-    THEN    
-        # Leave the procedure if there is a later due date than this one
-        SELECT due_date INTO @due_date
-            FROM chore_completions
-            NATURAL JOIN chore_schedule
-            WHERE chore_completion_id = completed_chore_completion_id;
-        IF EXISTS(SELECT *
-            FROM chore_completions
-            NATURAL JOIN chore_schedule
-            WHERE chore_id = @chore_id
-                AND due_date > @due_date)
-        THEN
-            LEAVE this_procedure;
-        END IF;
+    THEN
         CALL get_nearest_sunday(@next_due_date, @next_due_date);
     END IF;
     CALL schedule_chore_by_id(@chore_id, @next_due_date, new_chore_completion_id);
