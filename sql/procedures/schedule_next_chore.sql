@@ -73,7 +73,10 @@ this_procedure:BEGIN
         FROM chore_completions
         NATURAL JOIN chore_schedule
         WHERE chore_id = @chore_id
-            AND due_date > @due_date)
+            AND due_date > @due_date
+            AND chore_id NOT IN (SELECT chore_id
+                    FROM chore_completions_per_day
+                    WHERE completions_per_day > 1))
     THEN
         LEAVE this_procedure;
     END IF;
