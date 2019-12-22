@@ -44,7 +44,7 @@ this_procedure:BEGIN
     END IF;
     # Find the frequency between chores
     SELECT frequency, frequency_unit_id
-        INTO @frequency,  @frequency_unit_id
+        INTO @frequency, @frequency_unit_id
         FROM chore_frequencies
         WHERE chore_id = @chore_id;
     IF @frequency IS NULL OR @frequency_unit_id IS NULL
