@@ -26,7 +26,7 @@ BEGIN
             ON chore_completions.chore_completion_id = chore_completions_when_completed.chore_completion_id
         LEFT OUTER JOIN chore_completion_durations
             ON chore_completions.chore_completion_id = chore_completion_durations.chore_completion_id
-        WHERE chore = @chore_name
+        WHERE chore = chore_name
         ORDER BY due_date DESC, when_completed DESC;
 END$$
 
