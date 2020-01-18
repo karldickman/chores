@@ -9,6 +9,9 @@ BEGIN
     SET @`until` = DATE_ADD(DATE(`until`), INTERVAL 1 DAY);
     SET @time_format = '%H:%i:%S';
     SET @scheduled_status_id = 1;
+    SET @skipped_status_id = 2;
+    SET @insufficient_data_status_id = 3;
+    SET @completed_status_id = 4;
     # Get all chore completions that are due this weekend
     WITH up_to_this_weekend AS (SELECT chore_completion_id
             , chore_id
@@ -19,11 +22,11 @@ BEGIN
         NATURAL JOIN hierarchical_chore_schedule
         WHERE due_date <= @`until`
             # Skipping chores should not advance the burndown
-            AND chore_completion_status_id != 2 /* skipped */),
+            AND chore_completion_status_id != @skipped_status_id),
     # Get chore completions due this weekend that are still incomplete
     still_incomplete AS (SELECT chore_completion_id
             , chore_id
-            , chore
+            , chore # Included for debugging
             , due_date
             , chore_completion_status_id
             , chore_completion_status_since
@@ -33,19 +36,14 @@ BEGIN
     # Get chore completions that were overdue this weekend but are now completed
     scheduled_and_completed_this_weekend AS (SELECT up_to_this_weekend.chore_completion_id
             , chore_id
-            , chore
+            , chore # Included for debugging
             , due_date
-            , chore_completion_status_history_id
-            , `from`
-            , `to`
-            , chore_completion_status_history.chore_completion_status_id
+            , chore_completion_status_id
+            , chore_completion_status_since
         FROM up_to_this_weekend
         NATURAL JOIN chores # Included for debugging
-        INNER JOIN chore_completion_status_history
-            ON up_to_this_weekend.chore_completion_id = chore_completion_status_history.chore_completion_id
-        WHERE `to` >= @`from`
-            AND chore_completion_status_history.chore_completion_status_id = @scheduled_status_id
-            AND up_to_this_weekend.chore_completion_status_id != @scheduled_status_id),
+        WHERE chore_completion_status_since >= @`from`
+            AND chore_completion_status_id IN (@insufficient_data_status_id, @completed_status_id)),
     # Combine still incomplete chores and those completed this weekend into master list of chore completions due this weekend
     due_this_weekend AS (SELECT chore_completion_id
         FROM still_incomplete
@@ -73,7 +71,7 @@ BEGIN
         FROM chore_completions_when_completed
         NATURAL JOIN relevant_chore_sessions
         NATURAL JOIN chore_completions
-        WHERE chore_completion_status_id = 4 /* completed */),
+        WHERE chore_completion_status_id = @completed_status_id),
     # Timestamps on chores due this weekend
     timestamps AS (SELECT 'chore_sessions' AS `source`
             , chore_sessions.chore_session_id AS timestamp_id
@@ -95,7 +93,7 @@ BEGIN
         FROM chore_completion_times
         NATURAL JOIN chore_completions
         NATURAL JOIN due_this_weekend
-        WHERE chore_completion_status_id = 3 /* unknown duration */),
+        WHERE chore_completion_status_id = @insufficient_data_status_id),
     # Get list of chore sessions after the start of the weekend
     timestamps_this_weekend AS (SELECT `source`
             , timestamp_id
