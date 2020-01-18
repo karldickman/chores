@@ -124,7 +124,7 @@ BEGIN
     required_duration AS (SELECT timestamp_id
             , COUNT(DISTINCT chore_id) AS number_of_chores
             , SUM(avg_duration_minutes) AS avg_duration_minutes
-            , SQRT(SUM(POWER(stdev_duration_minutes, 2))) AS stddev_duration_minutes
+            , SQRT(SUM(POWER(stdev_duration_minutes, 2))) AS stdev_duration_minutes
         FROM incomplete_as_of_timestamp
         NATURAL JOIN chore_durations
         GROUP BY timestamp_id),
@@ -139,7 +139,7 @@ BEGIN
     remaining_duration AS (SELECT timestamp_id
             , number_of_chores
             , avg_duration_minutes
-            , stddev_duration_minutes
+            , stdev_duration_minutes
             , CASE
                 WHEN avg_duration_minutes > cumulative_duration_minutes
                     THEN avg_duration_minutes - cumulative_duration_minutes
