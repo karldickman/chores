@@ -102,7 +102,10 @@ BEGIN
         FROM timestamps
         WHERE `timestamp` BETWEEN @`from` AND @`until`),
     # Chores that were incomplete when each chore session occurred
-    incomplete_as_of_timestamp AS (SELECT DISTINCT chore_completions.*
+    incomplete_as_of_timestamp AS (SELECT DISTINCT chore_completions.chore_completion_id
+            , chore_id
+            , chore_completions.chore_completion_status_id
+            , chore_completion_status_since
             , `source` AS timestamp_source
             , timestamp_id
             , `timestamp`
