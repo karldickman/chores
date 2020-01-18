@@ -111,7 +111,7 @@ BEGIN
             , when_completed
         FROM due_this_weekend
         NATURAL JOIN chore_completions
-        LEFT OUTER JOIN chore_completion_status_history
+        LEFT OUTER JOIN completion_time_for_unknown_duration_history_otherwise AS chore_completion_status_history
             ON chore_completions.chore_completion_id = chore_completion_status_history.chore_completion_id
         INNER JOIN timestamps_this_weekend
             # Chore is still incomplete
