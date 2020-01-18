@@ -23,6 +23,7 @@ BEGIN
         NATURAL JOIN schedule_from
         WHERE chore_completion_status_id = 1 # Status = scheduled
             AND next_due_date <= skippable_as_of
+            AND schedule_from_id != 2 # Schedule from due date
             AND chore_id NOT IN (SELECT chore_id
                     FROM chore_categories
                     WHERE category_id = 1); # Category = meals
