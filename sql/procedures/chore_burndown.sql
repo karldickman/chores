@@ -76,7 +76,7 @@ BEGIN
     timestamps AS (SELECT 'chore_sessions' AS `source`
             , chore_sessions.chore_session_id AS timestamp_id
             , chore_completion_id
-            , when_completed
+            , when_completed AS `timestamp`
             , final_chore_sessions.chore_session_id IS NOT NULL AS is_chore_complete
             , duration_minutes
         FROM chore_sessions
@@ -87,7 +87,7 @@ BEGIN
     SELECT 'chore_completion_times' AS `source`
             , chore_completion_id AS timestamp_id
             , chore_completion_id
-            , when_completed
+            , when_completed AS `timestamp`
             , TRUE AS is_chore_complete
             , 0 AS duration_minutes
         FROM chore_completion_times
@@ -97,16 +97,16 @@ BEGIN
     # Get list of chore sessions after the start of the weekend
     timestamps_this_weekend AS (SELECT `source`
             , timestamp_id
-            , when_completed
+            , `timestamp`
             , duration_minutes
         FROM timestamps
-        WHERE when_completed BETWEEN @`from` AND @`until`),
+        WHERE `timestamp` BETWEEN @`from` AND @`until`),
     # Chores that were incomplete when each chore session occurred
     incomplete_as_of_timestamp AS (SELECT DISTINCT chore_completions.*
             , `source` AS timestamp_source
             , timestamp_id
+            , `timestamp`
             , duration_minutes
-            , when_completed
         FROM due_this_weekend
         NATURAL JOIN chore_completions
         LEFT OUTER JOIN completion_time_for_unknown_duration_history_otherwise AS chore_completion_status_history
@@ -116,7 +116,7 @@ BEGIN
             ON chore_completions.chore_completion_status_id = @scheduled_status_id
             # Chore was incomplete when session occurred
             OR (chore_completion_status_history.chore_completion_status_id = @scheduled_status_id
-                AND when_completed < `to`)),
+                AND `timestamp` < `to`)),
     # Duration of all outstanding chores as of each chore session
     required_duration AS (SELECT timestamp_id
             , COUNT(DISTINCT chore_id) AS number_of_chores
@@ -130,7 +130,7 @@ BEGIN
             , SUM(cumulative.duration_minutes) AS cumulative_duration_minutes
         FROM timestamps_this_weekend AS `current`
         INNER JOIN chore_sessions_this_weekend AS cumulative
-            ON cumulative.when_completed <= `current`.when_completed
+            ON cumulative.when_completed <= `current`.`timestamp`
         GROUP BY `current`.timestamp_id),
     # Subtract cumulative chore sessions from chore duration
     remaining_duration AS (SELECT timestamp_id
@@ -157,8 +157,8 @@ BEGIN
                 WHERE when_completed < @`from`)),
     remaining_durations_and_weekend_boundaries AS (SELECT `source` AS timestamp_source
             , timestamp_id
+            , `timestamp`
             , number_of_chores
-            , when_completed
             , duration_minutes AS session_duration_minutes
             , chore_completion_id
             , is_chore_complete
@@ -169,8 +169,8 @@ BEGIN
     UNION
     SELECT 'from argument' AS timestamp_source
             , NULL AS timestamp_id
+            , @`from` AS `timestamp`
             , COUNT(DISTINCT chore_id) AS number_of_chores
-            , @`from` AS when_completed
             , 0 AS session_duration_minutes
             , NULL AS chore_completion_id
             , NULL AS is_chore_complete
@@ -187,17 +187,17 @@ BEGIN
     UNION
     SELECT 'to parameter' AS timestamp_source
             , NULL AS timestamp_id
+            , @`until` AS `timestamp`
             , COUNT(DISTINCT chore_id) AS number_of_chores
-            , @`until` AS when_completed
             , 0 AS session_duration_minutes
             , NULL AS chore_completion_id
             , NULL AS is_chore_complete
             , NULL AS remaining_duration_minutes
         FROM still_incomplete)
     SELECT timestamp_source
+            , `timestamp`
             , chore
             , is_chore_complete
-            , when_completed
             , session_duration_minutes
             , number_of_chores
             , remaining_duration_minutes
@@ -206,7 +206,7 @@ BEGIN
             ON remaining_durations_and_weekend_boundaries.chore_completion_id = chore_completions.chore_completion_id
         LEFT OUTER JOIN chores
             ON chore_completions.chore_id = chores.chore_id
-        ORDER BY when_completed;
+        ORDER BY `timestamp`;
 END$$
 
 DELIMITER ;
