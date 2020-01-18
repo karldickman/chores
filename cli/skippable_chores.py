@@ -5,8 +5,8 @@ from subprocess import call
 
 def main(arguments):
     date = arguments.date
-    date = "'{}'".format(date) if date is not None else "NULL"
-    sql = "CALL skippable_chores_pretty({})".format(date)
+    date = "'{date}'" if date is not None else "NULL"
+    sql = f"CALL skippable_chores_pretty({date})"
     command = ["chore-database", sql, "--column-names", "--silent=false"]
     if arguments.preview:
         command.append("--preview")
