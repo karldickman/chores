@@ -158,7 +158,12 @@ BEGIN
         WHERE chore_completion_id NOT IN (SELECT chore_completion_id
                 FROM relevant_chore_sessions
                 WHERE when_completed < @`from`)),
-    from_argument AS (SELECT chore_id
+    from_argument_chore_completions AS (SELECT chore_id
+            , chore_completion_id
+            , chore_completion_status_id
+            , chore_completion_status_since
+            , duration_minutes
+            , avg_duration_minutes
             , CASE
                 WHEN avg_duration_minutes > duration_minutes
                     THEN avg_duration_minutes - duration_minutes
@@ -188,7 +193,7 @@ BEGIN
             , NULL AS chore_completion_id
             , NULL AS is_chore_complete
             , SUM(remaining_duration_minutes) AS remaining_duration_minutes
-        FROM from_argument
+        FROM from_argument_chore_completions
     # Last record
     UNION
     SELECT 'to parameter' AS timestamp_source
