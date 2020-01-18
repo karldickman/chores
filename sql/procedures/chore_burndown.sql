@@ -56,7 +56,7 @@ BEGIN
             , duration_minutes
             , when_recorded
             , chore_completion_id
-        FROM hierarchical_chore_sessions
+        FROM chore_sessions
         NATURAL JOIN due_this_weekend),
     # Get list of chore sessions this weekend
     chore_sessions_this_weekend AS (SELECT chore_session_id
