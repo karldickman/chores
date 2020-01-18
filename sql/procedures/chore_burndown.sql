@@ -158,6 +158,16 @@ BEGIN
         WHERE chore_completion_id NOT IN (SELECT chore_completion_id
                 FROM relevant_chore_sessions
                 WHERE when_completed < @`from`)),
+    from_argument AS (SELECT chore_id
+            , CASE
+                WHEN avg_duration_minutes > duration_minutes
+                    THEN avg_duration_minutes - duration_minutes
+                ELSE 0
+                END AS remaining_duration_minutes
+        FROM due_this_weekend
+        NATURAL JOIN chore_completions
+        NATURAL JOIN chore_durations
+        NATURAL JOIN completed_before_the_weekend),
     remaining_durations_and_weekend_boundaries AS (SELECT `source` AS timestamp_source
             , timestamp_id
             , `timestamp`
@@ -177,15 +187,8 @@ BEGIN
             , 0 AS session_duration_minutes
             , NULL AS chore_completion_id
             , NULL AS is_chore_complete
-            , SUM(CASE
-                WHEN avg_duration_minutes > duration_minutes
-                    THEN avg_duration_minutes - duration_minutes
-                ELSE 0
-                END) AS remaining_duration_minutes
-        FROM due_this_weekend
-        NATURAL JOIN chore_completions
-        NATURAL JOIN chore_durations
-        NATURAL JOIN completed_before_the_weekend
+            , SUM(remaining_duration_minutes) AS remaining_duration_minutes
+        FROM from_argument
     # Last record
     UNION
     SELECT 'to parameter' AS timestamp_source
