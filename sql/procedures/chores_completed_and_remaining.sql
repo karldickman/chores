@@ -93,7 +93,7 @@ BEGIN
             , due_date
             , is_completed
             , FALSE AS meal
-            , frequency IS NOT NULL AND frequency <= 7 AND frequency_unit_id = 1 /*Days*/ AS weekly
+            , frequency IS NOT NULL AND frequency <= 14 AND frequency_unit_id = 1 /*Days*/ AS weekly
             , duration_minutes
             , completed_minutes
             , remaining_minutes
@@ -140,4 +140,3 @@ BEGIN
 END$$
 
 DELIMITER ;
-
