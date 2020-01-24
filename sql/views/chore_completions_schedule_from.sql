@@ -1,10 +1,13 @@
-use chores;
+USE chores;
 
 DROP VIEW IF EXISTS chore_completions_schedule_from;
 
 CREATE VIEW chore_completions_schedule_from
 AS
-SELECT chore_completions.*
+SELECT chore_completions.chore_completion_id
+        , chore_completions.chore_id
+        , chore_completions.chore_completion_status_id
+        , chore_completion_status_since
         , due_date
         , chore_frequencies.schedule_from_id AS chore_schedule_from_id
         , chore_completion_status_schedule_from.schedule_from_id AS chore_completion_status_schedule_from_id
