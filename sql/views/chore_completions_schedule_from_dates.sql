@@ -1,4 +1,4 @@
-use chores;
+USE chores;
 
 DROP VIEW IF EXISTS chore_completions_schedule_from_dates;
 

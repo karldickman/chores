@@ -1,4 +1,4 @@
-use chores;
+USE chores;
 
 DROP VIEW IF EXISTS chore_completion_next_due_dates;
 
