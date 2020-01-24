@@ -2,7 +2,7 @@ all: list-commands burndown complete database delete get-completion-id \
 	hierarchize history meals postpone progress put-away-dishes schedule \
 	session show-completion skip skippable today unknown-duration
 clean:
-	rm *.pyc chore chore-burndown chore-complete chore-database chore-delete \
+	$(RM) *.pyc chore chore-burndown chore-complete chore-database chore-delete \
 	chore-get-completion-id chore-hierarchize chore-history chore-meals \
 	chore-postpone chore-progress chore-put-away-dishes chore-schedule \
 	chore-session chore-show-completion chore-skip chore-skippable chore-today \
