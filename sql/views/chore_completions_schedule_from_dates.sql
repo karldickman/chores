@@ -9,7 +9,11 @@ SELECT chore_completions_schedule_from.chore_completion_id
         , chore_completion_status_id
         , chore_completion_status_since
         , due_date
+        , frequency
+        , frequency_unit_id
+        , frequency_since
         , chore_schedule_from_id
+        , chore_schedule_from_id_since
         , chore_completion_status_schedule_from_id
         , schedule_from_id
         , CASE
