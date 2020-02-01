@@ -26,6 +26,8 @@ postpone
     Postpone a chore a specified number of days.
 schedule
     Schedule a chore to be due on a particular date.
+schedule-meals
+    Schedule all meal chores to be due on a particular date.
 skip
     Skip doing a chore.
 
