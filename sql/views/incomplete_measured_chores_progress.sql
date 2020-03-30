@@ -37,6 +37,20 @@ chore_completion_durations_by_weekday AS (SELECT chore_completion_id
     INNER JOIN chore_durations_by_weekday
         ON incomplete_chore_completions.chore_id = chore_durations_by_weekday.chore_id
         AND WEEKDAY(due_date) = chore_durations_by_weekday.week_day),
+chore_completion_durations_by_weekendity AS (SELECT chore_completion_id
+        , incomplete_chore_completions.chore_id
+        , chore_durations_by_weekendity.weekendity
+        , chore_completion_status_id
+        , chore_completion_status_since
+        , due_date
+        , times_completed
+        , avg_number_of_sessions
+        , avg_duration_minutes
+        , stdev_duration_minutes
+    FROM incomplete_chore_completions
+    INNER JOIN chore_durations_by_weekendity
+        ON incomplete_chore_completions.chore_id = chore_durations_by_weekendity.chore_id
+        AND weekendity(due_date) = chore_durations_by_weekendity.weekendity),
 chore_completion_durations AS (SELECT chore_completion_id
         , chore_id
         , chore_completion_status_id
@@ -57,7 +71,18 @@ SELECT chore_completion_id
         , avg_number_of_sessions
         , avg_duration_minutes
         , stdev_duration_minutes
-    FROM chore_completion_durations_by_weekday)
+    FROM chore_completion_durations_by_weekday
+UNION
+SELECT chore_completion_id
+        , chore_id
+        , chore_completion_status_id
+        , chore_completion_status_since
+        , due_date
+        , times_completed
+        , avg_number_of_sessions
+        , avg_duration_minutes
+        , stdev_duration_minutes
+    FROM chore_completion_durations_by_weekendity)
 SELECT chore_completions.chore_completion_id
         , chore_completions.chore_id
         , TRUE AS chore_measured
