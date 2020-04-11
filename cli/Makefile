@@ -1,14 +1,14 @@
-all: list-commands burndown complete database delete get-completion-id \
+all: list-commands burndown complete create database delete get-completion-id \
 	hierarchize history meals postpone progress put-away-dishes schedule \
 	schedule-meals session show-completion skip skippable today unknown-duration
 clean:
-	$(RM) *.pyc chore chore-burndown chore-complete chore-database chore-delete \
+	$(RM) *.pyc chore chore-burndown chore-complete chore-create chore-database chore-delete \
 	chore-get-completion-id chore-hierarchize chore-history chore-meals \
 	chore-postpone chore-progress chore-put-away-dishes chore-schedule \
 	chore-schedule-meals chore-session chore-show-completion chore-skip \
 	chore-skippable chore-today chore-unknown-duration
 install:
-	cp chore chore-burndown chore-complete chore-database chore-delete \
+	cp chore chore-burndown chore-complete chore-create chore-database chore-delete \
 	chore-get-completion-id chore-hierarchize chore-history chore-meals \
 	chore-postpone chore-progress chore-put-away-dishes chore-schedule \
 	chore-schedule-meals chore-session chore-show-completion chore-skip \
@@ -20,6 +20,8 @@ burndown:
 	cp burndown.sh chore-burndown
 complete:
 	cp complete-chore.sh chore-complete
+create:
+	cp create_chore.py chore-create
 database:
 	cp database.sh chore-database
 delete:

@@ -1,5 +1,6 @@
 USE chores;
 GRANT SELECT ON skippable_chores TO 'chores'@'localhost';
+GRANT EXECUTE ON PROCEDURE create_chore TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE chore_burndown TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE chores_completed_and_remaining TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE chore_duration_today TO 'chores'@'localhost';

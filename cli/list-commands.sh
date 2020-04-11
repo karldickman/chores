@@ -32,6 +32,8 @@ skip
     Skip doing a chore.
 
 WRITE COMMANDS
+create
+    Create a new chore on a specified schedule.
 complete
     Record that a chore is completed.
 put-away-dishes
