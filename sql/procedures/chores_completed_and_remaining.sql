@@ -71,12 +71,13 @@ BEGIN
             , due_date
             , is_completed
             , last_completed
-            , avg_duration_minutes AS duration_minutes
-            , avg_duration_minutes AS completed_minutes
+            , COALESCE(chore_durations.avg_duration_minutes, all_chore_durations.avg_duration_minutes) AS duration_minutes
+            , COALESCE(chore_durations.avg_duration_minutes, all_chore_durations.avg_duration_minutes) AS completed_minutes
             , remaining_minutes
             , completed_chores.stdev_duration_minutes
             , `90% CI UB`
         FROM completed_chores
+        CROSS JOIN all_chore_durations
         LEFT OUTER JOIN chore_durations
             ON completed_chores.chore_id = chore_durations.chore_id
         WHERE chore_completion_status_id = 3),
