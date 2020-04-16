@@ -8,6 +8,7 @@ CREATE PROCEDURE chores_completed_and_remaining(`from` DATE, `until` DATE)
 BEGIN
     SET @`from` = `from`;
     SET @`until` = DATE_ADD(DATE(`until`), INTERVAL 1 DAY);
+    SET @days_unit_id = 1;
     WITH meal_chores AS (SELECT chore_completion_id
         FROM chore_completions
         NATURAL JOIN chores
@@ -94,7 +95,9 @@ BEGIN
             , due_date
             , is_completed
             , FALSE AS meal
-            , frequency IS NOT NULL AND frequency <= 14 AND frequency_unit_id = 1 /*Days*/ AS weekly
+            , frequency
+            , frequency_unit_id
+            , frequency IS NOT NULL AND frequency <= 14 AND frequency_unit_id = @days_unit_id AS weekly
             , duration_minutes
             , completed_minutes
             , remaining_minutes
@@ -110,6 +113,8 @@ BEGIN
     SELECT CONCAT('meals ', DATE_FORMAT(due_date, '%m-%d')) AS chore
             , due_date
             , is_completed
+            , 1 AS frequency
+            , @days_unit_id AS frequency_unit_id 
             , TRUE AS meal
             , TRUE AS weekly
             , duration_minutes
@@ -128,8 +133,17 @@ BEGIN
             , stdev_duration_minutes
             , `90% CI UB`
         FROM chores_and_meals
-        ORDER BY meal DESC
-            , weekly DESC
+        ORDER BY CASE
+                WHEN meal
+                    THEN 0
+                WHEN frequency IS NOT NULL
+                        AND frequency < 7
+                        AND frequency_unit_id = @days_unit_id
+                    THEN 1
+                WHEN weekly
+                    THEN 7
+                ELSE 30
+                END
             , CASE
                 WHEN meal
                     THEN due_date
