@@ -29,7 +29,7 @@ BEGIN
             , completed_minutes
             , backlog_minutes
             , stdev_backlog_minutes
-            , non_truncated_backlog_minutes + 1.282 * stdev_backlog_minutes AS `90% CI UB`
+            , non_truncated_backlog_minutes + 1.645 * stdev_backlog_minutes AS `95% CI UB`
         FROM backlog_calculations
         WHERE number_of_chores > 0),
     by_chore_and_total AS (SELECT FALSE AS is_total
@@ -40,7 +40,7 @@ BEGIN
             , completed_minutes
             , remaining_minutes
             , stdev_duration_minutes
-            , `90% CI UB`
+            , `95% CI UB`
         FROM incomplete_chores
         NATURAL JOIN chores
         LEFT OUTER JOIN chore_order
@@ -55,7 +55,7 @@ BEGIN
             , completed_minutes
             , backlog_minutes
             , stdev_backlog_minutes
-            , `90% CI UB`
+            , `95% CI UB`
         FROM total
         WHERE show_totals = TRUE)
     SELECT chore
@@ -64,7 +64,7 @@ BEGIN
             , format_duration(completed_minutes) AS completed
             , format_duration(remaining_minutes) AS remaining
             , format_duration(stdev_duration_minutes) AS std_dev
-            , format_duration(`90% CI UB`) AS `90% CI UB`
+            , format_duration(`95% CI UB`) AS `95% CI UB`
         FROM by_chore_and_total
         ORDER BY is_total, due_date, order_hint;
 END$$
