@@ -109,7 +109,7 @@ BEGIN
             ON time_remaining_by_chore.chore_id = chore_frequencies.chore_id
         WHERE chore_completion_id NOT IN (SELECT chore_completion_id
             FROM meal_chores)
-    UNION
+    UNION ALL
     SELECT CONCAT('meals ', DATE_FORMAT(due_date, '%m-%d')) AS chore
             , due_date
             , is_completed
