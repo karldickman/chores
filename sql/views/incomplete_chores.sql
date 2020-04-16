@@ -13,5 +13,5 @@ SELECT chore_id
         , completed_minutes
         , remaining_minutes
         , stdev_duration_minutes
-        , remaining_minutes + (1.282 * stdev_duration_minutes) AS `90% CI UB`
+        , remaining_minutes + (1.645 * stdev_duration_minutes) AS `95% CI UB`
     FROM incomplete_chores_progress

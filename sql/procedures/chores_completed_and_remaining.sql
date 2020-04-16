@@ -22,7 +22,7 @@ BEGIN
             , chore_completion_status_since AS last_completed
             , 0 AS remaining_minutes
             , 0 AS stdev_duration_minutes
-            , 0 AS `90% CI UB`
+            , 0 AS `95% CI UB`
             , chore_completion_status_id
         FROM chore_completions
         LEFT OUTER JOIN chore_completions_when_completed
@@ -42,7 +42,7 @@ BEGIN
             , completed_minutes
             , remaining_minutes
             , stdev_duration_minutes
-            , `90% CI UB`
+            , `95% CI UB`
         FROM incomplete_chores
         WHERE due_date < @`until`
             AND chore_completion_id NOT IN (SELECT parent_chore_completion_id
@@ -60,7 +60,7 @@ BEGIN
             , duration_minutes AS completed_minutes
             , remaining_minutes
             , stdev_duration_minutes
-            , `90% CI UB`
+            , `95% CI UB`
         FROM completed_chores
         INNER JOIN chore_completion_durations
             ON completed_chores.chore_completion_id = chore_completion_durations.chore_completion_id
@@ -76,7 +76,7 @@ BEGIN
             , COALESCE(chore_durations.avg_duration_minutes, all_chore_durations.avg_duration_minutes) AS completed_minutes
             , remaining_minutes
             , completed_chores.stdev_duration_minutes
-            , `90% CI UB`
+            , `95% CI UB`
         FROM completed_chores
         CROSS JOIN all_chore_durations
         LEFT OUTER JOIN chore_durations
@@ -102,7 +102,7 @@ BEGIN
             , completed_minutes
             , remaining_minutes
             , stdev_duration_minutes
-            , `90% CI UB`
+            , `95% CI UB`
         FROM time_remaining_by_chore
         NATURAL JOIN chores
         LEFT OUTER JOIN chore_frequencies
@@ -121,7 +121,7 @@ BEGIN
             , completed_minutes
             , remaining_minutes
             , stdev_duration_minutes
-            , remaining_minutes + (1.282 * stdev_duration_minutes) AS `90% CI UB`
+            , remaining_minutes + (1.645 * stdev_duration_minutes) AS `95% CI UB`
         FROM meal_summary)
     SELECT chore
             , DATE_FORMAT(due_date, '%Y-%m-%d') AS due_date
@@ -131,7 +131,7 @@ BEGIN
             , completed_minutes
             , remaining_minutes
             , stdev_duration_minutes
-            , `90% CI UB`
+            , `95% CI UB`
         FROM chores_and_meals
         ORDER BY CASE
                 WHEN meal
