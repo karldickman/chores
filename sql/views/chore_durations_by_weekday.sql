@@ -15,7 +15,7 @@ SELECT chore_id
             END AS stdev_duration_minutes
     FROM hierarchical_chore_completion_durations
     NATURAL JOIN chore_completions
-    NATURAL JOIN chores_aggregate_by
+    NATURAL JOIN chores
     WHERE chore_completion_status_id = 4 # Completed
         AND aggregate_by_id = 1 # Day of week
     GROUP BY chore_id, WEEKDAY(when_completed)

@@ -14,7 +14,7 @@ SELECT chore_id
             END AS stdev_duration_minutes
     FROM hierarchical_chore_completion_durations
     NATURAL JOIN chore_completions
+    NATURAL JOIN chores
     WHERE chore_completion_status_id = 4 # Completed
-        AND chore_id NOT IN (SELECT chore_id
-                FROM chores_aggregate_by)
+        AND aggregate_by_id = 0 # Empty
     GROUP BY chore_id

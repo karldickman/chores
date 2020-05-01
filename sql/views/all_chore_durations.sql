@@ -1,4 +1,4 @@
-use chores;
+USE chores;
 
 DROP VIEW IF EXISTS all_chore_durations;
 
