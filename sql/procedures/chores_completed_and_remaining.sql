@@ -142,7 +142,11 @@ BEGIN
                     THEN 1
                 WHEN weekly
                     THEN 7
-                ELSE 30
+                WHEN frequency IS NOT NULL
+                        AND frequency <= 31
+                        AND frequency_unit_id = @days_unit_id
+                    THEN 31
+                ELSE 60
                 END
             , CASE
                 WHEN meal
