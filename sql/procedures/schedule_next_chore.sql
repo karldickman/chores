@@ -84,7 +84,7 @@ this_procedure:BEGIN
     # If 7 or more days between chores, find the closest Sunday and use that
     IF @frequency >= 7 AND @frequency_unit_id = 1 OR @frequency > 0.25 AND @frequency_unit_id = 2
     THEN
-        CALL get_nearest_sunday(@next_due_date, @next_due_date);
+        SET @next_due_date = nearest_saturday(@next_due_date);
     END IF;
     CALL schedule_chore_by_id(@chore_id, @next_due_date, new_chore_completion_id);
 END$$
