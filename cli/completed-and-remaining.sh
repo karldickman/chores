@@ -56,7 +56,7 @@ if [[ $to == "" ]]
 then
 	if [[ ${#arguments[@]} -lt 2 ]]
 	then
-		to=$(date --iso-8601)
+		to=$from
 	else
 		to=${arguments[1]//\'/\\\'}
 	fi
