@@ -126,7 +126,21 @@ BEGIN
     SELECT chore
             , DATE_FORMAT(due_date, '%Y-%m-%d') AS due_date
             , is_completed
-            , weekly
+            , CASE
+                WHEN meal
+                    THEN 'meal'
+                WHEN frequency IS NOT NULL
+                        AND frequency < 7
+                        AND frequency_unit_id = @days_unit_id
+                    THEN 'daily'
+                WHEN weekly
+                    THEN 'weekly'
+                WHEN frequency IS NOT NULL
+                        AND frequency <= 31
+                        AND frequency_unit_id = @days_unit_id
+                    THEN 'monthly'
+                ELSE '> monthly'
+                END AS frequency
             , duration_minutes
             , completed_minutes
             , remaining_minutes
