@@ -17,7 +17,7 @@ def main(arguments):
 def parse_arguments():
     parser = ArgumentParser(description="Postpone a chore for a specified number of days.")
     parser.add_argument("chore", help="The chore to postpone.")
-    parser.add_argument("days", type=float, help="The number of days to postpone the chore.")
+    parser.add_argument("--days", type=float, help="The number of days to postpone the chore.", default=1)
     parser.add_argument("--preview", action="store_true", help="Show the SQL command but do not execute it.")
     parser.add_argument("-v", "--verbose", action="store_true", help="Show SQL commands as they are executed.")
     return parser.parse_args()
