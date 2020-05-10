@@ -52,14 +52,11 @@ then
 else
 	from=${arguments[0]//\'/\\\'}
 fi
-if [[ $to == "" ]]
+if [[ ${#arguments[@]} -lt 2 ]]
 then
-	if [[ ${#arguments[@]} -lt 2 ]]
-	then
-		to=$from
-	else
-		to=${arguments[1]//\'/\\\'}
-	fi
+	to=$(date --iso-8601)
+else
+	to=${arguments[1]//\'/\\\'}
 fi
 
 # Invoke SQL
