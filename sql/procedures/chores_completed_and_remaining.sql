@@ -139,7 +139,19 @@ BEGIN
                         AND frequency <= 31
                         AND frequency_unit_id = @days_unit_id
                     THEN 'monthly'
-                ELSE '> monthly'
+                WHEN frequency IS NOT NULL
+                        AND frequency <= 91
+                        AND frequency_unit_id = @days_unit_id
+                    THEN 'quarterly'
+                WHEN frequency IS NOT NULL
+                        AND frequency <= 182
+                        AND frequency_unit_id = @days_unit_id
+                    THEN 'biannual'
+                WHEN frequency IS NOT NULL
+                        AND frequency <= 365
+                        AND frequency_unit_id = @days_unit_id
+                    THEN 'annual'
+                ELSE 'biennial'
                 END AS frequency
             , duration_minutes
             , completed_minutes
@@ -160,7 +172,19 @@ BEGIN
                         AND frequency <= 31
                         AND frequency_unit_id = @days_unit_id
                     THEN 31
-                ELSE 60
+                WHEN frequency IS NOT NULL
+                        AND frequency <= 91
+                        AND frequency_unit_id = @days_unit_id
+                    THEN 91
+                WHEN frequency IS NOT NULL
+                        AND frequency <= 182
+                        AND frequency_unit_id = @days_unit_id
+                    THEN 182
+                WHEN frequency IS NOT NULL
+                        AND frequency <= 365
+                        AND frequency_unit_id = @days_unit_id
+                    THEN 365
+                ELSE 730
                 END
             , CASE
                 WHEN meal
