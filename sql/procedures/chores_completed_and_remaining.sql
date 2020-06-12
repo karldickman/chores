@@ -8,6 +8,9 @@ CREATE PROCEDURE chores_completed_and_remaining(`from` DATETIME, `until` DATETIM
 BEGIN
     SET @`now` = NOW();
     SET @`from` = `from`;
+    IF @`from` IS NULL THEN
+        SET @`from` = DATE(@`now`);
+    END IF;
     SET @`until` = `until`;
     IF @`until` IS NULL THEN
         IF @`from` < @`now` THEN
@@ -75,7 +78,7 @@ BEGIN
         FROM completed_chores
         INNER JOIN chore_completion_durations
             ON completed_chores.chore_completion_id = chore_completion_durations.chore_completion_id
-        WHERE chore_completion_status_id = 4
+        WHERE chore_completion_status_id = 4 /* completed */
     UNION
     # Unknown duration
     SELECT completed_chores.chore_id
@@ -92,7 +95,7 @@ BEGIN
         CROSS JOIN all_chore_durations
         LEFT OUTER JOIN chore_durations
             ON completed_chores.chore_id = chore_durations.chore_id
-        WHERE chore_completion_status_id = 3),
+        WHERE chore_completion_status_id = 3 /* completed without sufficient data */),
     meal_summary AS (SELECT due_date
             , MIN(is_completed) AS is_completed
             , SUM(duration_minutes) AS duration_minutes
