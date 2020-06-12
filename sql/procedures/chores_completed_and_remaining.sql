@@ -96,7 +96,7 @@ BEGIN
         LEFT OUTER JOIN chore_durations
             ON completed_chores.chore_id = chore_durations.chore_id
         WHERE chore_completion_status_id = 3 /* completed without sufficient data */),
-    meal_summary AS (SELECT due_date
+    meal_summary AS (SELECT DATE(due_date) AS due_date
             , MIN(is_completed) AS is_completed
             , SUM(duration_minutes) AS duration_minutes
             , SUM(completed_minutes) AS completed_minutes
@@ -104,7 +104,7 @@ BEGIN
             , SQRT(SUM(POWER(stdev_duration_minutes, 2))) AS stdev_duration_minutes
         FROM time_remaining_by_chore
         NATURAL JOIN meal_chores
-        GROUP BY due_date),
+        GROUP BY DATE(due_date)),
     chores_and_meals AS (SELECT chore
             , due_date
             , is_completed
