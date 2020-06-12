@@ -4,10 +4,21 @@ DROP PROCEDURE IF EXISTS chores_completed_and_remaining;
 
 DELIMITER $$
 
-CREATE PROCEDURE chores_completed_and_remaining(`from` DATE, `until` DATE)
+CREATE PROCEDURE chores_completed_and_remaining(`from` DATETIME, `until` DATETIME)
 BEGIN
+    SET @`now` = NOW();
     SET @`from` = `from`;
-    SET @`until` = DATE_ADD(DATE(`until`), INTERVAL 1 DAY);
+    SET @`until` = `until`;
+    IF @`until` IS NULL THEN
+        IF @`from` < @`now` THEN
+            SET @`until` = @`now`;
+        ELSE
+            SET @`until` = @`from`;
+        END IF;
+    END IF;
+    IF @`until` = DATE(@`until`) THEN
+        SET @`until` = DATE_ADD(DATE(@`until`), INTERVAL 1 DAY);
+    END IF;
     SET @days_unit_id = 1;
     WITH meal_chores AS (SELECT chore_completion_id
         FROM chore_completions
