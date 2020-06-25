@@ -8,10 +8,13 @@ Arguments:
     TO          The upper bound date to which to show completed and remaining chores.
 
 Options:
-    -h, --help  Show this help message and exit.
-    --preview   Show the SQL command but do not execute.
-    --to=TO     The upper bound date to which to show completed and remaining chores.
-    --verbose   Show SQL commands as they are executed."
+    --column-names  Write column names in results.
+    -h, --help      Show this help message and exit.
+    --line-numbers  Write line numbers for errors.
+    --preview       Show the SQL command but do not execute.
+    --silent        Boolean.  Indicates whether --silent flag should be passed to mysql command.
+    --to=TO         The upper bound date to which to show completed and remaining chores.
+    --verbose       Show SQL commands as they are executed."
 
 # Process options
 a=0
@@ -48,17 +51,17 @@ done
 
 if [[ ${#arguments[@]} -eq 0 ]]
 then
-	from=$(date --iso-8601)
+	from="NULL"
 else
-	from=${arguments[0]//\'/\\\'}
+	from="'${arguments[0]//\'/\\\'}'"
 fi
 if [[ ${#arguments[@]} -lt 2 ]]
 then
-	to=$(date --iso-8601)
+	to="NULL"
 else
-	to=${arguments[1]//\'/\\\'}
+	to="'${arguments[1]//\'/\\\'}'"
 fi
 
 # Invoke SQL
-sql="CALL chores_completed_and_remaining('$from', '$to')"
+sql="CALL chores_completed_and_remaining($from, $to)"
 chore-database "$sql" ${options[@]}
