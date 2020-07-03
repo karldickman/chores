@@ -23,6 +23,7 @@ BEGIN
         SET @`until` = DATE_ADD(DATE(@`until`), INTERVAL 1 DAY);
     END IF;
     SET @days_unit_id = 1;
+    SET @months_unit_id = 2;
     WITH meal_chores AS (SELECT chore_completion_id
         FROM chore_completions
         NATURAL JOIN chores
@@ -150,8 +151,8 @@ BEGIN
                 WHEN weekly
                     THEN 'weekly'
                 WHEN frequency IS NOT NULL
-                        AND frequency <= 31
-                        AND frequency_unit_id = @days_unit_id
+                        AND (frequency <= 31 AND frequency_unit_id = @days_unit_id
+                        OR frequency = 1 AND frequency_unit_id = @months_unit_id)
                     THEN 'monthly'
                 WHEN frequency IS NOT NULL
                         AND frequency <= 91
@@ -183,8 +184,8 @@ BEGIN
                 WHEN weekly
                     THEN 7
                 WHEN frequency IS NOT NULL
-                        AND frequency <= 31
-                        AND frequency_unit_id = @days_unit_id
+                        AND (frequency <= 31 AND frequency_unit_id = @days_unit_id
+                        OR frequency = 1 AND frequency_unit_id = @months_unit_id)
                     THEN 31
                 WHEN frequency IS NOT NULL
                         AND frequency <= 91
