@@ -18,6 +18,8 @@ today
     Show the number of minutes spent doing chores today.
 
 SCHEDULE COMMANDS
+change-due-date
+    Change the due date of a chore.
 delete
     Delete a chore completion.
 hierarchize
@@ -25,7 +27,7 @@ hierarchize
 postpone
     Postpone a chore a specified number of days.
 schedule
-    Schedule a chore to be due on a particular date.
+    Create a new a chore to be due on a particular date.
 schedule-meals
     Schedule all meal chores to be due on a particular date.
 skip

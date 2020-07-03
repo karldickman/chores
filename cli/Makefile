@@ -1,6 +1,7 @@
-all: list-commands burndown complete create database delete get-completion-id \
-	hierarchize history meals postpone progress put-away-dishes schedule \
-	schedule-meals session show-completion skip skippable today unknown-duration
+all: list-commands burndown change-due-date complete create database delete \
+	get-completion-id hierarchize history meals postpone progress put-away-dishes \
+	schedule schedule-meals session show-completion skip skippable today \
+	unknown-duration
 clean:
 	$(RM) -r *.pyc bin
 install:
@@ -12,6 +13,8 @@ list-commands: bin list-commands.sh
 	cp list-commands.sh bin/chore
 burndown: bin burndown.sh
 	cp burndown.sh bin/chore-burndown
+change-due-date: bin set_due_date.py
+	cp set_due_date.py bin/chore-change-due-date
 complete: bin complete-chore.sh
 	cp complete-chore.sh bin/chore-complete
 create: bin create_chore.py
