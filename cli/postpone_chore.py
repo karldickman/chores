@@ -6,7 +6,7 @@ from subprocess import call
 def main(arguments):
     chore = arguments.chore.replace("'", "\'")
     days = arguments.days
-    sql = f"CALL postpone_chore('{chore}', {days}, @c)"
+    sql = f"CALL postpone_chore_by_name('{chore}', {days}, @c, @due_date)"
     command = ["chore-database", sql]
     if arguments.preview:
         command.append("--preview")

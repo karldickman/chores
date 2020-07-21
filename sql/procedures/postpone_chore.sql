@@ -4,14 +4,13 @@ DROP PROCEDURE IF EXISTS postpone_chore;
 
 DELIMITER $$
 
-CREATE PROCEDURE postpone_chore(chore_name NVARCHAR(256), days INT, OUT found_chore_completion_id INT)
+CREATE PROCEDURE postpone_chore(chore_completion_to_postpone_id INT, days INT, OUT new_due_date DATETIME)
 BEGIN
-    CALL get_chore_completion(chore_name, found_chore_completion_id);
-    SELECT due_date INTO @due_date
+    SELECT due_date INTO new_due_date
         FROM chore_schedule
-        WHERE chore_completion_id = found_chore_completion_id;
-    SET @due_date = DATE_ADD(@due_date, INTERVAL days DAY);
-    CALL update_chore_completion_due_date(found_chore_completion_id, @due_date);
+        WHERE chore_completion_id = chore_completion_to_postpone_id;
+    SET new_due_date = DATE_ADD(new_due_date, INTERVAL days DAY);
+    CALL update_chore_completion_due_date(chore_completion_to_postpone_id, new_due_date);
 END$$
 
 DELIMITER ;
