@@ -76,7 +76,7 @@ this_procedure:BEGIN
             AND due_date > @due_date
             AND due_date <= @next_due_date
             AND chore_id NOT IN (SELECT chore_id
-                    FROM chore_completions_per_day
+                    FROM chores
                     WHERE completions_per_day > 1))
     THEN
         LEAVE this_procedure;
