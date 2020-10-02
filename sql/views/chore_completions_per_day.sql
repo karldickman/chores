@@ -1,6 +1,6 @@
 USE chores;
 # DROP VIEW chore_completions_per_day;
-CREATE VIEW chore_completions_per_day
+CREATE OR REPLACE VIEW chore_completions_per_day
 AS
 WITH chore_completions_per_year AS (SELECT chore_id
         , COUNT(*) AS completions_per_year
@@ -31,3 +31,5 @@ SELECT chore_id
         , since AS schedule_from_id_since
     FROM chore_completions_per_year
     JOIN chores USING (chore_id)
+    WHERE chore_id NOT IN (SELECT chore_id
+            FROM chore_completions_per_day_from_period);
