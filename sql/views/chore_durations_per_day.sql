@@ -18,7 +18,7 @@ SELECT chore_id
         , avg_duration_minutes
         , stdev_duration_minutes
         , avg_duration_minutes * completions_per_day AS avg_duration_per_day
-        , (chore_durations.aggregate_by_id = 0 AND period_days < 7
+        , (chore_durations.aggregate_by_id = 0 AND period_days < 4
             OR chore_durations.aggregate_by_id = 2 AND aggregate_key = 0) AS `weekday`
     FROM chore_completions_per_day
     JOIN chore_durations USING (chore_id);

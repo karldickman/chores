@@ -11,7 +11,7 @@ SELECT person_id
         , SUM(CASE
             WHEN `weekday` = 1
                 THEN 5
-            WHEN aggregate_by_id = 2 AND aggregate_key = 1 AND period_days < 7
+            WHEN aggregate_by_id = 2 AND aggregate_key = 1 AND period_days < 4
                 THEN 2
             ELSE 7
             END * avg_duration_per_day) AS avg_duration_per_week
