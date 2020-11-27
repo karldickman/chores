@@ -5,6 +5,9 @@ DROP VIEW IF EXISTS chore_durations_by_weekendity;
 CREATE VIEW chore_durations_by_weekendity
 AS
 SELECT chore_id
+        , chore
+        , aggregate_by_id
+        , completions_per_day
         , weekendity(when_completed) AS weekendity
         , COUNT(chore_completion_id) AS times_completed
         , AVG(1.0 * number_of_sessions) AS avg_number_of_sessions
@@ -13,9 +16,14 @@ SELECT chore_id
             WHEN COUNT(chore_completion_id) > 1
                 THEN STD(duration_minutes)
             END AS stdev_duration_minutes
+        , AVG(log_duration_minutes) AS avg_log_duration_minutes
+        , CASE
+            WHEN COUNT(chore_completion_id) > 1
+                THEN STD(log_duration_minutes)
+            END AS stdev_log_duration_minutes
     FROM hierarchical_chore_completion_durations
-    NATURAL JOIN chore_completions
-    NATURAL JOIN chores
+    JOIN chore_completions USING (chore_completion_id)
+    JOIN chores USING (chore_id)
     WHERE chore_completion_status_id = 4 # Completed
         AND aggregate_by_id = 2 # Weekendity
-    GROUP BY chore_id, weekendity(when_completed)
+    GROUP BY chore_id, chore, aggregate_by_id, completions_per_day, weekendity(when_completed)

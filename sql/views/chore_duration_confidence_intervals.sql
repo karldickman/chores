@@ -1,3 +1,5 @@
+USE chores;
+
 DROP VIEW IF EXISTS chore_duration_confidence_intervals;
 
 CREATE VIEW chore_duration_confidence_intervals
@@ -73,12 +75,20 @@ SELECT chore_stderrs.chore_id
         , avg_duration_minutes
         , stdev_duration_minutes
         , stderr_duration_minutes
+        , avg_log_duration_minutes
+        , stdev_log_duration_minutes
+        , stderr_log_duration_minutes
         , critical_value
         , stderr_duration_minutes * CASE
             WHEN times_completed >= 2
                 THEN critical_value
             ELSE 1
             END AS `95% CI`
+        , stderr_log_duration_minutes * CASE
+            WHEN times_completed >= 2
+                THEN critical_value
+            ELSE 1
+            END AS `log 95% CI`
     FROM chore_stderrs
     LEFT OUTER JOIN chore_critical_values
         ON chore_stderrs.chore_id = chore_critical_values.chore_id
