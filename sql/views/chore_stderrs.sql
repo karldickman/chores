@@ -12,11 +12,11 @@ SELECT chore_id
         , times_completed
         , avg_number_of_sessions
         , avg_duration_minutes
-        , COALESCE(stdev_duration_minutes, 3.402823466E+38) AS stdev_duration_minutes
-        , COALESCE(stdev_duration_minutes, 3.402823466E+38) / SQRT(times_completed) AS stderr_duration_minutes
+        , stdev_duration_minutes
+        , stdev_duration_minutes / SQRT(times_completed) AS stderr_duration_minutes
         , avg_log_duration_minutes
-        , COALESCE(stdev_log_duration_minutes, 3.402823466E+38) AS stdev_log_duration_minutes
-        , COALESCE(stdev_log_duration_minutes, 3.402823466E+38) / SQRT(times_completed) AS stderr_log_duration_minutes
+        , stdev_log_duration_minutes
+        , stdev_log_duration_minutes / SQRT(times_completed) AS stderr_log_duration_minutes
     FROM chore_durations
 UNION
 SELECT chore_id
@@ -27,11 +27,11 @@ SELECT chore_id
         , 0 AS times_completed
         , NULL AS avg_number_of_sessions
         , avg_duration_minutes
-        , 3.402823466E+38 AS stdev_duration_minutes
-        , 3.402823466E+38 AS stderr_duration_minutes
+        , NULL AS stdev_duration_minutes
+        , NULL AS stderr_duration_minutes
         , avg_log_duration_minutes
-        , 3.402823466E+38 AS stdev_log_duration_minutes
-        , 3.402823466E+38 AS stderr_log_duration_minutes
+        , NULL AS stdev_log_duration_minutes
+        , NULL AS stderr_log_duration_minutes
     FROM chores
     JOIN aggregate_keys USING (aggregate_by_id)
     CROSS JOIN all_chore_durations

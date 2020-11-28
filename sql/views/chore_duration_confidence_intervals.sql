@@ -38,7 +38,7 @@ interpolated_critical_values AS (SELECT chore_id
                 + lower_bound_critical_values.critical_value # y translation
             END AS critical_value
     FROM chore_stderrs
-    NATURAL JOIN degrees_of_freedom
+    JOIN degrees_of_freedom USING (chore_id, aggregate_by_id, aggregate_key)
     INNER JOIN critical_values AS lower_bound_critical_values
         ON df_lower_bound = lower_bound_critical_values.degrees_of_freedom
     INNER JOIN critical_values AS upper_bound_critical_values
@@ -65,10 +65,10 @@ SELECT chore_id
         , aggregate_key
         , degrees_of_freedom
         , critical_value
-    FROM unlimited_degrees_of_freedom_critical_values)        
-SELECT chore_stderrs.chore_id
-        , chore_stderrs.aggregate_by_id
-        , chore_stderrs.aggregate_key
+    FROM unlimited_degrees_of_freedom_critical_values),
+chore_confidence_intervals AS (SELECT chore_id
+        , aggregate_by_id
+        , aggregate_key
         , chore
         , times_completed
         , avg_number_of_sessions
@@ -90,7 +90,22 @@ SELECT chore_stderrs.chore_id
             ELSE 1
             END AS `log 95% CI`
     FROM chore_stderrs
-    LEFT OUTER JOIN chore_critical_values
-        ON chore_stderrs.chore_id = chore_critical_values.chore_id
-        AND chore_stderrs.aggregate_by_id = chore_critical_values.aggregate_by_id
-        AND chore_stderrs.aggregate_key = chore_critical_values.aggregate_key
+    LEFT JOIN chore_critical_values USING (chore_id, aggregate_by_id, aggregate_key))
+SELECT chore_id
+        , aggregate_by_id
+        , aggregate_key
+        , chore
+        , times_completed
+        , avg_number_of_sessions
+        , avg_duration_minutes
+        , stdev_duration_minutes
+        , stderr_duration_minutes
+        , avg_log_duration_minutes
+        , stdev_log_duration_minutes
+        , stderr_log_duration_minutes
+        , critical_value
+        , `95% CI`
+        , `log 95% CI`
+        , avg_log_duration_minutes - `log 95% CI` AS `log 95% CI LB`
+        , avg_log_duration_minutes + `log 95% CI` AS `log 95% CI UB`
+    FROM chore_confidence_intervals
