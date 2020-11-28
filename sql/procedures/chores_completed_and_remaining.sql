@@ -101,7 +101,7 @@ BEGIN
             , MIN(is_completed) AS is_completed
             , SUM(duration_minutes) AS duration_minutes
             , SUM(completed_minutes) AS completed_minutes
-            , SUM(remaining_minutes) AS remaining_minutes
+            , SUM(CASE WHEN remaining_minutes > 0 THEN remaining_minutes ELSE 0 END) AS remaining_minutes
             , SQRT(SUM(POWER(stdev_duration_minutes, 2))) AS stdev_duration_minutes
         FROM time_remaining_by_chore
         NATURAL JOIN meal_chores
