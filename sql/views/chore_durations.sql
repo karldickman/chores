@@ -16,7 +16,7 @@ SELECT chore_id
         , avg_log_duration_minutes
         , stdev_log_duration_minutes
     FROM chore_durations_by_empty
-    JOIN aggregate_keys USING(aggregate_by_id)
+    JOIN aggregate_keys USING (aggregate_by_id)
 UNION
 SELECT chore_id
         , chore
