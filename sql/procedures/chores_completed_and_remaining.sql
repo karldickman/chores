@@ -22,8 +22,6 @@ BEGIN
     IF @`until` = DATE(@`until`) THEN
         SET @`until` = DATE_ADD(DATE(@`until`), INTERVAL 1 DAY);
     END IF;
-    SET @days_unit_id = 1;
-    SET @months_unit_id = 2;
     WITH meal_chores AS (SELECT chore_completion_id
         FROM chore_completions
         JOIN chore_categories USING (chore_id)
@@ -99,63 +97,49 @@ BEGIN
             , SUM(CASE WHEN remaining_minutes > 0 THEN remaining_minutes ELSE 0 END) AS remaining_minutes
             , SUM(`95% CI UB`) AS `95% CI UB`
         FROM time_remaining_by_chore
-        NATURAL JOIN meal_chores
+        JOIN meal_chores USING (chore_completion_id)
         GROUP BY DATE(due_date)),
-    chores_and_meals AS (SELECT chore
+    chores_and_meals AS (SELECT time_remaining_by_chore.chore
             , due_date
             , is_completed
             , FALSE AS meal
-            , frequency
-            , frequency_unit_id
-            , frequency IS NOT NULL AND frequency <= 14 AND frequency_unit_id = @days_unit_id AS weekly
+            , period_days
             , duration_minutes
             , completed_minutes
             , remaining_minutes
             , `95% CI UB`
         FROM time_remaining_by_chore
-        LEFT JOIN chore_frequencies USING (chore_id)
+        LEFT JOIN chore_completions_per_day USING (chore_id)
         WHERE chore_completion_id NOT IN (SELECT chore_completion_id
             FROM meal_chores)
     UNION ALL
     SELECT CONCAT('meals ', DATE_FORMAT(due_date, '%m-%d')) AS chore
             , due_date
             , is_completed
-            , 1 AS frequency
-            , @days_unit_id AS frequency_unit_id 
+            , 1 AS period_days
             , TRUE AS meal
-            , TRUE AS weekly
             , duration_minutes
             , completed_minutes
             , remaining_minutes
             , `95% CI UB`
-        FROM meal_summary)
-    SELECT chore
-            , DATE_FORMAT(due_date, '%Y-%m-%d') AS due_date
+        FROM meal_summary),
+    chores_and_periods AS (SELECT chore
+            , due_date
             , is_completed
             , CASE
                 WHEN meal
                     THEN 'meal'
-                WHEN frequency IS NOT NULL
-                        AND frequency < 7
-                        AND frequency_unit_id = @days_unit_id
+                WHEN period_days IS NOT NULL AND period_days < 7
                     THEN 'daily'
-                WHEN weekly
+                WHEN period_days <= 14
                     THEN 'weekly'
-                WHEN frequency IS NOT NULL
-                        AND (frequency <= 31 AND frequency_unit_id = @days_unit_id
-                        OR frequency = 1 AND frequency_unit_id = @months_unit_id)
+                WHEN period_days IS NOT NULL AND period_days <= 31
                     THEN 'monthly'
-                WHEN frequency IS NOT NULL
-                        AND frequency <= 91
-                        AND frequency_unit_id = @days_unit_id
+                WHEN period_days IS NOT NULL AND period_days < 92
                     THEN 'quarterly'
-                WHEN frequency IS NOT NULL
-                        AND frequency <= 182
-                        AND frequency_unit_id = @days_unit_id
+                WHEN period_days IS NOT NULL AND period_days < 183
                     THEN 'biannual'
-                WHEN frequency IS NOT NULL
-                        AND frequency <= 365
-                        AND frequency_unit_id = @days_unit_id
+                WHEN period_days IS NOT NULL AND period_days < 366
                     THEN 'annual'
                 ELSE 'biennial'
                 END AS frequency
@@ -163,39 +147,38 @@ BEGIN
             , completed_minutes
             , remaining_minutes
             , `95% CI UB`
-        FROM chores_and_meals
+        FROM chores_and_meals)
+    SELECT chore
+            , DATE_FORMAT(due_date, '%Y-%m-%d') AS due_date
+            , is_completed
+            , frequency
+            , duration_minutes
+            , completed_minutes
+            , remaining_minutes
+            , `95% CI UB`
+        FROM chores_and_periods
         ORDER BY CASE
-                WHEN meal
+                WHEN frequency = 'meal'
                     THEN 0
-                WHEN frequency IS NOT NULL
-                        AND frequency < 7
-                        AND frequency_unit_id = @days_unit_id
+                WHEN frequency = 'daily'
                     THEN 1
-                WHEN weekly
+                WHEN frequency = 'weekly'
                     THEN 7
-                WHEN frequency IS NOT NULL
-                        AND (frequency <= 31 AND frequency_unit_id = @days_unit_id
-                        OR frequency = 1 AND frequency_unit_id = @months_unit_id)
+                WHEN frequency = 'monthly'
                     THEN 31
-                WHEN frequency IS NOT NULL
-                        AND frequency <= 91
-                        AND frequency_unit_id = @days_unit_id
+                WHEN frequency = 'quarterly'
                     THEN 91
-                WHEN frequency IS NOT NULL
-                        AND frequency <= 182
-                        AND frequency_unit_id = @days_unit_id
+                WHEN frequency = 'biannual'
                     THEN 182
-                WHEN frequency IS NOT NULL
-                        AND frequency <= 365
-                        AND frequency_unit_id = @days_unit_id
+                WHEN frequency = 'yearly'
                     THEN 365
                 ELSE 730
-                END
+            END
             , CASE
-                WHEN meal
+                WHEN frequency = 'meal'
                     THEN due_date
                 ELSE 0
-                END
+            END
             , is_completed
             , remaining_minutes DESC
             , duration_minutes;
