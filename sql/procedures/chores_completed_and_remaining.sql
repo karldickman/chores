@@ -26,29 +26,27 @@ BEGIN
     SET @months_unit_id = 2;
     WITH meal_chores AS (SELECT chore_completion_id
         FROM chore_completions
-        NATURAL JOIN chores
-        NATURAL JOIN chore_categories
-        NATURAL JOIN categories
-        WHERE category = 'meals'),
+        JOIN chore_categories USING (chore_id)
+        WHERE category_id = 1 /*'meals'*/),
     completed_chores AS (SELECT chore_completions.chore_id
+            , chore
             , chore_completions.chore_completion_id
             , due_date
             , TRUE AS is_completed
             , chore_completion_status_since AS last_completed
             , 0 AS remaining_minutes
-            , 0 AS stdev_duration_minutes
             , 0 AS `95% CI UB`
             , chore_completion_status_id
         FROM chore_completions
-        LEFT OUTER JOIN chore_completions_when_completed
-            ON chore_completions.chore_completion_id = chore_completions_when_completed.chore_completion_id
-        LEFT OUTER JOIN hierarchical_chore_schedule AS chore_schedule
-            ON chore_completions.chore_completion_id = chore_schedule.chore_completion_id
-        WHERE chore_completion_status_id IN (3, 4)
+        JOIN chores USING (chore_id)
+        LEFT JOIN chore_completions_when_completed USING (chore_completion_id)
+        LEFT JOIN hierarchical_chore_schedule AS chore_schedule USING (chore_completion_id)
+        WHERE chore_completion_status_id IN (3, 4) # completed, with or without recorded duration
             AND chore_completions_when_completed.when_completed BETWEEN @`from` AND @`until`),
     time_remaining_by_chore AS (
     # Incomplete
     SELECT incomplete_chores.chore_id
+            , chore
             , chore_completion_id
             , due_date
             , FALSE AS is_completed
@@ -56,17 +54,17 @@ BEGIN
             , duration_minutes
             , completed_minutes
             , remaining_minutes
-            , stdev_duration_minutes
             , `95% CI UB`
         FROM incomplete_chores
         WHERE due_date < @`until`
             AND chore_completion_id NOT IN (SELECT parent_chore_completion_id
                     FROM chore_completion_hierarchy
-                    NATURAL JOIN chore_completions
+                    JOIN chore_completions USING (chore_completion_id)
                     WHERE chore_completion_status_id = 1 /* scheduled */)
     UNION
     # Known duration
     SELECT chore_id
+            , chore
             , completed_chores.chore_completion_id
             , due_date
             , is_completed
@@ -74,15 +72,14 @@ BEGIN
             , duration_minutes
             , duration_minutes AS completed_minutes
             , remaining_minutes
-            , stdev_duration_minutes
             , `95% CI UB`
         FROM completed_chores
-        INNER JOIN chore_completion_durations
-            ON completed_chores.chore_completion_id = chore_completion_durations.chore_completion_id
+        JOIN chore_completion_durations USING (chore_completion_id)
         WHERE chore_completion_status_id = 4 /* completed */
     UNION
     # Unknown duration
     SELECT completed_chores.chore_id
+            , completed_chores.chore
             , chore_completion_id
             , due_date
             , is_completed
@@ -90,19 +87,17 @@ BEGIN
             , COALESCE(chore_durations.avg_duration_minutes, all_chore_durations.avg_duration_minutes) AS duration_minutes
             , COALESCE(chore_durations.avg_duration_minutes, all_chore_durations.avg_duration_minutes) AS completed_minutes
             , remaining_minutes
-            , completed_chores.stdev_duration_minutes
-            , `95% CI UB`
+            , completed_chores.`95% CI UB`
         FROM completed_chores
         CROSS JOIN all_chore_durations
-        LEFT OUTER JOIN chore_durations
-            ON completed_chores.chore_id = chore_durations.chore_id
+        LEFT JOIN chore_durations USING (chore_id)
         WHERE chore_completion_status_id = 3 /* completed without sufficient data */),
     meal_summary AS (SELECT DATE(due_date) AS due_date
             , MIN(is_completed) AS is_completed
             , SUM(duration_minutes) AS duration_minutes
             , SUM(completed_minutes) AS completed_minutes
             , SUM(CASE WHEN remaining_minutes > 0 THEN remaining_minutes ELSE 0 END) AS remaining_minutes
-            , SQRT(SUM(POWER(stdev_duration_minutes, 2))) AS stdev_duration_minutes
+            , SUM(`95% CI UB`) AS `95% CI UB`
         FROM time_remaining_by_chore
         NATURAL JOIN meal_chores
         GROUP BY DATE(due_date)),
@@ -116,12 +111,9 @@ BEGIN
             , duration_minutes
             , completed_minutes
             , remaining_minutes
-            , stdev_duration_minutes
             , `95% CI UB`
         FROM time_remaining_by_chore
-        NATURAL JOIN chores
-        LEFT OUTER JOIN chore_frequencies
-            ON time_remaining_by_chore.chore_id = chore_frequencies.chore_id
+        LEFT JOIN chore_frequencies USING (chore_id)
         WHERE chore_completion_id NOT IN (SELECT chore_completion_id
             FROM meal_chores)
     UNION ALL
@@ -135,8 +127,7 @@ BEGIN
             , duration_minutes
             , completed_minutes
             , remaining_minutes
-            , stdev_duration_minutes
-            , remaining_minutes + (1.645 * stdev_duration_minutes) AS `95% CI UB`
+            , `95% CI UB`
         FROM meal_summary)
     SELECT chore
             , DATE_FORMAT(due_date, '%Y-%m-%d') AS due_date
@@ -171,7 +162,6 @@ BEGIN
             , duration_minutes
             , completed_minutes
             , remaining_minutes
-            , stdev_duration_minutes
             , `95% CI UB`
         FROM chores_and_meals
         ORDER BY CASE

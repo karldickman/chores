@@ -29,11 +29,11 @@ SELECT chore_id
         , avg_duration_minutes
         , NULL AS stdev_duration_minutes
         , NULL AS stderr_duration_minutes
-        , avg_log_duration_minutes
+        , NULL AS avg_log_duration_minutes
         , NULL AS stdev_log_duration_minutes
         , NULL AS stderr_log_duration_minutes
     FROM chores
     JOIN aggregate_keys USING (aggregate_by_id)
     CROSS JOIN all_chore_durations
     WHERE chore_id NOT IN (SELECT chore_id
-            FROM chore_durations)
+            FROM chore_durations);
