@@ -1,8 +1,8 @@
 USE chores;
 
-DROP VIEW IF EXISTS never_measured_chores_progress;
+#DROP VIEW never_measured_chores_progress;
 
-CREATE VIEW never_measured_chores_progress
+CREATE OR REPLACE VIEW never_measured_chores_progress
 AS
 SELECT chore_completions.chore_completion_id
         , chore_completions.chore_id

@@ -1,8 +1,8 @@
 USE chores;
 
-DROP VIEW IF EXISTS chore_durations;
+#DROP VIEW chore_durations;
 
-CREATE VIEW chore_durations
+CREATE OR REPLACE VIEW chore_durations
 AS
 WITH `union` AS (SELECT chore_id
         , chore

@@ -43,7 +43,7 @@ BEGIN
             AND chore_completions_when_completed.when_completed BETWEEN @`from` AND @`until`),
     time_remaining_by_chore AS (
     # Incomplete
-    SELECT incomplete_chores.chore_id
+    SELECT incomplete_chores_progress.chore_id
             , chore
             , chore_completion_id
             , due_date
@@ -53,7 +53,7 @@ BEGIN
             , completed_minutes
             , remaining_minutes
             , `95% CI UB`
-        FROM incomplete_chores
+        FROM incomplete_chores_progress
         WHERE due_date < @`until`
             AND chore_completion_id NOT IN (SELECT parent_chore_completion_id
                     FROM chore_completion_hierarchy

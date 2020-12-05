@@ -1,8 +1,8 @@
 USE chores;
 
-DROP VIEW IF EXISTS chore_durations_by_empty;
+#DROP VIEW chore_durations_by_empty;
 
-CREATE VIEW chore_durations_by_empty
+CREATE OR REPLACE VIEW chore_durations_by_empty
 AS
 SELECT chore_id
         , chore
@@ -25,4 +25,4 @@ SELECT chore_id
     JOIN chores USING (chore_id)
     WHERE chore_completion_status_id = 4 # Completed
         AND aggregate_by_id = 0 # Empty
-    GROUP BY chore_id, chore, aggregate_by_id, completions_per_day
+    GROUP BY chore_id, chore, aggregate_by_id, completions_per_day;

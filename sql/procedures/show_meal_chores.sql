@@ -37,7 +37,7 @@ BEGIN
             , completed_minutes
             , remaining_minutes
             , `95% CI UB`
-        FROM incomplete_chores
+        FROM incomplete_chores_progress
         LEFT JOIN chore_order USING (chore_id)
         JOIN relevant_chore_completions USING (chore_completion_id)
     UNION ALL
