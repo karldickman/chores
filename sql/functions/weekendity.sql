@@ -8,7 +8,7 @@ CREATE FUNCTION weekendity (`date` DATETIME)
 RETURNS INTEGER
 DETERMINISTIC
 BEGIN
-    RETURN WEEKDAY(`date`) IN (5, 6);
+    RETURN WEEKDAY(`date`) IN (5, 6) OR DATE(`date`) IN (SELECT holidate FROM holidays);
 END$$
 
 DELIMITER ;
