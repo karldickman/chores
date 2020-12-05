@@ -15,9 +15,15 @@ SELECT chore_id
         , aggregate_key
         , times_completed
         , avg_number_of_sessions
+        , arithmetic_avg_duration_minutes
+        , arithmetic_stdev_duration_minutes
+        , avg_log_duration_minutes
+        , stdev_log_duration_minutes
+        , mode_duration_minutes
+        , median_duration_minutes
         , avg_duration_minutes
-        , stdev_duration_minutes
         , avg_duration_per_day
+        , stdev_duration_minutes
         , `weekday`
         , person_id
     FROM chore_durations_per_day
