@@ -24,7 +24,9 @@ SELECT chore_id
         , avg_duration_minutes
         , avg_duration_per_day
         , stdev_duration_minutes
-        , `weekday`
+        , daily
+        , weekly
+        , weekendity
         , person_id
     FROM chore_durations_per_day
     JOIN chore_people USING (chore_id);

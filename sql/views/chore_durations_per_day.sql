@@ -26,7 +26,7 @@ SELECT chore_id
         , stdev_duration_minutes
         , period_days < 4 AS daily
         , period_days <= 14 AS weekly
-        , (chore_durations.aggregate_by_id = 0 AND period_days < 4
-            OR chore_durations.aggregate_by_id = 2 AND aggregate_key = 0) AS `weekday`
+        , NOT ((chore_durations.aggregate_by_id = 0 AND period_days < 4
+            OR chore_durations.aggregate_by_id = 2 AND aggregate_key = 0)) AS weekendity
     FROM chore_completions_per_day
     JOIN chore_durations USING (chore_id);
