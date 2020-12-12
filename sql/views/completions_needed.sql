@@ -18,15 +18,15 @@ WITH hypothetical_confidence_intervals AS (SELECT chore_id
         , avg_duration_minutes
         , stdev_duration_minutes
         , chore_duration_confidence_intervals.degrees_of_freedom
-        , chore_duration_confidence_intervals.critical_value
-        , `95% CI UB`
-        , interpolated_critical_values.degrees_of_freedom AS hypothetical_degrees_of_freedom
-        , interpolated_critical_values.critical_value AS hypothetical_critical_value
-        , EXP(log_normal_confidence_bound(avg_log_duration_minutes, stdev_log_duration_minutes, times_completed, interpolated_critical_values.critical_value)) AS `hypothetical 95% CI UB`
+        , chore_duration_confidence_intervals.one_tail_critical_value
+        , `one tail 95% CI UB`
+        , students_t_critical_values.degrees_of_freedom AS hypothetical_degrees_of_freedom
+        , students_t_critical_values.critical_value AS hypothetical_critical_value
+        , EXP(log_normal_confidence_bound(avg_log_duration_minutes, stdev_log_duration_minutes, times_completed, students_t_critical_values.critical_value)) AS `hypothetical 95% CI UB`
     FROM chore_duration_confidence_intervals
-    LEFT JOIN interpolated_critical_values
+    LEFT JOIN students_t_critical_values
         ON one_tail_confidence = 0.05
-        AND chore_duration_confidence_intervals.degrees_of_freedom <= interpolated_critical_values.degrees_of_freedom),
+        AND chore_duration_confidence_intervals.degrees_of_freedom <= students_t_critical_values.degrees_of_freedom),
 unlimited_degrees_of_freedom AS (SELECT chore_id
         , chore
         , aggregate_by_id
@@ -43,8 +43,8 @@ unlimited_degrees_of_freedom AS (SELECT chore_id
         , avg_duration_minutes
         , stdev_duration_minutes
         , chore_duration_confidence_intervals.degrees_of_freedom
-        , chore_duration_confidence_intervals.critical_value
-        , `95% CI UB`
+        , chore_duration_confidence_intervals.one_tail_critical_value
+        , `one tail 95% CI UB`
         , students_t_critical_values_unlimited_degrees_of_freedom.critical_value AS hypothetical_critical_value
     FROM chore_duration_confidence_intervals
     JOIN students_t_critical_values_unlimited_degrees_of_freedom
@@ -65,17 +65,17 @@ inequality_coefficients AS (SELECT chore_id
         , avg_duration_minutes
         , stdev_duration_minutes
         , degrees_of_freedom
-        , critical_value
-        , `95% CI UB`
+        , one_tail_critical_value
+        , `one tail 95% CI UB`
         , hypothetical_critical_value
         , avg_duration_minutes + 0.5 AS `+ 30 s CI UB`
         , LOG(avg_duration_minutes + 0.5) AS `log(+ 30 s CI UB)`
         , POWER(LOG(1 + 0.5 / avg_duration_minutes)
-            / (critical_value * stdev_log_duration_minutes), 2) AS absolute_ci_inequality_coefficient
+            / (one_tail_critical_value * stdev_log_duration_minutes), 2) AS absolute_ci_inequality_coefficient
         , avg_duration_minutes * 1.05 AS `+ 5% CI UB`
         , LOG(avg_duration_minutes * 1.05) AS `log(+ 5% CI UB)`
         , POWER(LOG(1.05)
-            / (critical_value * stdev_log_duration_minutes), 2) AS relative_ci_inequality_coefficient
+            / (one_tail_critical_value * stdev_log_duration_minutes), 2) AS relative_ci_inequality_coefficient
     FROM unlimited_degrees_of_freedom),
 quadratic_coefficients AS (SELECT chore_id
         , chore
@@ -93,8 +93,8 @@ quadratic_coefficients AS (SELECT chore_id
         , avg_duration_minutes
         , stdev_duration_minutes
         , degrees_of_freedom
-        , critical_value
-        , `95% CI UB`
+        , one_tail_critical_value
+        , `one tail 95% CI UB`
         , hypothetical_critical_value
         , `+ 30 s CI UB`
         , `log(+ 30 s CI UB)`
@@ -124,8 +124,8 @@ unlimited_df_times_needed AS (SELECT chore_id
         , avg_duration_minutes
         , stdev_duration_minutes
         , degrees_of_freedom
-        , critical_value
-        , `95% CI UB`
+        , one_tail_critical_value
+        , `one tail 95% CI UB`
         , hypothetical_critical_value
         , `+ 30 s CI UB`
         , `log(+ 30 s CI UB)`
@@ -162,10 +162,10 @@ SELECT chore_id
         , avg_duration_minutes
         , stdev_duration_minutes
         , degrees_of_freedom
-        , critical_value
-        , `95% CI UB`
-        , `95% CI UB` - avg_duration_minutes AS `95% CI absolute`
-        , `95% CI UB` / avg_duration_minutes - 1 AS `95% CI relative`
+        , one_tail_critical_value
+        , `one tail 95% CI UB`
+        , `one tail 95% CI UB` - avg_duration_minutes AS `one tail 95% CI absolute`
+        , `one tail 95% CI UB` / avg_duration_minutes - 1 AS `one tail 95% CI relative`
         , hypothetical_critical_value
         , `+ 30 s CI UB`
         , `log(+ 30 s CI UB)`
@@ -176,14 +176,14 @@ SELECT chore_id
         , A_relative
         , B_relative
         , CASE
-            WHEN `95% CI UB` - avg_duration_minutes < 0.5
+            WHEN `one tail 95% CI UB` - avg_duration_minutes < 0.5
                 THEN 0
             WHEN COALESCE(df_to_30_s.completions_needed, `to 30 s`) < 0
                 THEN 1
             ELSE COALESCE(df_to_30_s.completions_needed, `to 30 s`)
             END AS `to 30 s`
         , CASE
-            WHEN `95% CI UB` / avg_duration_minutes - 1 < 0.05
+            WHEN `one tail 95% CI UB` / avg_duration_minutes - 1 < 0.05
                 THEN 0
             WHEN COALESCE(`df_to_5%`.completions_needed, `to 5%`) < 0
                 THEN 1
@@ -191,4 +191,4 @@ SELECT chore_id
             END AS `to 5%`
     FROM unlimited_df_times_needed
     LEFT JOIN df_to_30_s USING (chore_id)
-    LEFT JOIN `df_to_5%` USING (chore_id)
+    LEFT JOIN `df_to_5%` USING (chore_id);
