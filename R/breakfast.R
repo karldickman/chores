@@ -1,0 +1,11 @@
+library(rv)
+
+setnsims(1000000)
+make <- rvnorm(mean=1.8550730881360304, sd=0.660933384435345)
+eat <- rvnorm(mean=2.711979067072755, sd=0.3245818759815408)
+do.dishes <- rvnorm(mean=1.393016162442342, sd=0.5975510138167739)
+put.away.dishes <- rvnorm(mean=1.6883206019264831, sd=0.7991344612602828)
+breakfast <- exp(sims(make)) + exp(sims(eat)) + exp(sims(do.dishes)) + exp(sims(put.away.dishes))
+mean(breakfast)
+quantile(breakfast, c(0.5, 0.9, 0.95))
+hist(breakfast, xlim=c(0, 100), breaks=20000)
