@@ -19,6 +19,7 @@ BEGIN
     ELSE
         CALL get_chore_completion(chore_name, found_chore_completion_id);
         IF (SELECT COUNT(chore_session_id) FROM chore_sessions WHERE chore_completion_id = found_chore_completion_id) = 0
+            AND (SELECT COUNT(chore_completion_id) FROM chore_completion_hierarchy WHERE parent_chore_completion_id = found_chore_completion_id) = 0
         THEN
             SET @message = CONCAT('Procedure complete_chore: chore completion with id ', found_chore_completion_id, ' has no chore sessions.');
             SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @message;
