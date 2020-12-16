@@ -9,6 +9,10 @@ RETURNS DOUBLE
 DETERMINISTIC
 BEGIN
     SET @sample_variance = POWER(sample_standard_deviation, 2);
+    IF sample_size < 2
+    THEN
+        RETURN NULL;
+    END IF;
     RETURN sample_mean + @sample_variance / 2 + critical_value * SQRT(@sample_variance / sample_size + POWER(@sample_variance, 2) / (2 * (sample_size - 1)));
 END$$
 
