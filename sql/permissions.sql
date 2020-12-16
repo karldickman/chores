@@ -1,4 +1,6 @@
 USE chores;
+GRANT SELECT ON chore_completions TO 'chores'@'localhost';
+GRANT SELECT ON completions_needed TO 'chores'@'localhost';
 GRANT SELECT ON skippable_chores TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE change_due_date TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE create_chore TO 'chores'@'localhost';

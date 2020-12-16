@@ -75,4 +75,5 @@ else
 fi
 
 # Invoke SQL
-chore-database "$sql" ${options[@]}
+chore_completion_id=$(chore-database "$sql" ${options[@]})
+chore-database "SELECT times_completed, \`to 5%\`, \`to 30 s\` FROM chore_completions JOIN completions_needed USING (chore_id) WHERE chore_completion_id = $chore_completion_id" --column-names --silent=false
