@@ -53,8 +53,10 @@ main <- function () {
         cat("Insufficient data for", chore, "\n")
         next
       }
-      chore.simulation <- rvlnorm(mean=mean.log, sd=sd.log)
-      hist(chore.simulation, main=chore, xlab=paste("Duration of ", chore))
+      x <- seq(0, exp(mean.log + 4 * sd.log), 0.01)
+      y <- dlnorm(x, mean.log, sd.log)
+      plot(x, y, type="n", xlab=paste(chore, "duration (minutes)"), ylab="probability")
+      lines(x, y)
     }
   },
   error=function (message) {
