@@ -20,14 +20,11 @@ connect <- function () {
   dbConnect(RMariaDB::MariaDB(), user="root", password, dbname="chores", host="localhost")
 }
 
-fetch.chore.durations <- function () {
-  database <- NULL
+fetch.query.results <- function (database, query) {
   result <- NULL
   tryCatch({
-    database <- connect()
-    result <- dbSendQuery(database, "SELECT * FROM chore_durations")
-    chore.durations <- dbFetch(result)
-    chore.durations
+    result <- dbSendQuery(database, query)
+    dbFetch(result)
   },
   error=function (message) {
     stop(message)
@@ -39,24 +36,36 @@ fetch.chore.durations <- function () {
     if (!is.null(result)) {
       dbClearResult(result)
     }
-    if (!is.null(database)) {
-      dbDisconnect(database)
-    }
   })
 }
 
 main <- function () {
   setnsims(1000000)
-  chore.durations <- fetch.chore.durations()
-  for(i in 1:nrow(chore.durations)) {
-    chore <- chore.durations$chore[i]
-    mean.log <- chore.durations$avg_log_duration_minutes[i]
-    sd.log <- chore.durations$stdev_log_duration_minutes[i]
-    if (is.na(sd.log)) {
-      cat("Insufficient data for", chore, "\n")
-      next
+  database <- NULL
+  tryCatch({
+    database <- connect()
+    chore.durations <- fetch.query.results(database, "SELECT * FROM chore_durations")
+    for(i in 1:nrow(chore.durations)) {
+      chore <- chore.durations$chore[i]
+      mean.log <- chore.durations$avg_log_duration_minutes[i]
+      sd.log <- chore.durations$stdev_log_duration_minutes[i]
+      if (is.na(sd.log)) {
+        cat("Insufficient data for", chore, "\n")
+        next
+      }
+      chore.simulation <- rvlnorm(mean=mean.log, sd=sd.log)
+      hist(chore.simulation, main=chore, xlab=paste("Duration of ", chore))
     }
-    chore.simulation <- rvlnorm(mean=mean.log, sd=sd.log)
-    hist(chore.simulation, main=chore, xlab=paste("Duration of ", chore))
-  }
+  },
+  error=function (message) {
+    stop(message)
+  },
+  warning=function (message) {
+    stop(message)
+  },
+  finally={
+    if (!is.null(database)) {
+      dbDisconnect(database)
+    }
+  })
 }
