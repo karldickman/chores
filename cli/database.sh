@@ -12,7 +12,7 @@ Options:
     --line-numbers  Write line numbers for errors.
     --preview       Show the SQL command but do not execute.
     -q, --quiet     Suppress output.
-   --silent         Boolean.  Indicates whether --silent flag should be passed to mysql command.
+    --silent        Boolean.  Indicates whether --silent flag should be passed to mysql command.
     -v, --verbose   Show SQL commands as they are executed."
 
 # Process arguments
