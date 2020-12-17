@@ -18,8 +18,8 @@ BEGIN
                 OR aggregate_by_id = 2 # weekendity
                     AND weekendity(due_date) = aggregate_key)
         WHERE chore_completion_id = chore_completion_id_to_summarize)
-    SELECT to_30_s.chore_completion_id
-            , to_30_s.times_completed
+    SELECT to_30_s.chore_completion_id AS id
+            , to_30_s.times_completed AS `times completed`
             , to_30_s.completions_needed AS `to 30 s`
             , to_5_percent.completions_needed AS `to 5%`
         FROM to_30_s_and_5_percent AS to_30_s
