@@ -65,10 +65,10 @@ main <- function () {
       }
       x <- seq(0, exp(mean.log + 4 * sd.log), 0.01)
       y <- dlnorm(x, mean.log, sd.log)
-      x.max <- ceiling(max(chore.completions$duration_minutes))
-      step <- max(ceiling(x.max / 50), 1)
-      breaks <- seq(0, x.max + step - 1, step)
-      hist(chore.completions$duration_minutes, breaks, main=paste("Histogram of", weekendity, chore.name, "duration"), xlab=paste(weekendity, chore.name, "duration (minutes)"), freq = FALSE)
+      #x.max <- ceiling(max(chore.completions$duration_minutes))
+      #step <- max(ceiling(x.max / 50), 1)
+      #breaks <- seq(0, x.max + step - 1, step)
+      hist(chore.completions$duration_minutes, main=paste("Histogram of", weekendity, chore.name, "duration"), xlab=paste(weekendity, chore.name, "duration (minutes)"), freq = FALSE)
       lines(x, y)
     }
   },
