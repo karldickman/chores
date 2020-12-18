@@ -20,8 +20,8 @@ BEGIN
         WHERE chore_completion_id = chore_completion_id_to_summarize)
     SELECT to_30_s.chore_completion_id AS id
             , to_30_s.times_completed AS `times completed`
-            , to_30_s.completions_needed AS `to 30 s`
             , to_5_percent.completions_needed AS `to 5%`
+            , to_30_s.completions_needed AS `to 30 s`
         FROM to_30_s_and_5_percent AS to_30_s
         JOIN to_30_s_and_5_percent AS to_5_percent
             ON to_30_s.chore_completion_id = to_5_percent.chore_completion_id
