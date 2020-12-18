@@ -59,16 +59,20 @@ main <- function () {
       }
       mean.log <- fitted.chore.durations$avg_log_duration_minutes[i]
       sd.log <- fitted.chore.durations$stdev_log_duration_minutes[i]
+      mode <- fitted.chore.durations$mode_duration_minutes[i]
       if (is.na(sd.log)) {
         cat("Insufficient data for", chore.name, "\n")
         next
       }
       x <- seq(0, exp(mean.log + 4 * sd.log), 0.01)
       y <- dlnorm(x, mean.log, sd.log)
+      fit.max.density <- dlnorm(mode, mean.log, sd.log)
+      hist.max.density <- max(hist(chore.completions$duration_minutes, plot=FALSE)$density)
+      ylim <- max(fit.max.density, hist.max.density)
       #x.max <- ceiling(max(chore.completions$duration_minutes))
       #step <- max(ceiling(x.max / 50), 1)
       #breaks <- seq(0, x.max + step - 1, step)
-      hist(chore.completions$duration_minutes, main=paste("Histogram of", weekendity, chore.name, "duration"), xlab=paste(weekendity, chore.name, "duration (minutes)"), freq = FALSE)
+      hist(chore.completions$duration_minutes, main=paste("Histogram of", weekendity, chore.name, "duration"), xlab=paste(weekendity, chore.name, "duration (minutes)"), freq=FALSE, ylim=c(0, ylim))
       lines(x, y)
     }
   },
