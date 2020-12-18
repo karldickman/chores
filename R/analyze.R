@@ -44,11 +44,19 @@ main <- function () {
   database <- NULL
   tryCatch({
     database <- connect()
-    chore.durations <- fetch.query.results(database, "SELECT * FROM hierarchical_chore_completion_durations JOIN chore_completions USING (chore_completion_id) JOIN chores USING (chore_id)")
+    chore.durations <- fetch.query.results(database, "SELECT *, weekendity(due_date) AS weekendity FROM hierarchical_chore_completion_durations JOIN chore_completions USING (chore_completion_id) JOIN chore_schedule USING (chore_completion_id) JOIN chores USING (chore_id)")
     fitted.chore.durations <- fetch.query.results(database, "SELECT * FROM chore_durations")
     for(i in 1:nrow(fitted.chore.durations)) {
       chore.name <- fitted.chore.durations$chore[i]
+      aggregate.by <- fitted.chore.durations$aggregate_by_id[i]
       chore.completions <- subset(chore.durations, chore == chore.name)
+      if (aggregate.by == 2) {
+        aggregate.key <- fitted.chore.durations$aggregate_key[i]
+        chore.completions <- subset(chore.completions, weekendity == aggregate.key)
+        weekendity <- ifelse(aggregate.key == 0, "weekday", "weekend")
+      } else {
+        weekendity = ""
+      }
       mean.log <- fitted.chore.durations$avg_log_duration_minutes[i]
       sd.log <- fitted.chore.durations$stdev_log_duration_minutes[i]
       if (is.na(sd.log)) {
@@ -57,8 +65,10 @@ main <- function () {
       }
       x <- seq(0, exp(mean.log + 4 * sd.log), 0.01)
       y <- dlnorm(x, mean.log, sd.log)
-      breaks <- seq(0, ceiling(max(chore.completions$duration_minutes)), 1)
-      hist(chore.completions$duration_minutes, breaks, main=paste("Histogram of", chore.name, "duration"), xlab=paste(chore.name, "duration (minutes)"), freq = FALSE)
+      x.max <- ceiling(max(chore.completions$duration_minutes))
+      step <- max(ceiling(x.max / 50), 1)
+      breaks <- seq(0, x.max + step - 1, step)
+      hist(chore.completions$duration_minutes, breaks, main=paste("Histogram of", weekendity, chore.name, "duration"), xlab=paste(weekendity, chore.name, "duration (minutes)"), freq = FALSE)
       lines(x, y)
     }
   },
