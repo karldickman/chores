@@ -44,18 +44,21 @@ main <- function () {
   database <- NULL
   tryCatch({
     database <- connect()
-    chore.durations <- fetch.query.results(database, "SELECT * FROM chore_durations")
-    for(i in 1:nrow(chore.durations)) {
-      chore <- chore.durations$chore[i]
-      mean.log <- chore.durations$avg_log_duration_minutes[i]
-      sd.log <- chore.durations$stdev_log_duration_minutes[i]
+    chore.durations <- fetch.query.results(database, "SELECT * FROM hierarchical_chore_completion_durations JOIN chore_completions USING (chore_completion_id) JOIN chores USING (chore_id)")
+    fitted.chore.durations <- fetch.query.results(database, "SELECT * FROM chore_durations")
+    for(i in 1:nrow(fitted.chore.durations)) {
+      chore.name <- fitted.chore.durations$chore[i]
+      chore.completions <- subset(chore.durations, chore == chore.name)
+      mean.log <- fitted.chore.durations$avg_log_duration_minutes[i]
+      sd.log <- fitted.chore.durations$stdev_log_duration_minutes[i]
       if (is.na(sd.log)) {
-        cat("Insufficient data for", chore, "\n")
+        cat("Insufficient data for", chore.name, "\n")
         next
       }
       x <- seq(0, exp(mean.log + 4 * sd.log), 0.01)
       y <- dlnorm(x, mean.log, sd.log)
-      plot(x, y, type="n", xlab=paste(chore, "duration (minutes)"), ylab="probability")
+      breaks <- seq(0, ceiling(max(chore.completions$duration_minutes)), 1)
+      hist(chore.completions$duration_minutes, breaks, main=paste("Histogram of", chore.name, "duration"), xlab=paste(chore.name, "duration (minutes)"), freq = FALSE)
       lines(x, y)
     }
   },
