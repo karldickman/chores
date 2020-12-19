@@ -16,6 +16,19 @@ breakfast <- function () {
   hist(breakfast, xlim=c(0, 100), breaks=200)
 }
 
+chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode) {
+  x <- seq(0, exp(mean.log + 4 * sd.log), 0.01)
+  y <- dlnorm(x, mean.log, sd.log)
+  fit.max.density <- dlnorm(mode, mean.log, sd.log)
+  hist.max.density <- max(hist(duration.minutes, plot=FALSE)$density)
+  ylim <- max(fit.max.density, hist.max.density)
+  #x.max <- ceiling(max(duration.minutes))
+  #step <- max(ceiling(x.max / 50), 1)
+  #breaks <- seq(0, x.max + step - 1, step)
+  hist(duration.minutes, main=paste("Histogram of", chore.name, "duration"), xlab=paste(chore.name, "duration (minutes)"), freq=FALSE, ylim=c(0, ylim))
+  lines(x, y)
+}
+
 connect <- function () {
   dbConnect(RMariaDB::MariaDB(), user="root", password, dbname="chores", host="localhost")
 }
@@ -53,9 +66,7 @@ main <- function () {
       if (aggregate.by == 2) {
         aggregate.key <- fitted.chore.durations$aggregate_key[i]
         chore.completions <- subset(chore.completions, weekendity == aggregate.key)
-        weekendity <- ifelse(aggregate.key == 0, "weekday", "weekend")
-      } else {
-        weekendity = ""
+        chore.name <- paste(ifelse(aggregate.key == 0, "weekday", "weekend"), chore.name)
       }
       mean.log <- fitted.chore.durations$avg_log_duration_minutes[i]
       sd.log <- fitted.chore.durations$stdev_log_duration_minutes[i]
@@ -64,16 +75,7 @@ main <- function () {
         cat("Insufficient data for", chore.name, "\n")
         next
       }
-      x <- seq(0, exp(mean.log + 4 * sd.log), 0.01)
-      y <- dlnorm(x, mean.log, sd.log)
-      fit.max.density <- dlnorm(mode, mean.log, sd.log)
-      hist.max.density <- max(hist(chore.completions$duration_minutes, plot=FALSE)$density)
-      ylim <- max(fit.max.density, hist.max.density)
-      #x.max <- ceiling(max(chore.completions$duration_minutes))
-      #step <- max(ceiling(x.max / 50), 1)
-      #breaks <- seq(0, x.max + step - 1, step)
-      hist(chore.completions$duration_minutes, main=paste("Histogram of", weekendity, chore.name, "duration"), xlab=paste(weekendity, chore.name, "duration (minutes)"), freq=FALSE, ylim=c(0, ylim))
-      lines(x, y)
+      chore.histogram(chore.name, chore.completions$duration_minutes, mean.log, sd.log, mode)
     }
   },
   error=function (message) {
