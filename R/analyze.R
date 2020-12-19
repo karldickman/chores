@@ -1,19 +1,9 @@
+library(dplyr)
 library(RMariaDB)
 library(rv)
 
 rvlnorm <- function (n = 1, mean = 0, sd = 1, var = NULL, precision) {
   exp(sims(rvnorm(n, mean, sd, var, precision)))
-}
-
-breakfast <- function () {
-  make <- rvnorm(mean=1.8550730881360304, sd=0.660933384435345)
-  eat <- rvnorm(mean=2.711979067072755, sd=0.3245818759815408)
-  do.dishes <- rvnorm(mean=1.393016162442342, sd=0.5975510138167739)
-  put.away.dishes <- rvnorm(mean=1.6883206019264831, sd=0.7991344612602828)
-  breakfast <- exp(sims(make)) + exp(sims(eat)) + exp(sims(do.dishes)) + exp(sims(put.away.dishes))
-  mean(breakfast)
-  quantile(breakfast, c(0.5, 0.9, 0.95))
-  hist(breakfast, xlim=c(0, 100), breaks=200)
 }
 
 chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode) {
@@ -74,6 +64,25 @@ fetch.query.results <- function (database, query) {
   })
 }
 
+sum.chores <- function (fitted.chore.durations) {
+  accumulator <- 0
+  for(i in 1:nrow(fitted.chore.durations)) {
+    mean.log <- fitted.chore.durations$avg_log_duration_minutes[i]
+    sd.log <- fitted.chore.durations$stdev_log_duration_minutes[i]
+    accumulator <- accumulator + rvlnorm(mean=mean.log, sd=sd.log)
+  }
+  return(accumulator)
+}
+
+sum.chores.histogram <- function (sims, title) {
+  quantiles <- quantile(sims, c(0.5, 0.95, 0.995))
+  xlim <- quantiles[["99.5%"]]
+  cat("Median:", quantiles[["50%"]], "\n")
+  cat("Mean:", mean(sims), "\n")
+  cat("95% CI UB:", quantiles[["95%"]], "\n")
+  hist(sims, breaks=xlim, freq=FALSE, xlim=c(0, xlim), main=title, xlab=paste(title, "duration (minutes)"))
+}
+
 main <- function () {
   setnsims(1000000)
   database <- NULL
@@ -81,7 +90,8 @@ main <- function () {
     database <- connect()
     chore.durations <- fetch.query.results(database, "SELECT *, weekendity(due_date) AS weekendity FROM hierarchical_chore_completion_durations JOIN chore_completions USING (chore_completion_id) JOIN chore_schedule USING (chore_completion_id) JOIN chores USING (chore_id)")
     fitted.chore.durations <- fetch.query.results(database, "SELECT * FROM chore_durations")
-    chore.histograms(chore.durations, fitted.chore.durations)
+    chores <- data.frame(chore=c("make breakfast", "eat breakfast", "breakfast dishes", "put away dishes"), aggregate_key=1)
+    merge(fitted.chore.durations, chores) %>% sum.chores %>% sum.chores.histogram("Weekend breakfast")
   },
   error=function (message) {
     stop(message)
