@@ -29,6 +29,27 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
   lines(x, y)
 }
 
+chore.histograms <- function (chore.durations, fitted.chore.durations) {
+  for(i in 1:nrow(fitted.chore.durations)) {
+    chore.name <- fitted.chore.durations$chore[i]
+    aggregate.by <- fitted.chore.durations$aggregate_by_id[i]
+    chore.completions <- subset(chore.durations, chore == chore.name)
+    if (aggregate.by == 2) {
+      aggregate.key <- fitted.chore.durations$aggregate_key[i]
+      chore.completions <- subset(chore.completions, weekendity == aggregate.key)
+      chore.name <- paste(ifelse(aggregate.key == 0, "weekday", "weekend"), chore.name)
+    }
+    mean.log <- fitted.chore.durations$avg_log_duration_minutes[i]
+    sd.log <- fitted.chore.durations$stdev_log_duration_minutes[i]
+    mode <- fitted.chore.durations$mode_duration_minutes[i]
+    if (is.na(sd.log)) {
+      cat("Insufficient data for", chore.name, "\n")
+      next
+    }
+    chore.histogram(chore.name, chore.completions$duration_minutes, mean.log, sd.log, mode)
+  }
+}
+
 connect <- function () {
   dbConnect(RMariaDB::MariaDB(), user="root", password, dbname="chores", host="localhost")
 }
@@ -59,24 +80,7 @@ main <- function () {
     database <- connect()
     chore.durations <- fetch.query.results(database, "SELECT *, weekendity(due_date) AS weekendity FROM hierarchical_chore_completion_durations JOIN chore_completions USING (chore_completion_id) JOIN chore_schedule USING (chore_completion_id) JOIN chores USING (chore_id)")
     fitted.chore.durations <- fetch.query.results(database, "SELECT * FROM chore_durations")
-    for(i in 1:nrow(fitted.chore.durations)) {
-      chore.name <- fitted.chore.durations$chore[i]
-      aggregate.by <- fitted.chore.durations$aggregate_by_id[i]
-      chore.completions <- subset(chore.durations, chore == chore.name)
-      if (aggregate.by == 2) {
-        aggregate.key <- fitted.chore.durations$aggregate_key[i]
-        chore.completions <- subset(chore.completions, weekendity == aggregate.key)
-        chore.name <- paste(ifelse(aggregate.key == 0, "weekday", "weekend"), chore.name)
-      }
-      mean.log <- fitted.chore.durations$avg_log_duration_minutes[i]
-      sd.log <- fitted.chore.durations$stdev_log_duration_minutes[i]
-      mode <- fitted.chore.durations$mode_duration_minutes[i]
-      if (is.na(sd.log)) {
-        cat("Insufficient data for", chore.name, "\n")
-        next
-      }
-      chore.histogram(chore.name, chore.completions$duration_minutes, mean.log, sd.log, mode)
-    }
+    chore.histograms(chore.durations, fitted.chore.durations)
   },
   error=function (message) {
     stop(message)
