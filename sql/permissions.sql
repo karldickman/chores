@@ -1,7 +1,12 @@
 USE chores;
+GRANT SELECT ON chores TO 'chores'@'localhost';
 GRANT SELECT ON chore_completions TO 'chores'@'localhost';
+GRANT SELECT ON chore_durations TO 'chores'@'localhost';
+GRANT SELECT ON chore_schedule TO 'chores'@'localhost';
 GRANT SELECT ON completions_needed TO 'chores'@'localhost';
+GRANT SELECT ON hierarchical_chore_completion_durations TO 'chores'@'localhost';
 GRANT SELECT ON skippable_chores TO 'chores'@'localhost';
+GRANT EXECUTE ON FUNCTION weekendity TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE change_due_date TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE create_chore TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE chore_burndown TO 'chores'@'localhost';

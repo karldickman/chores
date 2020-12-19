@@ -51,7 +51,8 @@ chore.histograms <- function (chore.durations, fitted.chore.durations) {
 }
 
 connect <- function () {
-  dbConnect(RMariaDB::MariaDB(), user="root", password, dbname="chores", host="localhost")
+  settings <- paste(Sys.getenv("HOME"), ".my.cnf", sep="/")
+  dbConnect(RMariaDB::MariaDB(), default.file=settings, groups="clientchores")
 }
 
 fetch.query.results <- function (database, query) {
