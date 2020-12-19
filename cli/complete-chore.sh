@@ -4,18 +4,15 @@ usage="$(basename "$0") CHORE [DURATION] [WHEN_COMPLETED] [OPTIONS]
 
 Record a chore completion.
 Arguments:
-    CHORE                      The name of the chore completed.
-    DURATION                   How long it took to complete the chore in
-                               MM:SS.SS format.
-    WHEN_COMPLETED             When the chore was completed in
-                               YYYY-MM-DD HH:MM:SS format.
+    CHORE           The name of the chore completed.
+    DURATION        How long it took to complete the chore in MM:SS.SS format.
+    WHEN_COMPLETED  When the chore was completed in YYYY-MM-DD HH:MM:SS format.
 Options:
-    -h, --help                 Show this help text and exit.
-    --preview                  Show the SQL command to be executed.
-    -q, --quiet                Suppress output.
-    --show-completions-needed  Show completions needed for 30 s and 5% CI.
-    --unscheduled              The completed chore was not scheduled.
-    -v, --verbose              Show SQL commands as they are executed."
+    -h, --help      Show this help text and exit.
+    --preview       Show the SQL command to be executed.
+    -q, --quiet     Suppress output.
+    --unscheduled   The completed chore was not scheduled.
+    -v, --verbose   Show SQL commands as they are executed."
 
 # Process options
 a=0
@@ -31,9 +28,6 @@ do
 	then
 		arguments[$a]=$arg
 		((a++))
-	elif [[ $arg == "--show-completions-needed" ]]
-	then
-		show_completions_needed=1
 	elif [[ $arg == "--unscheduled" ]]
 	then
 		unscheduled=1
@@ -80,10 +74,4 @@ else
 fi
 
 # Invoke SQL
-if [[ $show_completions_needed -eq 1 ]]
-then
-	chore_completion_id=$(chore-database "$sql")
-	chore-database "CALL show_chore_completions_needed($chore_completion_id)" --column-names --silent=false
-else
-	chore-database "$sql" ${options[@]}
-fi
+chore-database "$sql" ${options[@]}
