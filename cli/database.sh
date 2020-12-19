@@ -88,6 +88,6 @@ do
 		then
 			sql="$sql;SELECT @c"
 		fi
-		mysql --login-path=chores chores -e "$sql" $mysql_column_names $mysql_line_numbers $mysql_silent
+		mysql --defaults-group-suffix=chores chores -e "$sql" $mysql_column_names $mysql_line_numbers $mysql_silent
 	fi
 done
