@@ -77,9 +77,10 @@ sum.chores <- function (fitted.chore.durations) {
 sum.chores.histogram <- function (sims, title) {
   quantiles <- quantile(sims, c(0.5, 0.95, 0.995))
   xlim <- quantiles[["99.5%"]]
-  cat("Median:", quantiles[["50%"]], "\n")
-  cat("Mean:", mean(sims), "\n")
-  cat("95% CI UB:", quantiles[["95%"]], "\n")
+  cat(title, "\n")
+  cat("\tMedian:", quantiles[["50%"]], "\n")
+  cat("\tMean:", mean(sims), "\n")
+  cat("\t95% CI UB:", quantiles[["95%"]], "\n")
   hist(sims, breaks=xlim, freq=FALSE, xlim=c(0, xlim), main=title, xlab=paste(title, "duration (minutes)"))
 }
 
@@ -87,11 +88,23 @@ main <- function () {
   setnsims(1000000)
   database <- NULL
   tryCatch({
+    # Load data from database
     database <- connect()
     chore.durations <- fetch.query.results(database, "SELECT *, weekendity(due_date) AS weekendity FROM hierarchical_chore_completion_durations JOIN chore_completions USING (chore_completion_id) JOIN chore_schedule USING (chore_completion_id) JOIN chores USING (chore_id)")
     fitted.chore.durations <- fetch.query.results(database, "SELECT * FROM chore_durations")
-    chores <- data.frame(chore=c("make breakfast", "eat breakfast", "breakfast dishes", "put away dishes"), aggregate_key=1)
-    merge(fitted.chore.durations, chores) %>% sum.chores %>% sum.chores.histogram("Weekend breakfast")
+    # Analyze meals
+    weekendity <- 1
+    all.meal.chores <- NULL
+    for (meal in c("breakfast", "lunch", "dinner")) {
+      meal.chores <- data.frame(chore=c(paste("make", meal), paste("eat", meal), paste(meal, "dishes"), "put away dishes"), aggregate_key=weekendity)
+      if (is.null(all.meal.chores)) {
+        all.meal.chores <- meal.chores
+      } else {
+        all.meal.chores <- rbind(all.meal.chores, meal.chores)
+      }
+      merge(fitted.chore.durations, meal.chores) %>% sum.chores %>% sum.chores.histogram(paste("Weekend", meal))
+    }
+    merge(fitted.chore.durations, all.meal.chores) %>% sum.chores %>% sum.chores.histogram("Weekend meals")
   },
   error=function (message) {
     stop(message)
