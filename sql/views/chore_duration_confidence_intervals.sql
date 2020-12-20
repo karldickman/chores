@@ -1,30 +1,29 @@
 USE chores;
 
-#DROP VIEW chore_duration_confidence_intervals;
-
 CREATE OR REPLACE VIEW chore_duration_confidence_intervals
 AS
 SELECT chore_id
         , chore
         , aggregate_by_id
         , completions_per_day
+        , is_active
         , aggregate_key
         , times_completed
-        , avg_number_of_sessions
-        , arithmetic_avg_duration_minutes
-        , arithmetic_stdev_duration_minutes
-        , avg_log_duration_minutes
-        , stdev_log_duration_minutes
+        , mean_number_of_sessions
+        , arithmetic_mean_duration_minutes
+        , arithmetic_sd_duration_minutes
+        , mean_log_duration_minutes
+        , sd_log_duration_minutes
         , mode_duration_minutes
         , median_duration_minutes
-        , avg_duration_minutes
-        , stdev_duration_minutes
+        , mean_duration_minutes
+        , sd_duration_minutes
         , times_completed - 1 AS degrees_of_freedom
         , COALESCE(one_tail_critical_values.critical_value, one_tail_critical_values_unlimited_df.critical_value) AS one_tail_critical_value
-        , EXP(log_normal_confidence_bound(avg_log_duration_minutes, stdev_log_duration_minutes, times_completed, COALESCE(one_tail_critical_values.critical_value, one_tail_critical_values_unlimited_df.critical_value))) AS `one tail 95% CI UB`
+        , EXP(log_normal_confidence_bound(mean_log_duration_minutes, sd_log_duration_minutes, times_completed, COALESCE(one_tail_critical_values.critical_value, one_tail_critical_values_unlimited_df.critical_value))) AS `one tail 95% CI UB`
         , COALESCE(two_tail_critical_values.critical_value, two_tail_critical_values_unlimited_df.critical_value) AS two_tail_critical_value
-        , EXP(log_normal_confidence_bound(avg_log_duration_minutes, stdev_log_duration_minutes, times_completed, -COALESCE(two_tail_critical_values.critical_value, two_tail_critical_values_unlimited_df.critical_value))) AS `two tail 95% CI LB`
-        , EXP(log_normal_confidence_bound(avg_log_duration_minutes, stdev_log_duration_minutes, times_completed, COALESCE(two_tail_critical_values.critical_value, two_tail_critical_values_unlimited_df.critical_value))) AS `two tail 95% CI UB`
+        , EXP(log_normal_confidence_bound(mean_log_duration_minutes, sd_log_duration_minutes, times_completed, -COALESCE(two_tail_critical_values.critical_value, two_tail_critical_values_unlimited_df.critical_value))) AS `two tail 95% CI LB`
+        , EXP(log_normal_confidence_bound(mean_log_duration_minutes, sd_log_duration_minutes, times_completed, COALESCE(two_tail_critical_values.critical_value, two_tail_critical_values_unlimited_df.critical_value))) AS `two tail 95% CI UB`
     FROM chore_durations
     LEFT JOIN students_t_critical_values AS one_tail_critical_values
         ON one_tail_confidence = 0.05

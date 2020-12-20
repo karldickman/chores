@@ -82,8 +82,8 @@ BEGIN
             , due_date
             , is_completed
             , last_completed
-            , COALESCE(chore_durations.avg_duration_minutes, all_chore_durations.avg_duration_minutes) AS duration_minutes
-            , COALESCE(chore_durations.avg_duration_minutes, all_chore_durations.avg_duration_minutes) AS completed_minutes
+            , COALESCE(chore_durations.mean_duration_minutes, all_chore_durations.mean_duration_minutes) AS duration_minutes
+            , COALESCE(chore_durations.mean_duration_minutes, all_chore_durations.mean_duration_minutes) AS completed_minutes
             , remaining_minutes
             , completed_chores.`95% CI UB`
         FROM completed_chores

@@ -1,7 +1,5 @@
 USE chores;
 
-#DROP VIEW incomplete_chores_progress;
-
 CREATE OR REPLACE VIEW incomplete_chores_progress
 AS
 SELECT chore_measured
@@ -16,15 +14,15 @@ SELECT chore_measured
         , aggregate_key
         , times_completed
         , last_completed
-        , avg_number_of_sessions
-        , arithmetic_avg_duration_minutes
-        , arithmetic_stdev_duration_minutes
-        , avg_log_duration_minutes
-        , stdev_log_duration_minutes
+        , mean_number_of_sessions
+        , arithmetic_mean_duration_minutes
+        , arithmetic_sd_duration_minutes
+        , mean_log_duration_minutes
+        , sd_log_duration_minutes
         , mode_duration_minutes
         , median_duration_minutes
-        , avg_duration_minutes
-        , stdev_duration_minutes
+        , mean_duration_minutes
+        , sd_duration_minutes
         , median_duration_minutes AS duration_minutes
         , completed_minutes
         , hierarchical_completed_minutes
@@ -45,15 +43,15 @@ SELECT chore_measured
         , aggregate_key
         , 0 AS times_completed
         , last_completed
-        , NULL AS avg_number_of_sessions
-        , duration_minutes AS arithmetic_avg_duration_minutes
-        , stdev_duration_minutes AS arithmetic_stdev_duration_minutes
-        , NULL AS avg_log_duration_minutes
-        , NULL AS stdev_log_duration_minutes
+        , NULL AS mean_number_of_sessions
+        , duration_minutes AS arithmetic_mean_duration_minutes
+        , sd_duration_minutes AS arithmetic_sd_duration_minutes
+        , NULL AS mean_log_duration_minutes
+        , NULL AS sd_log_duration_minutes
         , NULL AS mode_duration_minutes
         , NULL AS median_duration_minutes
-        , NULL AS avg_duration_minutes
-        , NULL AS stdev_duration_minutes
+        , NULL AS mean_duration_minutes
+        , NULL AS sd_duration_minutes
         , duration_minutes
         , completed_minutes
         , NULL AS hierarchical_completed_minutes

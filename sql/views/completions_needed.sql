@@ -9,13 +9,13 @@ hypothetical_confidence_intervals_below_absolute_target AS (SELECT chore_id
         , MIN(hypothetical_degrees_of_freedom) AS hypothetical_degrees_of_freedom
         , MIN(hypothetical_degrees_of_freedom - degrees_of_freedom) AS completions_needed
     FROM hypothetical_confidence_intervals
-    WHERE `hypothetical 95% CI UB` - avg_duration_minutes < 0.5
+    WHERE `hypothetical 95% CI UB` - mean_duration_minutes < 0.5
     GROUP BY chore_id),
 hypothetical_confidence_intervals_below_relative_target AS (SELECT chore_id
         , MIN(hypothetical_degrees_of_freedom) AS hypothetical_degrees_of_freedom
         , MIN(hypothetical_degrees_of_freedom - degrees_of_freedom) AS completions_needed
     FROM hypothetical_confidence_intervals
-    WHERE `hypothetical 95% CI UB` / avg_duration_minutes < 1.05
+    WHERE `hypothetical 95% CI UB` / mean_duration_minutes < 1.05
     GROUP BY chore_id),
 hypothetical_confidence_intervals_below_target AS (SELECT 'absolute' AS confidence_interval_type
         , chore_id
@@ -48,25 +48,26 @@ SELECT confidence_interval_type
         , chore
         , aggregate_by_id
         , completions_per_day
+        , is_active
         , aggregate_key
         , times_completed
-        , avg_number_of_sessions
-        , arithmetic_avg_duration_minutes
-        , arithmetic_stdev_duration_minutes
-        , avg_log_duration_minutes
-        , stdev_log_duration_minutes
+        , mean_number_of_sessions
+        , arithmetic_mean_duration_minutes
+        , arithmetic_sd_duration_minutes
+        , mean_log_duration_minutes
+        , sd_log_duration_minutes
         , mode_duration_minutes
         , median_duration_minutes
-        , avg_duration_minutes
-        , stdev_duration_minutes
+        , mean_duration_minutes
+        , sd_duration_minutes
         , degrees_of_freedom
         , one_tail_critical_value
         , `one tail 95% CI UB`
         , CASE
             WHEN confidence_interval_type = 'absolute'
-                THEN `one tail 95% CI UB` - avg_duration_minutes
+                THEN `one tail 95% CI UB` - mean_duration_minutes
             WHEN confidence_interval_type = 'relative'
-                THEN `one tail 95% CI UB` / avg_duration_minutes - 1
+                THEN `one tail 95% CI UB` / mean_duration_minutes - 1
             END AS `one tail 95% CI`
         , hypothetical_degrees_of_freedom
         , COALESCE(completions_needed_finite_df.hypothetical_critical_value, completions_needed_unlimited_df.hypothetical_critical_value) AS hypothetical_critical_value

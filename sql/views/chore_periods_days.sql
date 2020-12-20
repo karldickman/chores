@@ -1,4 +1,5 @@
 USE chores;
+
 CREATE OR REPLACE VIEW chore_periods_days
 AS
 WITH chore_completions_per_year AS (SELECT chore_id
@@ -10,6 +11,7 @@ SELECT 'chore_frequencies' AS `source`
         , chore_id
         , chore
         , aggregate_by_id
+        , is_active
         , frequency AS period
         , frequency_unit_id AS period_unit_id
         , frequency * CASE
@@ -30,6 +32,7 @@ SELECT 'chore_due_dates' AS `source`
         , chore_id
         , chore
         , aggregate_by_id
+        , is_active
         , 365 / completions_per_year AS period
         , 1 AS period_unit_id
         , 365 / completions_per_year AS period_days

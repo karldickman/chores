@@ -1,9 +1,19 @@
 USE chores;
-# DROP VIEW chore_durations_per_day;
+
 CREATE OR REPLACE VIEW chore_durations_per_day
 AS
+WITH chore_completions_per_day AS (SELECT `source`
+        , chore_id
+        , period
+        , period_unit_id
+        , period_days
+        , completions_per_day
+        , period_since
+        , schedule_from_id
+        , schedule_from_id_since
+    FROM chores.chore_completions_per_day)
 SELECT chore_id
-        , chore_completions_per_day.chore
+        , chore
         , period
         , period_unit_id
         , period_days
@@ -11,19 +21,20 @@ SELECT chore_id
         , period_since
         , schedule_from_id
         , schedule_from_id_since
-        , chore_durations.aggregate_by_id
+        , aggregate_by_id
+        , is_active
         , aggregate_key
         , times_completed
-        , avg_number_of_sessions
-        , arithmetic_avg_duration_minutes
-        , arithmetic_stdev_duration_minutes
-        , avg_log_duration_minutes
-        , stdev_log_duration_minutes
+        , mean_number_of_sessions
+        , arithmetic_mean_duration_minutes
+        , arithmetic_sd_duration_minutes
+        , mean_log_duration_minutes
+        , sd_log_duration_minutes
         , mode_duration_minutes
         , median_duration_minutes
-        , avg_duration_minutes
-        , avg_duration_minutes * chore_completions_per_day.completions_per_day AS avg_duration_per_day
-        , stdev_duration_minutes
+        , mean_duration_minutes
+        , mean_duration_minutes * chore_completions_per_day.completions_per_day AS mean_duration_per_day
+        , sd_duration_minutes
         , period_days < 4 AS daily
         , period_days <= 14 AS weekly
         , NOT ((chore_durations.aggregate_by_id = 0 AND period_days < 4

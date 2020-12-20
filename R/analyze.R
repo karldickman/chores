@@ -67,8 +67,8 @@ fetch.query.results <- function (database, query) {
 sum.chores <- function (fitted.chore.durations) {
   accumulator <- 0
   for(i in 1:nrow(fitted.chore.durations)) {
-    mean.log <- fitted.chore.durations$avg_log_duration_minutes[i]
-    sd.log <- fitted.chore.durations$stdev_log_duration_minutes[i]
+    mean.log <- fitted.chore.durations$mean_log_duration_minutes[i]
+    sd.log <- fitted.chore.durations$sd_log_duration_minutes[i]
     accumulator <- accumulator + rvlnorm(mean=mean.log, sd=sd.log)
   }
   return(accumulator)

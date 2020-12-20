@@ -6,17 +6,18 @@ SELECT chore_id
         , chore
         , aggregate_by_id
         , completions_per_day
+        , is_active
         , aggregate_key
         , times_completed
-        , avg_number_of_sessions
-        , arithmetic_avg_duration_minutes
-        , arithmetic_stdev_duration_minutes
-        , avg_log_duration_minutes
-        , stdev_log_duration_minutes
+        , mean_number_of_sessions
+        , arithmetic_mean_duration_minutes
+        , arithmetic_sd_duration_minutes
+        , mean_log_duration_minutes
+        , sd_log_duration_minutes
         , mode_duration_minutes
         , median_duration_minutes
-        , avg_duration_minutes
-        , stdev_duration_minutes
+        , mean_duration_minutes
+        , sd_duration_minutes
         , chore_duration_confidence_intervals.degrees_of_freedom
         , chore_duration_confidence_intervals.one_tail_critical_value
         , `one tail 95% CI UB`

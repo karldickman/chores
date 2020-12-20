@@ -1,5 +1,5 @@
 USE chores;
-# DROP VIEW chore_durations_per_day_and_people;
+
 CREATE OR REPLACE VIEW chore_durations_per_day_and_people
 AS
 SELECT chore_id
@@ -14,16 +14,16 @@ SELECT chore_id
         , aggregate_by_id
         , aggregate_key
         , times_completed
-        , avg_number_of_sessions
-        , arithmetic_avg_duration_minutes
-        , arithmetic_stdev_duration_minutes
-        , avg_log_duration_minutes
-        , stdev_log_duration_minutes
+        , mean_number_of_sessions
+        , arithmetic_mean_duration_minutes
+        , arithmetic_sd_duration_minutes
+        , mean_log_duration_minutes
+        , sd_log_duration_minutes
         , mode_duration_minutes
         , median_duration_minutes
-        , avg_duration_minutes
-        , avg_duration_per_day
-        , stdev_duration_minutes
+        , mean_duration_minutes
+        , mean_duration_per_day
+        , sd_duration_minutes
         , daily
         , weekly
         , weekendity
