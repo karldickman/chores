@@ -84,6 +84,21 @@ sum.chores.histogram <- function (sims, title) {
   hist(sims, breaks=xlim, freq=FALSE, xlim=c(0, xlim), main=title, xlab=paste(title, "duration (minutes)"))
 }
 
+analyze.meals <- function (fitted.chore.durations, weekendity) {
+  weekend.label <- ifelse(weekendity, "Weekend", "Weekday")
+  all.meal.chores <- NULL
+  for (meal in c("breakfast", "lunch", "dinner")) {
+    meal.chores <- data.frame(chore=c(paste("make", meal), paste("eat", meal), paste(meal, "dishes"), "put away dishes"), aggregate_key=weekendity)
+    if (is.null(all.meal.chores)) {
+      all.meal.chores <- meal.chores
+    } else {
+      all.meal.chores <- rbind(all.meal.chores, meal.chores)
+    }
+    merge(fitted.chore.durations, meal.chores) %>% sum.chores %>% sum.chores.histogram(paste(weekend.label, meal))
+  }
+  merge(fitted.chore.durations, all.meal.chores) %>% sum.chores %>% sum.chores.histogram(paste(weekend.label, "meals"))
+}
+
 main <- function () {
   setnsims(1000000)
   database <- NULL
@@ -92,19 +107,8 @@ main <- function () {
     database <- connect()
     chore.durations <- fetch.query.results(database, "SELECT *, weekendity(due_date) AS weekendity FROM hierarchical_chore_completion_durations JOIN chore_completions USING (chore_completion_id) JOIN chore_schedule USING (chore_completion_id) JOIN chores USING (chore_id)")
     fitted.chore.durations <- fetch.query.results(database, "SELECT * FROM chore_durations")
-    # Analyze meals
-    weekendity <- 1
-    all.meal.chores <- NULL
-    for (meal in c("breakfast", "lunch", "dinner")) {
-      meal.chores <- data.frame(chore=c(paste("make", meal), paste("eat", meal), paste(meal, "dishes"), "put away dishes"), aggregate_key=weekendity)
-      if (is.null(all.meal.chores)) {
-        all.meal.chores <- meal.chores
-      } else {
-        all.meal.chores <- rbind(all.meal.chores, meal.chores)
-      }
-      merge(fitted.chore.durations, meal.chores) %>% sum.chores %>% sum.chores.histogram(paste("Weekend", meal))
-    }
-    merge(fitted.chore.durations, all.meal.chores) %>% sum.chores %>% sum.chores.histogram("Weekend meals")
+    analyze.meals(fitted.chore.durations, 0)
+    analyze.meals(fitted.chore.durations, 1)
   },
   error=function (message) {
     stop(message)
