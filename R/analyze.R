@@ -105,8 +105,14 @@ main <- function () {
   tryCatch({
     # Load data from database
     database <- connect()
-    chore.durations <- fetch.query.results(database, "SELECT *, weekendity(due_date) AS weekendity FROM hierarchical_chore_completion_durations JOIN chore_completions USING (chore_completion_id) JOIN chore_schedule USING (chore_completion_id) JOIN chores USING (chore_id)")
-    fitted.chore.durations <- fetch.query.results(database, "SELECT * FROM chore_durations_per_day")
+    chore.durations.sql <- "SELECT *, weekendity(due_date) AS weekendity
+      FROM hierarchical_chore_completion_durations
+      JOIN chore_completions USING (chore_completion_id)
+      JOIN chore_schedule USING (chore_completion_id)
+      JOIN chores USING (chore_id)"
+    fitted.chore.durations.sql <- "SELECT * FROM chore_durations_per_day"
+    chore.durations <- fetch.query.results(database, chore.durations.sql)
+    fitted.chore.durations <- fetch.query.results(database, fitted.chore.durations.sql)
     analyze.meals(fitted.chore.durations, 0)
     analyze.meals(fitted.chore.durations, 1)
   },
