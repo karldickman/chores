@@ -2,6 +2,7 @@ USE chores;
 GRANT SELECT ON chores TO 'chores'@'localhost';
 GRANT SELECT ON chore_completions TO 'chores'@'localhost';
 GRANT SELECT ON chore_durations TO 'chores'@'localhost';
+GRANT SELECT ON chore_durations_per_day TO 'chores'@'localhost';
 GRANT SELECT ON chore_schedule TO 'chores'@'localhost';
 GRANT SELECT ON completions_needed TO 'chores'@'localhost';
 GRANT SELECT ON hierarchical_chore_completion_durations TO 'chores'@'localhost';
