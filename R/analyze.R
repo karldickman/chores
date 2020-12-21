@@ -2,12 +2,17 @@ library(dplyr)
 library(RMariaDB)
 library(rv)
 
+scale.log.normal.mean <- function (mean, factor) {
+  mean + log(factor)
+}
+
 rvlnorm <- function (n = 1, mean = 0, sd = 1, var = NULL, precision) {
   exp(sims(rvnorm(n, mean, sd, var, precision)))
 }
 
 chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode) {
-  x <- seq(0, exp(mean.log + 4 * sd.log), 0.01)
+  xlim <- exp(mean.log + 4 * sd.log)
+  x <- seq(0, xlim, 0.01)
   y <- dlnorm(x, mean.log, sd.log)
   fit.max.density <- dlnorm(mode, mean.log, sd.log)
   hist.max.density <- max(hist(duration.minutes, plot=FALSE)$density)
@@ -15,23 +20,24 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
   #x.max <- ceiling(max(duration.minutes))
   #step <- max(ceiling(x.max / 50), 1)
   #breaks <- seq(0, x.max + step - 1, step)
-  hist(duration.minutes, main=paste("Histogram of", chore.name, "duration"), xlab=paste(chore.name, "duration (minutes)"), freq=FALSE, ylim=c(0, ylim))
+  hist(duration.minutes, main=paste("Histogram of", chore.name, "duration"), xlab=paste(chore.name, "duration (minutes)"), freq=FALSE, xlim=c(0, xlim), ylim=c(0, ylim))
   lines(x, y)
 }
 
 chore.histograms <- function (chore.durations, fitted.chore.durations) {
   for(i in 1:nrow(fitted.chore.durations)) {
-    chore.name <- fitted.chore.durations$chore[i]
-    aggregate.by <- fitted.chore.durations$aggregate_by_id[i]
+    chore.data <- fitted.chore.durations[i,]
+    chore.name <- chore.data$chore
+    aggregate.by <- chore.data$aggregate_by_id
     chore.completions <- subset(chore.durations, chore == chore.name)
     if (aggregate.by == 2) {
-      aggregate.key <- fitted.chore.durations$aggregate_key[i]
+      aggregate.key <- chore.data$aggregate_key
       chore.completions <- subset(chore.completions, weekendity == aggregate.key)
       chore.name <- paste(ifelse(aggregate.key == 0, "weekday", "weekend"), chore.name)
     }
-    mean.log <- fitted.chore.durations$avg_log_duration_minutes[i]
-    sd.log <- fitted.chore.durations$stdev_log_duration_minutes[i]
-    mode <- fitted.chore.durations$mode_duration_minutes[i]
+    mean.log <- chore.data$mean_log_duration_minutes
+    sd.log <- chore.data$sd_log_duration_minutes
+    mode <- chore.data$mode_duration_minutes
     if (is.na(sd.log)) {
       cat("Insufficient data for", chore.name, "\n")
       next
@@ -67,9 +73,29 @@ fetch.query.results <- function (database, query) {
 sum.chores <- function (fitted.chore.durations) {
   accumulator <- 0
   for(i in 1:nrow(fitted.chore.durations)) {
-    mean.log <- fitted.chore.durations$mean_log_duration_minutes[i]
-    sd.log <- fitted.chore.durations$sd_log_duration_minutes[i]
-    accumulator <- accumulator + rvlnorm(mean=mean.log, sd=sd.log)
+    chore.data <- fitted.chore.durations[i,]
+    chore.name <- chore.data$chore
+    mean.log <- chore.data$mean_log_duration_minutes
+    sd.log <- chore.data$sd_log_duration_minutes
+    completions.per.day <- chore.data$completions_per_day
+    if (completions.per.day > 1 & completions.per.day < 2) {
+      cat("Skipping", chore.name, "not configured to analyze", completions.per.day, "completions per day.\n")
+      next
+    }
+    if (completions.per.day <= 1) {
+      if (completions.per.day < 1) {
+        mean.log <- scale.log.normal.mean(mean.log, completions.per.day)
+      }
+      accumulator <- accumulator + rvlnorm(mean=mean.log, sd=sd.log)
+    }
+    else {
+      for (. in 1:completions.per.day) {
+        accumulator <- accumulator + rvlnorm(mean=mean.log, sd=sd.log)
+      }
+      if (abs(completions.per.day - round(completions.per.day)) > 0.1) {
+        cat(chore.name, "has non-integer completions per day", completions.per.day, "\n")
+      }
+    }
   }
   return(accumulator)
 }
@@ -110,11 +136,14 @@ main <- function () {
       JOIN chore_completions USING (chore_completion_id)
       JOIN chore_schedule USING (chore_completion_id)
       JOIN chores USING (chore_id)"
-    fitted.chore.durations.sql <- "SELECT * FROM chore_durations_per_day"
+    fitted.chore.durations.sql <- "SELECT *
+      FROM chore_durations_per_day
+      WHERE chore_id NOT IN (SELECT chore_id
+          FROM chore_hierarchy)
+        AND is_active"
     chore.durations <- fetch.query.results(database, chore.durations.sql)
     fitted.chore.durations <- fetch.query.results(database, fitted.chore.durations.sql)
-    analyze.meals(fitted.chore.durations, 0)
-    analyze.meals(fitted.chore.durations, 1)
+    subset(fitted.chore.durations, daily == 1 & weekendity == 0) %>% sum.chores %>% sum.chores.histogram("Weekday chores")
   },
   error=function (message) {
     stop(message)
