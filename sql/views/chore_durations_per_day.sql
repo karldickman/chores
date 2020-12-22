@@ -2,25 +2,22 @@ USE chores;
 
 CREATE OR REPLACE VIEW chore_durations_per_day
 AS
-WITH chore_completions_per_day AS (SELECT `source`
+WITH chore_completions_per_day AS (SELECT period_type_id
         , chore_id
         , period
         , period_unit_id
         , period_days
         , completions_per_day
         , period_since
-        , schedule_from_id
-        , schedule_from_id_since
     FROM chores.chore_completions_per_day)
-SELECT chore_id
+SELECT period_type_id
+        , chore_id
         , chore
         , period
         , period_unit_id
         , period_days
         , chore_completions_per_day.completions_per_day
         , period_since
-        , schedule_from_id
-        , schedule_from_id_since
         , aggregate_by_id
         , is_active
         , aggregate_key

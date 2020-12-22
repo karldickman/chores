@@ -1,16 +1,15 @@
 USE chores;
 
-CREATE OR REPLACE VIEW chore_durations_per_day_and_people
+CREATE OR REPLACE VIEW chore_durations_by_person_per_day
 AS
-SELECT chore_id
+SELECT period_type_id
+        , chore_id
         , chore
         , period
         , period_unit_id
         , period_days
         , completions_per_day
         , period_since
-        , schedule_from_id
-        , schedule_from_id_since
         , aggregate_by_id
         , aggregate_key
         , times_completed

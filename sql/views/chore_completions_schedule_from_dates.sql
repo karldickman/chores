@@ -2,16 +2,13 @@ USE chores;
 
 CREATE OR REPLACE VIEW chore_completions_schedule_from_dates
 AS
-SELECT chore_completions_schedule_from.chore_completion_id
+SELECT chore_completion_id
         , chore_id
         , chore_completion_status_id
         , chore_completion_status_since
         , due_date
-        , frequency
-        , frequency_unit_id
-        , frequency_since
         , chore_schedule_from_id
-        , chore_schedule_from_id_since
+        , chore_schedule_from_since
         , chore_completion_status_schedule_from_id
         , schedule_from_id
         , CASE

@@ -11,45 +11,41 @@ chore_completions_per_week AS (SELECT chore_id
         , COUNT(*) AS completions_per_week
         , MIN(since) AS since
     FROM chore_day_of_week
+    WHERE chore_id NOT IN (SELECT chore_id
+            FROM chore_frequencies)
     GROUP BY chore_id),
-`union` AS (SELECT 'chore_frequencies' AS `source`
+`union` AS (SELECT 1 AS period_type_id
         , chore_id
         , frequency AS period
         , frequency_unit_id AS period_unit_id
         , frequency * days AS period_days
         , completions_per_day
         , frequency_since AS period_since
-        , schedule_from_id
-        , schedule_from_id_since
     FROM chore_frequencies
     JOIN chores USING (chore_id)
     JOIN time_units
         ON frequency_unit_id = time_unit_id
 UNION
-SELECT 'chore_due_dates' AS `source`
+SELECT 2 AS period_type_id
         , chore_id
         , 365 / completions_per_year AS period
         , 1 AS period_unit_id
         , 365 / completions_per_year AS period_days
         , completions_per_year / 365 AS completions_per_day
         , since AS period_since
-        , 3 AS schedule_from_id
-        , since AS schedule_from_id_since
     FROM chore_completions_per_year
     WHERE chore_id NOT IN (SELECT chore_id
             FROM chore_frequencies)
 UNION
-SELECT 'chore_day_of_week' AS `source`
+SELECT 3 AS period_type_id
         , chore_id
         , 7 / completions_per_week AS period
         , 1 AS period_unit_id
         , 7 / completions_per_week AS period_days
         , completions_per_week / 7 AS completions_per_day
         , since AS period_since
-        , 4 AS schedule_from_id
-        , since AS schedule_from_id_since
     FROM chore_completions_per_week)
-SELECT `source`
+SELECT period_type_id
         , chore_id
         , chore
         , aggregate_by_id
@@ -59,7 +55,5 @@ SELECT `source`
         , period_days
         , `union`.completions_per_day
         , period_since
-        , schedule_from_id
-        , schedule_from_id_since
     FROM chores
     JOIN `union` USING (chore_id);
