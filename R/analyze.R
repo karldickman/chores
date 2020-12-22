@@ -11,7 +11,7 @@ rvlnorm <- function (n = 1, mean = 0, sd = 1, var = NULL, precision) {
 }
 
 chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode) {
-  xlim <- exp(mean.log + 4 * sd.log)
+  xlim <- max(c(duration.minutes, qlnorm(0.995, mean.log, sd.log)))
   x <- seq(0, xlim, 0.01)
   y <- dlnorm(x, mean.log, sd.log)
   fit.max.density <- dlnorm(mode, mean.log, sd.log)
@@ -135,7 +135,8 @@ main <- function () {
       FROM hierarchical_chore_completion_durations
       JOIN chore_completions USING (chore_completion_id)
       JOIN chore_schedule USING (chore_completion_id)
-      JOIN chores USING (chore_id)"
+      JOIN chores USING (chore_id)
+      WHERE chore_completion_status_id = 4"
     fitted.chore.durations.sql <- "SELECT *
       FROM chore_durations_per_day
       WHERE chore_id NOT IN (SELECT chore_id
