@@ -22,9 +22,8 @@ this_procedure:BEGIN
     SELECT chore_id, chore_completion_status_id, due_date
         INTO @chore_id, @chore_completion_status_id, @due_date
         FROM chore_completions
-        LEFT OUTER JOIN chore_schedule
-            ON chore_completions.chore_completion_id = chore_schedule.chore_completion_id
-        WHERE chore_completions.chore_completion_id = completed_chore_completion_id;
+        LEFT JOIN chore_schedule USING (chore_completion_id)
+        WHERE chore_completion_id = completed_chore_completion_id;
     IF @chore_completion_status_id = 1 # Scheduled
     THEN
         LEAVE this_procedure;
@@ -54,12 +53,12 @@ this_procedure:BEGIN
     # Get the next chore schedule date
     SELECT next_due_date INTO @next_due_date 
         FROM chore_completion_next_due_dates
-        WHERE chore_completion_next_due_dates.chore_completion_id = completed_chore_completion_id;
+        WHERE chore_completion_id = completed_chore_completion_id;
     IF @next_due_date IS NULL
     THEN
         SELECT when_completed INTO @when_completed
             FROM chore_completions_when_completed
-            WHERE chore_completions_when_completed.chore_completion_id = completed_chore_completion_id;
+            WHERE chore_completion_id = completed_chore_completion_id;
         SET @when_completed = COALESCE(@when_completed, CURRENT_TIMESTAMP);
         IF @frequency_unit_id = 1 THEN
             SET @next_due_date = DATE_ADD(@when_completed, INTERVAL @frequency DAY);

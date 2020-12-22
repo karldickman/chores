@@ -1,5 +1,6 @@
-DROP VIEW IF EXISTS skippable_chores;
-CREATE VIEW skippable_chores
+USE chores;
+
+CREATE OR REPLACE VIEW skippable_chores
 AS
 SELECT chore_completion_id
         , chore_id
@@ -18,4 +19,4 @@ SELECT chore_completion_id
         AND schedule_from_id != 2 # Schedule from due date
         AND chore_id NOT IN (SELECT chore_id
                 FROM chore_categories
-                WHERE category_id = 1) # Category = meals
+                WHERE category_id = 1); # Category = meals

@@ -1,8 +1,6 @@
 USE chores;
 
-DROP VIEW IF EXISTS chore_completions_schedule_from_dates;
-
-CREATE VIEW chore_completions_schedule_from_dates
+CREATE OR REPLACE VIEW chore_completions_schedule_from_dates
 AS
 SELECT chore_completions_schedule_from.chore_completion_id
         , chore_id
@@ -23,5 +21,4 @@ SELECT chore_completions_schedule_from.chore_completion_id
                 THEN due_date
             END AS schedule_from_date
     FROM chore_completions_schedule_from
-    LEFT OUTER JOIN chore_completions_when_completed
-        ON chore_completions_schedule_from.chore_completion_id = chore_completions_when_completed.chore_completion_id
+    LEFT JOIN chore_completions_when_completed USING (chore_completion_id);
