@@ -43,7 +43,7 @@ BEGIN
             AND chore_completions_when_completed.when_completed BETWEEN @`from` AND @`until`),
     time_remaining_by_chore AS (
     # Incomplete
-    SELECT incomplete_chores_progress.chore_id
+    SELECT chore_id
             , chore
             , chore_completion_id
             , due_date
@@ -63,7 +63,7 @@ BEGIN
     # Known duration
     SELECT chore_id
             , chore
-            , completed_chores.chore_completion_id
+            , chore_completion_id
             , due_date
             , is_completed
             , last_completed
@@ -76,7 +76,7 @@ BEGIN
         WHERE chore_completion_status_id = 4 /* completed */
     UNION
     # Unknown duration
-    SELECT completed_chores.chore_id
+    SELECT chore_id
             , completed_chores.chore
             , chore_completion_id
             , due_date
