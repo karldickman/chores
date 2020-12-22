@@ -12,7 +12,6 @@ this_procedure:BEGIN
     SET @when_completed = NULL;
     SET @frequency = NULL;
     SET @next_due_date = NULL;
-    SET @adjustment = NULL;
     # Parameter checking
     IF completed_chore_completion_id IS NULL
     THEN
