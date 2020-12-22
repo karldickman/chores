@@ -55,15 +55,8 @@ this_procedure:BEGIN
         WHERE chore_completion_id = completed_chore_completion_id;
     IF @next_due_date IS NULL
     THEN
-        SELECT when_completed INTO @when_completed
-            FROM chore_completions_when_completed
-            WHERE chore_completion_id = completed_chore_completion_id;
-        SET @when_completed = COALESCE(@when_completed, CURRENT_TIMESTAMP);
-        IF @frequency_unit_id = 1 THEN
-            SET @next_due_date = DATE_ADD(@when_completed, INTERVAL @frequency DAY);
-        ELSEIF @frequency_unit_id = 2 THEN
-            SET @next_due_date = DATE_ADD(@when_completed, INTERVAL @frequency MONTH);
-        END IF;
+        SET @message = CONCAT('Could not find next due date for chore id ', @chore_id, '.');
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @message;
     END IF;
     SET @next_due_date = DATE(@next_due_date);    
     # Leave the procedure if there is a later due date than this one
