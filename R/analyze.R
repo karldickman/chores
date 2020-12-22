@@ -143,7 +143,8 @@ main <- function () {
         AND is_active"
     chore.durations <- fetch.query.results(database, chore.durations.sql)
     fitted.chore.durations <- fetch.query.results(database, fitted.chore.durations.sql)
-    subset(fitted.chore.durations, daily == 1 & weekendity == 0) %>% sum.chores %>% sum.chores.histogram("Weekday chores")
+    chore.histograms(chore.durations, fitted.chore.durations)
+    #subset(fitted.chore.durations, daily == 1 & weekendity == 0) %>% sum.chores %>% sum.chores.histogram("Weekday chores")
   },
   error=function (message) {
     stop(message)
