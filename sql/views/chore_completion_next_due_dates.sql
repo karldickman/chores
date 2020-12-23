@@ -1,7 +1,7 @@
-/*USE chores;
+USE chores;
 
 CREATE OR REPLACE VIEW chore_completion_next_due_dates
-AS*/
+AS
 WITH due_dates_from_chore_due_dates AS (SELECT chore_completion_id
         , chore_id
         , chore_completion_status_id
@@ -98,4 +98,6 @@ SELECT 3 AS period_type_id
         , schedule_from_date
         , next_due_date
     FROM chore_completions_schedule_from_dates
-    JOIN nearest_due_dates_from_chore_day_of_week USING (chore_completion_id);
+    JOIN nearest_due_dates_from_chore_day_of_week USING (chore_completion_id)
+    WHERE chore_id NOT IN (SELECT chore_id
+            FROM chore_frequencies);
