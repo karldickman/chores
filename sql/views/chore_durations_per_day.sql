@@ -36,5 +36,5 @@ SELECT period_type_id
         , period_days <= 14 AS weekly
         , NOT ((chore_durations.aggregate_by_id = 0 AND period_days < 4
             OR chore_durations.aggregate_by_id = 2 AND aggregate_key = 0)) AS weekendity
-    FROM chore_completions_per_day
-    JOIN chore_durations USING (chore_id);
+    FROM chore_durations
+    LEFT JOIN chore_completions_per_day USING (chore_id);

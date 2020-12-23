@@ -137,15 +137,13 @@ main <- function () {
       JOIN chore_schedule USING (chore_completion_id)
       JOIN chores USING (chore_id)
       WHERE chore_completion_status_id = 4"
-    fitted.chore.durations.sql <- "SELECT *
+    fitted.chore.durations.sql <- "SELECT *, chore_id IN (SELECT chore_id FROM chore_hierarchy) AS child_chore
       FROM chore_durations_per_day
-      WHERE chore_id NOT IN (SELECT chore_id
-          FROM chore_hierarchy)
-        AND is_active"
+      WHERE is_active"
     chore.durations <- fetch.query.results(database, chore.durations.sql)
     fitted.chore.durations <- fetch.query.results(database, fitted.chore.durations.sql)
     chore.histograms(chore.durations, fitted.chore.durations)
-    #subset(fitted.chore.durations, daily == 1 & weekendity == 0) %>% sum.chores %>% sum.chores.histogram("Weekday chores")
+    #subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0) %>% sum.chores %>% sum.chores.histogram("Weekday chores")
   },
   error=function (message) {
     stop(message)
