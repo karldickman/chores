@@ -30,12 +30,12 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
   if (is.na(sd.log)) {
     cat("Insufficient to fit distribution for", chore.name, "\n")
     tryCatch({
-        hist(duration.minutes, main = title, xlab = xlab, freq=FALSE)
+        hist(duration.minutes, main = title, xlab = xlab, freq = FALSE)
       },
-      error=function (error) {
+      error = function (error) {
         cat("Cannot plot", chore.name, "\n")
       },
-      warning=function (warning) {
+      warning = function (warning) {
         cat("Cannot plot", chore.name, "\n")
       }
     )
@@ -115,7 +115,7 @@ sum.chores <- function (fitted.chore.durations) {
     chore.data <- fitted.chore.durations[i,]
     mean.log <- chore.data$mean_log_duration_minutes
     sd.log <- chore.data$sd_log_duration_minutes
-    accumulator <- accumulator + rvlnorm(mean=mean.log, sd=sd.log)
+    accumulator <- accumulator + rvlnorm(mean = mean.log, sd = sd.log)
   }
   return(accumulator)
 }
@@ -138,7 +138,7 @@ analyze.meals <- function (fitted.chore.durations, weekendity) {
   weekend.label <- ifelse(weekendity, "Weekend", "Weekday")
   all.meal.chores <- NULL
   for (meal in c("breakfast", "lunch", "dinner")) {
-    meal.chores <- data.frame(chore=c(paste("make", meal), paste("eat", meal), paste(meal, "dishes"), "put away dishes"), aggregate_key=weekendity)
+    meal.chores <- data.frame(chore = c(paste("make", meal), paste("eat", meal), paste(meal, "dishes"), "put away dishes"), aggregate_key = weekendity)
     if (is.null(all.meal.chores)) {
       all.meal.chores <- meal.chores
     } else {
