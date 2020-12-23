@@ -118,14 +118,18 @@ sum.chores <- function (fitted.chore.durations) {
   return(accumulator)
 }
 
-sum.chores.histogram <- function (sims, title) {
-  quantiles <- quantile(sims, c(0.5, 0.95, 0.995))
-  xlim <- quantiles[["99.5%"]]
-  cat(title, "\n")
-  cat("\tMedian:", quantiles[["50%"]], "\n")
-  cat("\tMean:", mean(sims), "\n")
-  cat("\t95% CI UB:", quantiles[["95%"]], "\n")
-  hist(sims, breaks=xlim, freq=FALSE, xlim=c(0, xlim), main=title, xlab=paste(title, "duration (minutes)"))
+sum.chores.histogram <- function (sims, title, left.tail = 0.0001, right.tail = 0.995) {
+  quantiles <- quantile(sims, c(0.5, 0.95, left.tail, right.tail))
+  xmin <- floor(quantiles[[3]])
+  xmax <- ceiling(quantiles[[4]])
+  cat(title, "
+    Median:", quantiles[["50%"]], "
+    Mean:", mean(sims), "
+    95% CI UB:", quantiles[["95%"]], "\n")
+  Filter(function (value) {
+    value >= xmin & value <= xmax
+  }, sims) %>%
+    hist(breaks = 100, freq = FALSE, main = title, xlab = paste(title, "duration (minutes)"))
 }
 
 analyze.meals <- function (fitted.chore.durations, weekendity) {
