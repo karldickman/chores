@@ -24,13 +24,13 @@ chore.breakdown.chart <- function (fitted.chore.durations, title) {
     barplot(main = title, ylab = "Duration (minutes)", las = 2)
 }
 
-chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode) {
+chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode, left.tail = 0.0001, right.tail = 0.995) {
   title <- paste("Histogram of", chore.name, "duration")
   xlab <- paste(chore.name, "duration (minutes)")
   if (is.na(sd.log)) {
     cat("Insufficient to fit distribution for", chore.name, "\n")
     tryCatch({
-        hist(duration.minutes, main=title, xlab=xlab, freq=FALSE)
+        hist(duration.minutes, main = title, xlab = xlab, freq=FALSE)
       },
       error=function (error) {
         cat("Cannot plot", chore.name, "\n")
@@ -41,13 +41,15 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
     )
     return()
   }
-  xmax <- max(c(duration.minutes, qlnorm(0.995, mean.log, sd.log)))
+  histogram <- hist(duration.minutes, plot = FALSE)
+  breaks <- histogram$breaks
+  xmin <- min(c(qlnorm(left.tail, mean.log, sd.log), breaks))
+  xmax <- max(c(qlnorm(right.tail, mean.log, sd.log), breaks))
   x <- seq(0, xmax, 0.01)
   y <- dlnorm(x, mean.log, sd.log)
   fit.max.density <- dlnorm(mode, mean.log, sd.log)
-  hist.max.density <- max(hist(duration.minutes, plot=FALSE)$density)
-  ymax <- max(fit.max.density, hist.max.density)
-  hist(duration.minutes, main=title, xlab=xlab, freq=FALSE, xlim=c(0, xmax), ylim=c(0, ymax))
+  ymax <- max(c(fit.max.density, histogram$density))
+  hist(duration.minutes, main = title, xlab = xlab, freq =FALSE, xlim = c(xmin, xmax), ylim = c(0, ymax))
   lines(x, y)
 }
 
@@ -162,13 +164,13 @@ main <- function () {
       WHERE is_active"
     chore.durations <- fetch.query.results(chore.durations.sql)
     fitted.chore.durations <- fetch.query.results(fitted.chore.durations.sql)
-    # chore.histograms(chore.durations, fitted.chore.durations)
-    fitted.chore.durations %>%
-      subset(daily == 1 & weekendity == 0 & child_chore == 0) %>%
-      expand.many.chore.completions.per.day %>%
-      scale.less.than.one.chore.completion.per.day %>%
-      sum.chores %>%
-      sum.chores.histogram("Weekday chores")
+    chore.histograms(chore.durations, fitted.chore.durations)
+    # fitted.chore.durations %>%
+    #  subset(daily == 1 & weekendity == 0 & child_chore == 0) %>%
+    #  expand.many.chore.completions.per.day %>%
+    #  scale.less.than.one.chore.completion.per.day %>%
+    #  sum.chores %>%
+    #  sum.chores.histogram("Weekday chores")
     # subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0 & (is.na(category_id) | category_id != 1)) %>%
     #  chore.breakdown.chart("Weekday chore breakdown")
   })
