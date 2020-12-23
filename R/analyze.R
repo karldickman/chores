@@ -4,45 +4,20 @@ library(dplyr)
 source("database.R")
 source("log_normal.R")
 
-chore.breakdown.chart <- function (chore.durations, title) {
-  # Split up many per day and at most once per day because they need to be dealt with separately
-  many.per.day <- subset(chore.durations, completions_per_day > 1)
-  once.per.day <- subset(chore.durations, completions_per_day == 1)
-  less.than.once.per.day <- subset(chore.durations, completions_per_day < 1)
-  # Scale at most once per day to completions per day
-  less.than.once.per.day$mean_log_duration_minutes <- scale.log.normal.mean(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$completions_per_day)
-  less.than.once.per.day$mode_duration_minutes <- log.normal.mode(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$sd_log_duration_minutes)
-  less.than.once.per.day$median_duration_minutes <- log.normal.median(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$sd_log_duration_minutes)
-  less.than.once.per.day$mean_duration_minutes <- log.normal.mean(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$sd_log_duration_minutes)
-  # Repeat chores completed more than once per day
-  repeated.chores <- c()
-  for (i in 1:nrow(many.per.day)) {
-    chore.data <- many.per.day[i,]
-    chore.name <- chore.data$chore
-    completions.per.day <- chore.data$completions_per_day
-    for (. in 1:completions.per.day) {
-      repeated.chores <- c(repeated.chores, chore.name)
-    }
-    if (abs(completions.per.day - round(completions.per.day)) > 0.1) {
-      cat(chore.name, "has non-integer completions per day", completions.per.day, "\n")
-    }
-  }
-  many.per.day <- merge(many.per.day, data.frame(chore = repeated.chores))
-  # Recombine all completions per day categories
-  chore.durations <- rbind(many.per.day, once.per.day, less.than.once.per.day)
-  # Sort in descending order of median duration
-  chore.durations <- arrange(chore.durations, -median_duration_minutes)
+chore.breakdown.chart <- function (fitted.chore.durations, title) {
+  durations <- fitted.chore.durations %>%
+    expand.many.chore.completions.per.day %>%
+    scale.less.than.one.chore.completion.per.day %>%
+    arrange(-median_duration_minutes) # Sort in descending order of median duration
   # Calculate key values
-  mode <- chore.durations$mode_duration_minutes
-  median <- chore.durations$median_duration_minutes - chore.durations$mode_duration_minutes
-  mean <- chore.durations$mean_duration_minutes - chore.durations$median_duration_minutes
-  q.95 <- qlnorm(0.95, chore.durations$mean_log_duration_minutes, chore.durations$sd_log_duration_minutes) -
-    chore.durations$mean_duration_minutes
+  mode <- durations$mode_duration_minutes
+  median <- durations$median_duration_minutes - durations$mode_duration_minutes
+  mean <- durations$mean_duration_minutes - durations$median_duration_minutes
+  q.95 <- qlnorm(0.95, durations$mean_log_duration_minutes, durations$sd_log_duration_minutes) -
+    durations$mean_duration_minutes
   # Transpose data frame for presentation in stacked bar chart
-  data.frame(mode, median, mean, q.95) %>%
-    transpose ->
-    summary.values
-  colnames(summary.values) <- chore.durations$chore
+  summary.values<- data.frame(mode, median, mean, q.95) %>% transpose
+  colnames(summary.values) <- durations$chore
   rownames(summary.values) <- c("mode", "median", "mean", "95%ile")
   # Create stacked bar chart
   summary.values %>% as.matrix %>%
@@ -92,6 +67,44 @@ chore.histograms <- function (chore.durations, fitted.chore.durations) {
     mode <- chore.data$mode_duration_minutes
     chore.histogram(chore.name, chore.completions$duration_minutes, mean.log, sd.log, mode)
   }
+}
+
+expand.many.chore.completions.per.day <- function (fitted.chore.durations) {
+  # Split up many per day and at most once per day because they need to be dealt with separately
+  many.per.day <- subset(fitted.chore.durations, completions_per_day > 1)
+  one.or.fewer.per.day <- subset(fitted.chore.durations, completions_per_day <= 1)
+  # Repeat chores completed more than once per day
+  repeated.chores <- c()
+  for (i in 1:nrow(many.per.day)) {
+    chore.data <- many.per.day[i,]
+    chore.name <- chore.data$chore
+    completions.per.day <- chore.data$completions_per_day
+    for (. in 1:completions.per.day) {
+      repeated.chores <- c(repeated.chores, chore.name)
+    }
+    if (abs(completions.per.day - round(completions.per.day)) > 0.1) {
+      cat(chore.name, "has non-integer completions per day", completions.per.day, "\n")
+    }
+  }
+  # Expand each instance by merging on repeated chores vector
+  many.per.day <- merge(many.per.day, data.frame(chore = repeated.chores))
+  # Update to once per day as this is now represented through repetition
+  many.per.day$completions_per_day <- 1
+  # Recombine with chores that have 1 or fewer completions per day
+  rbind(many.per.day, one.or.fewer.per.day)
+}
+
+scale.less.than.one.chore.completion.per.day <- function (fitted.chore.durations) {
+  # Split up less than and at least once per day because they need to be dealt with separately
+  less.than.once.per.day <- subset(fitted.chore.durations, completions_per_day < 1)
+  at.least.once.per.day <- subset(fitted.chore.durations, completions_per_day >= 1)
+  # Scale at most once per day to completions per day
+  less.than.once.per.day$mean_log_duration_minutes <- scale.log.normal.mean(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$completions_per_day)
+  less.than.once.per.day$mode_duration_minutes <- log.normal.mode(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$sd_log_duration_minutes)
+  less.than.once.per.day$median_duration_minutes <- log.normal.median(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$sd_log_duration_minutes)
+  less.than.once.per.day$mean_duration_minutes <- log.normal.mean(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$sd_log_duration_minutes)
+  # Recombine with chores that have 1 or more completions per day
+  rbind(less.than.once.per.day, at.least.once.per.day)
 }
 
 sum.chores <- function (fitted.chore.durations) {
