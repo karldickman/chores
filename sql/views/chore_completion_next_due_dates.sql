@@ -34,8 +34,8 @@ due_dates_from_chore_day_of_week AS (SELECT chore_completion_id
     JOIN chore_day_of_week USING (chore_id)),
 nearest_due_dates_from_chore_day_of_week AS (SELECT chore_completion_id, MIN(next_due_date) AS next_due_date
     FROM due_dates_from_chore_day_of_week
-    GROUP BY chore_completion_id)
-SELECT 1 AS period_type_id
+    GROUP BY chore_completion_id),
+`union` AS (SELECT 1 AS period_type_id
         , chore_completion_id
         , chore_id
         , chore_completion_status_id
@@ -45,6 +45,14 @@ SELECT 1 AS period_type_id
         , frequency_unit_id
         , time_unit AS frequency_unit
         , frequency_since
+        , CASE
+            WHEN frequency >= 7 AND frequency_unit_id = 1 OR frequency > 0.25 AND frequency_unit_id = 2
+                THEN 5
+            END AS day_of_week
+        , CASE
+            WHEN frequency >= 7 AND frequency_unit_id = 1 OR frequency > 0.25 AND frequency_unit_id = 2
+                THEN frequency_since
+            END AS day_of_week_since
         , chore_schedule_from_id
         , chore_schedule_from_since
         , chore_completion_status_schedule_from_id
@@ -71,6 +79,8 @@ SELECT 2 AS period_type_id
         , NULL AS frequency_unit_id
         , NULL AS frequency_unit
         , NULL AS frequency_since
+        , NULL AS day_of_week
+        , NULL AS day_of_week_since
         , NULL AS chore_schedule_from_id
         , NULL AS chore_schedule_from_since
         , NULL AS chore_completion_status_schedule_from_id
@@ -91,6 +101,8 @@ SELECT 3 AS period_type_id
         , NULL AS frequency_unit_id
         , NULL AS frequency_unit
         , NULL AS frequency_since
+        , day_of_week
+        , since AS day_of_week_since
         , chore_schedule_from_id
         , chore_schedule_from_since
         , chore_completion_status_schedule_from_id
@@ -98,6 +110,31 @@ SELECT 3 AS period_type_id
         , schedule_from_date
         , next_due_date
     FROM chore_completions_schedule_from_dates
+    JOIN chore_day_of_week USING (chore_id)
     JOIN nearest_due_dates_from_chore_day_of_week USING (chore_completion_id)
     WHERE chore_id NOT IN (SELECT chore_id
-            FROM chore_frequencies);
+            FROM chore_frequencies))
+SELECT period_type_id
+        , chore_completion_id
+        , chore_id
+        , chore_completion_status_id
+        , chore_completion_status_since
+        , due_date
+        , frequency
+        , frequency_unit_id
+        , frequency_unit
+        , frequency_since
+        , day_of_week
+        , day_of_week_since
+        , chore_schedule_from_id
+        , chore_schedule_from_since
+        , chore_completion_status_schedule_from_id
+        , schedule_from_id
+        , schedule_from_date
+        , next_due_date AS next_due_date_raw
+        , DATE(CASE
+            WHEN period_type_id = 1 AND day_of_week IS NOT NULL
+                THEN nearest_day_of_week(next_due_date, day_of_week)
+            ELSE next_due_date
+            END) AS next_due_date
+    FROM `union`;

@@ -10,7 +10,6 @@ this_procedure:BEGIN
     SET @chore_completion_status_id = NULL;
     SET @chore_id = NULL;
     SET @when_completed = NULL;
-    SET @frequency = NULL;
     SET @next_due_date = NULL;
     # Parameter checking
     IF completed_chore_completion_id IS NULL
@@ -34,21 +33,6 @@ this_procedure:BEGIN
     THEN
         LEAVE this_procedure;
     END IF;
-    # If the chore is scheduled by due date, use that to schedule the next chore
-    IF EXISTS(SELECT * FROM chore_due_dates WHERE chore_id = @chore_id)
-    THEN
-        CALL schedule_next_chore_by_due_date(@chore_id, new_chore_completion_id);
-        LEAVE this_procedure;
-    END IF;
-    # Find the frequency between chores
-    SELECT frequency, frequency_unit_id
-        INTO @frequency, @frequency_unit_id
-        FROM chore_frequencies
-        WHERE chore_id = @chore_id;
-    IF @frequency IS NULL OR @frequency_unit_id IS NULL
-    THEN
-        LEAVE this_procedure;
-    END IF;
     # Get the next chore schedule date
     SELECT next_due_date INTO @next_due_date 
         FROM chore_completion_next_due_dates
@@ -58,11 +42,10 @@ this_procedure:BEGIN
         SET @message = CONCAT('Could not find next due date for chore id ', @chore_id, '.');
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @message;
     END IF;
-    SET @next_due_date = DATE(@next_due_date);    
     # Leave the procedure if there is a later due date than this one
     IF EXISTS(SELECT *
         FROM chore_completions
-        NATURAL JOIN chore_schedule
+        JOIN chore_schedule USING (chore_completion_id)
         WHERE chore_id = @chore_id
             AND due_date > @due_date
             AND due_date <= @next_due_date
@@ -71,11 +54,6 @@ this_procedure:BEGIN
                     WHERE completions_per_day > 1))
     THEN
         LEAVE this_procedure;
-    END IF;
-    # If 7 or more days between chores, find the closest Sunday and use that
-    IF @frequency >= 7 AND @frequency_unit_id = 1 OR @frequency > 0.25 AND @frequency_unit_id = 2
-    THEN
-        SET @next_due_date = nearest_saturday(@next_due_date);
     END IF;
     CALL schedule_chore_by_id(@chore_id, @next_due_date, new_chore_completion_id);
 END$$
