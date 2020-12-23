@@ -10,6 +10,17 @@ rvlnorm <- function (n = 1, mean = 0, sd = 1, var = NULL, precision) {
   exp(sims(rvnorm(n, mean, sd, var, precision)))
 }
 
+chore.breakdown.chart <- function (chore.durations) {
+  chore.durations <- arrange(chore.durations, -median_duration_minutes)
+  barplot(
+    chore.durations$median_duration_minutes,
+    names.arg = chore.durations$chore,
+    main ="Chore breakdown",
+    #xlab = "Chore",
+    ylab = "Duration (minutes)",
+    las = 2)
+}
+
 chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode) {
   title <- paste("Histogram of", chore.name, "duration")
   xlab <- paste(chore.name, "duration (minutes)")
@@ -151,8 +162,9 @@ main <- function () {
       WHERE is_active"
     chore.durations <- fetch.query.results(database, chore.durations.sql)
     fitted.chore.durations <- fetch.query.results(database, fitted.chore.durations.sql)
-    chore.histograms(chore.durations, fitted.chore.durations)
+    #chore.histograms(chore.durations, fitted.chore.durations)
     #subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0) %>% sum.chores %>% sum.chores.histogram("Weekday chores")
+    subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0) %>% chore.breakdown.chart
   },
   error=function (message) {
     stop(message)
