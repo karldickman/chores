@@ -111,28 +111,9 @@ sum.chores <- function (fitted.chore.durations) {
   accumulator <- 0
   for(i in 1:nrow(fitted.chore.durations)) {
     chore.data <- fitted.chore.durations[i,]
-    chore.name <- chore.data$chore
     mean.log <- chore.data$mean_log_duration_minutes
     sd.log <- chore.data$sd_log_duration_minutes
-    completions.per.day <- chore.data$completions_per_day
-    if (completions.per.day > 1 & completions.per.day < 2) {
-      cat("Skipping", chore.name, "not configured to analyze", completions.per.day, "completions per day.\n")
-      next
-    }
-    if (completions.per.day <= 1) {
-      if (completions.per.day < 1) {
-        mean.log <- scale.log.normal.mean(mean.log, completions.per.day)
-      }
-      accumulator <- accumulator + rvlnorm(mean=mean.log, sd=sd.log)
-    }
-    else {
-      for (. in 1:completions.per.day) {
-        accumulator <- accumulator + rvlnorm(mean=mean.log, sd=sd.log)
-      }
-      if (abs(completions.per.day - round(completions.per.day)) > 0.1) {
-        cat(chore.name, "has non-integer completions per day", completions.per.day, "\n")
-      }
-    }
+    accumulator <- accumulator + rvlnorm(mean=mean.log, sd=sd.log)
   }
   return(accumulator)
 }
@@ -177,9 +158,14 @@ main <- function () {
       WHERE is_active"
     chore.durations <- fetch.query.results(chore.durations.sql)
     fitted.chore.durations <- fetch.query.results(fitted.chore.durations.sql)
-    #chore.histograms(chore.durations, fitted.chore.durations)
-    #subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0) %>% sum.chores %>% sum.chores.histogram("Weekday chores")
-    subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0 & (is.na(category_id) | category_id != 1)) %>%
-      chore.breakdown.chart("Weekday chore breakdown")
+    # chore.histograms(chore.durations, fitted.chore.durations)
+    fitted.chore.durations %>%
+      subset(daily == 1 & weekendity == 0 & child_chore == 0) %>%
+      expand.many.chore.completions.per.day %>%
+      scale.less.than.one.chore.completion.per.day %>%
+      sum.chores %>%
+      sum.chores.histogram("Weekday chores")
+    # subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0 & (is.na(category_id) | category_id != 1)) %>%
+    #  chore.breakdown.chart("Weekday chore breakdown")
   })
 }
