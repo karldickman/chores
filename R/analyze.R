@@ -11,16 +11,29 @@ rvlnorm <- function (n = 1, mean = 0, sd = 1, var = NULL, precision) {
 }
 
 chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode) {
-  xlim <- max(c(duration.minutes, qlnorm(0.995, mean.log, sd.log)))
-  x <- seq(0, xlim, 0.01)
+  title <- paste("Histogram of", chore.name, "duration")
+  xlab <- paste(chore.name, "duration (minutes)")
+  if (is.na(sd.log)) {
+    cat("Insufficient to fit distribution for", chore.name, "\n")
+    tryCatch({
+        hist(duration.minutes, main=title, xlab=xlab, freq=FALSE)
+      },
+      error=function (error) {
+        cat("Cannot plot", chore.name, "\n")
+      },
+      warning=function (warning) {
+        cat("Cannot plot", chore.name, "\n")
+      }
+    )
+    return()
+  }
+  xmax <- max(c(duration.minutes, qlnorm(0.995, mean.log, sd.log)))
+  x <- seq(0, xmax, 0.01)
   y <- dlnorm(x, mean.log, sd.log)
   fit.max.density <- dlnorm(mode, mean.log, sd.log)
   hist.max.density <- max(hist(duration.minutes, plot=FALSE)$density)
-  ylim <- max(fit.max.density, hist.max.density)
-  #x.max <- ceiling(max(duration.minutes))
-  #step <- max(ceiling(x.max / 50), 1)
-  #breaks <- seq(0, x.max + step - 1, step)
-  hist(duration.minutes, main=paste("Histogram of", chore.name, "duration"), xlab=paste(chore.name, "duration (minutes)"), freq=FALSE, xlim=c(0, xlim), ylim=c(0, ylim))
+  ymax <- max(fit.max.density, hist.max.density)
+  hist(duration.minutes, main=title, xlab=xlab, freq=FALSE, xlim=c(0, xmax), ylim=c(0, ymax))
   lines(x, y)
 }
 
@@ -38,10 +51,6 @@ chore.histograms <- function (chore.durations, fitted.chore.durations) {
     mean.log <- chore.data$mean_log_duration_minutes
     sd.log <- chore.data$sd_log_duration_minutes
     mode <- chore.data$mode_duration_minutes
-    if (is.na(sd.log)) {
-      cat("Insufficient data for", chore.name, "\n")
-      next
-    }
     chore.histogram(chore.name, chore.completions$duration_minutes, mean.log, sd.log, mode)
   }
 }
