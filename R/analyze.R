@@ -1,7 +1,8 @@
 library(data.table)
 library(dplyr)
-library(RMariaDB)
 library(rv)
+
+source("database.R")
 
 log.normal.mean <- function (mean.log, sd.log) {
   exp(mean.log + (sd.log ** 2) / 2)
@@ -113,30 +114,6 @@ chore.histograms <- function (chore.durations, fitted.chore.durations) {
   }
 }
 
-connect <- function () {
-  settings <- paste(Sys.getenv("HOME"), ".my.cnf", sep="/")
-  dbConnect(RMariaDB::MariaDB(), default.file=settings, groups="clientchores")
-}
-
-fetch.query.results <- function (database, query) {
-  result <- NULL
-  tryCatch({
-    result <- dbSendQuery(database, query)
-    dbFetch(result)
-  },
-  error=function (message) {
-    stop(message)
-  },
-  warning=function (message) {
-    stop(message)
-  },
-  finally={
-    if (!is.null(result)) {
-      dbClearResult(result)
-    }
-  })
-}
-
 sum.chores <- function (fitted.chore.durations) {
   accumulator <- 0
   for(i in 1:nrow(fitted.chore.durations)) {
@@ -194,10 +171,7 @@ analyze.meals <- function (fitted.chore.durations, weekendity) {
 
 main <- function () {
   setnsims(1000000)
-  database <- NULL
-  tryCatch({
-    # Load data from database
-    database <- connect()
+  using.database(function (fetch.query.results) {
     chore.durations.sql <- "SELECT *, weekendity(due_date) AS weekendity
       FROM hierarchical_chore_completion_durations
       JOIN chore_completions USING (chore_completion_id)
@@ -208,22 +182,11 @@ main <- function () {
       FROM chore_durations_per_day
       LEFT JOIN chore_categories USING (chore_id)
       WHERE is_active"
-    chore.durations <- fetch.query.results(database, chore.durations.sql)
-    fitted.chore.durations <- fetch.query.results(database, fitted.chore.durations.sql)
+    chore.durations <- fetch.query.results(chore.durations.sql)
+    fitted.chore.durations <- fetch.query.results(fitted.chore.durations.sql)
     #chore.histograms(chore.durations, fitted.chore.durations)
     #subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0) %>% sum.chores %>% sum.chores.histogram("Weekday chores")
     subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0 & (is.na(category_id) | category_id != 1)) %>%
       chore.breakdown.chart("Weekday chore breakdown")
-  },
-  error=function (message) {
-    stop(message)
-  },
-  warning=function (message) {
-    stop(message)
-  },
-  finally={
-    if (!is.null(database)) {
-      dbDisconnect(database)
-    }
   })
 }
