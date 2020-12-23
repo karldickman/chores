@@ -16,11 +16,13 @@ chore.breakdown.chart <- function (chore.durations) {
   mode <- chore.durations$mode_duration_minutes
   median <- chore.durations$median_duration_minutes - chore.durations$mode_duration_minutes
   mean <- chore.durations$mean_duration_minutes - chore.durations$median_duration_minutes
-  data.frame(mode, median, mean) %>%
+  q.95 <- qlnorm(0.95, chore.durations$mean_log_duration_minutes, chore.durations$sd_log_duration_minutes) -
+    chore.durations$mean_duration_minutes
+  data.frame(mode, median, mean, q.95) %>%
     transpose ->
     summary.values
   colnames(summary.values) <- chore.durations$chore
-  rownames(summary.values) <- c("mode", "median", "mean")
+  rownames(summary.values) <- c("mode", "median", "mean", "95%ile")
   summary.values %>% as.matrix %>%
     barplot(main = "Chore breakdown", ylab = "Duration (minutes)", las = 2)
 }
