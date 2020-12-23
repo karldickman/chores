@@ -3,6 +3,18 @@ library(dplyr)
 library(RMariaDB)
 library(rv)
 
+log.normal.mean <- function (mean.log, sd.log) {
+  exp(mean.log + (sd.log ** 2) / 2)
+}
+
+log.normal.median <- function (mean.log, .) {
+  exp(mean.log)
+}
+
+log.normal.mode <- function (mean.log, sd.log) {
+  exp(mean.log - sd.log ** 2)
+}
+
 scale.log.normal.mean <- function (mean, factor) {
   mean + log(factor)
 }
@@ -11,20 +23,49 @@ rvlnorm <- function (n = 1, mean = 0, sd = 1, var = NULL, precision) {
   exp(sims(rvnorm(n, mean, sd, var, precision)))
 }
 
-chore.breakdown.chart <- function (chore.durations) {
+chore.breakdown.chart <- function (chore.durations, title) {
+  # Split up many per day and at most once per day because they need to be dealt with separately
+  many.per.day <- subset(chore.durations, completions_per_day > 1)
+  once.per.day <- subset(chore.durations, completions_per_day == 1)
+  less.than.once.per.day <- subset(chore.durations, completions_per_day < 1)
+  # Scale at most once per day to completions per day
+  less.than.once.per.day$mean_log_duration_minutes <- scale.log.normal.mean(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$completions_per_day)
+  less.than.once.per.day$mode_duration_minutes <- log.normal.mode(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$sd_log_duration_minutes)
+  less.than.once.per.day$median_duration_minutes <- log.normal.median(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$sd_log_duration_minutes)
+  less.than.once.per.day$mean_duration_minutes <- log.normal.mean(less.than.once.per.day$mean_log_duration_minutes, less.than.once.per.day$sd_log_duration_minutes)
+  # Repeat chores completed more than once per day
+  repeated.chores <- c()
+  for (i in 1:nrow(many.per.day)) {
+    chore.data <- many.per.day[i,]
+    chore.name <- chore.data$chore
+    completions.per.day <- chore.data$completions_per_day
+    for (. in 1:completions.per.day) {
+      repeated.chores <- c(repeated.chores, chore.name)
+    }
+    if (abs(completions.per.day - round(completions.per.day)) > 0.1) {
+      cat(chore.name, "has non-integer completions per day", completions.per.day, "\n")
+    }
+  }
+  many.per.day <- merge(many.per.day, data.frame(chore = repeated.chores))
+  # Recombine all completions per day categories
+  chore.durations <- rbind(many.per.day, once.per.day, less.than.once.per.day)
+  # Sort in descending order of median duration
   chore.durations <- arrange(chore.durations, -median_duration_minutes)
+  # Calculate key values
   mode <- chore.durations$mode_duration_minutes
   median <- chore.durations$median_duration_minutes - chore.durations$mode_duration_minutes
   mean <- chore.durations$mean_duration_minutes - chore.durations$median_duration_minutes
   q.95 <- qlnorm(0.95, chore.durations$mean_log_duration_minutes, chore.durations$sd_log_duration_minutes) -
     chore.durations$mean_duration_minutes
+  # Transpose data frame for presentation in stacked bar chart
   data.frame(mode, median, mean, q.95) %>%
     transpose ->
     summary.values
   colnames(summary.values) <- chore.durations$chore
   rownames(summary.values) <- c("mode", "median", "mean", "95%ile")
+  # Create stacked bar chart
   summary.values %>% as.matrix %>%
-    barplot(main = "Chore breakdown", ylab = "Duration (minutes)", las = 2)
+    barplot(main = title, ylab = "Duration (minutes)", las = 2)
 }
 
 chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode) {
@@ -165,12 +206,14 @@ main <- function () {
       WHERE chore_completion_status_id = 4"
     fitted.chore.durations.sql <- "SELECT *, chore_id IN (SELECT chore_id FROM chore_hierarchy) AS child_chore
       FROM chore_durations_per_day
+      LEFT JOIN chore_categories USING (chore_id)
       WHERE is_active"
     chore.durations <- fetch.query.results(database, chore.durations.sql)
     fitted.chore.durations <- fetch.query.results(database, fitted.chore.durations.sql)
     #chore.histograms(chore.durations, fitted.chore.durations)
     #subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0) %>% sum.chores %>% sum.chores.histogram("Weekday chores")
-    subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0) %>% chore.breakdown.chart
+    subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0 & (is.na(category_id) | category_id != 1)) %>%
+      chore.breakdown.chart("Weekday chore breakdown")
   },
   error=function (message) {
     stop(message)
