@@ -1,3 +1,4 @@
+install.packages("data.table")
 install.packages("dplyr")
 # Configure could not find suitable mysql/mariadb client library. Try installing:
 #  * deb: libmariadbclient-dev (Debian, Ubuntu)

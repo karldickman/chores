@@ -1,3 +1,4 @@
+library(data.table)
 library(dplyr)
 library(RMariaDB)
 library(rv)
@@ -12,13 +13,16 @@ rvlnorm <- function (n = 1, mean = 0, sd = 1, var = NULL, precision) {
 
 chore.breakdown.chart <- function (chore.durations) {
   chore.durations <- arrange(chore.durations, -median_duration_minutes)
-  barplot(
-    chore.durations$median_duration_minutes,
-    names.arg = chore.durations$chore,
-    main ="Chore breakdown",
-    #xlab = "Chore",
-    ylab = "Duration (minutes)",
-    las = 2)
+  mode <- chore.durations$mode_duration_minutes
+  median <- chore.durations$median_duration_minutes - chore.durations$mode_duration_minutes
+  mean <- chore.durations$mean_duration_minutes - chore.durations$median_duration_minutes
+  data.frame(mode, median, mean) %>%
+    transpose ->
+    summary.values
+  colnames(summary.values) <- chore.durations$chore
+  rownames(summary.values) <- c("mode", "median", "mean")
+  summary.values %>% as.matrix %>%
+    barplot(main = "Chore breakdown", ylab = "Duration (minutes)", las = 2)
 }
 
 chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode) {
