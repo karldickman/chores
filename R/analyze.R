@@ -149,7 +149,7 @@ analyze.meals <- function (fitted.chore.durations, weekendity) {
   merge(fitted.chore.durations, all.meal.chores) %>% sum.chores %>% sum.chores.histogram(paste(weekend.label, "meals"))
 }
 
-main <- function () {
+main <- function (analysis = "") {
   setnsims(1000000)
   using.database(function (fetch.query.results) {
     chore.durations.sql <- "SELECT *, weekendity(due_date) AS weekendity
@@ -164,14 +164,21 @@ main <- function () {
       WHERE is_active"
     chore.durations <- fetch.query.results(chore.durations.sql)
     fitted.chore.durations <- fetch.query.results(fitted.chore.durations.sql)
-    chore.histograms(chore.durations, fitted.chore.durations)
-    # fitted.chore.durations %>%
-    #  subset(daily == 1 & weekendity == 0 & child_chore == 0) %>%
-    #  expand.many.chore.completions.per.day %>%
-    #  scale.less.than.one.chore.completion.per.day %>%
-    #  sum.chores %>%
-    #  sum.chores.histogram("Weekday chores")
-    # subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0 & (is.na(category_id) | category_id != 1)) %>%
-    #  chore.breakdown.chart("Weekday chore breakdown")
+    if (analysis == "chore.histograms") {
+      chore.histograms(chore.durations, fitted.chore.durations)
+    }
+    else if (analysis == "weekday chores") {
+      fitted.chore.durations %>%
+        subset(daily == 1 & weekendity == 0 & child_chore == 0) %>%
+        expand.many.chore.completions.per.day %>%
+        scale.less.than.one.chore.completion.per.day %>%
+        sum.chores %>%
+        sum.chores.histogram("Weekday chores")
+    } else if (analysis == "weekday chore breakdown") {
+      subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0 & (is.na(category_id) | category_id != 1)) %>%
+        chore.breakdown.chart("Weekday chore breakdown")
+    } else {
+      cat("No analysis specified, exiting.\n")
+    }
   })
 }
