@@ -23,7 +23,7 @@ SELECT chore_measured
         , median_duration_minutes
         , mean_duration_minutes
         , sd_duration_minutes
-        , median_duration_minutes AS duration_minutes
+        , median_duration_minutes AS central_tendency_duration_minutes
         , completed_minutes
         , hierarchical_completed_minutes
         , remaining_minutes
@@ -44,7 +44,7 @@ SELECT chore_measured
         , 0 AS times_completed
         , last_completed
         , NULL AS mean_number_of_sessions
-        , duration_minutes AS arithmetic_mean_duration_minutes
+        , mean_duration_minutes AS arithmetic_mean_duration_minutes
         , sd_duration_minutes AS arithmetic_sd_duration_minutes
         , NULL AS mean_log_duration_minutes
         , NULL AS sd_log_duration_minutes
@@ -52,7 +52,7 @@ SELECT chore_measured
         , NULL AS median_duration_minutes
         , NULL AS mean_duration_minutes
         , NULL AS sd_duration_minutes
-        , duration_minutes
+        , mean_duration_minutes AS central_tendency_duration_minutes
         , completed_minutes
         , NULL AS hierarchical_completed_minutes
         , remaining_minutes

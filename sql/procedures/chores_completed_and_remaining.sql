@@ -28,7 +28,7 @@ BEGIN
             , due_date
             , is_completed
             , when_completed
-            , duration_minutes
+            , central_tendency_duration_minutes
             , completed_minutes
             , remaining_minutes
             , `95% CI UB`
@@ -42,7 +42,7 @@ BEGIN
     meal_summary AS (SELECT DATE(due_date) AS due_date
             , MIN(is_completed) AS is_completed
             , MAX(when_completed) AS when_completed
-            , SUM(duration_minutes) AS duration_minutes
+            , SUM(central_tendency_duration_minutes) AS central_tendency_duration_minutes
             , SUM(completed_minutes) AS completed_minutes
             , SUM(CASE WHEN remaining_minutes > 0 THEN remaining_minutes ELSE 0 END) AS remaining_minutes
             , SUM(`95% CI UB`) AS `95% CI UB`
@@ -54,7 +54,7 @@ BEGIN
             , is_completed
             , FALSE AS meal
             , period_days
-            , duration_minutes
+            , central_tendency_duration_minutes
             , completed_minutes
             , remaining_minutes
             , `95% CI UB`
@@ -68,7 +68,7 @@ BEGIN
             , is_completed
             , 1 AS period_days
             , TRUE AS meal
-            , duration_minutes
+            , central_tendency_duration_minutes
             , completed_minutes
             , remaining_minutes
             , `95% CI UB`
@@ -81,7 +81,7 @@ BEGIN
                     THEN 'meal'
                 ELSE frequency_category
                 END AS frequency
-            , duration_minutes
+            , central_tendency_duration_minutes AS duration_minutes
             , completed_minutes
             , remaining_minutes
             , `95% CI UB`
