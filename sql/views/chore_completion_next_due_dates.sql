@@ -93,7 +93,7 @@ SELECT 2 AS period_type_id
 UNION
 SELECT 3 AS period_type_id
         , chore_completion_id
-        , chore_id
+        , chore_completions_schedule_from_dates.chore_id
         , chore_completion_status_id
         , chore_completion_status_since
         , due_date
@@ -110,9 +110,11 @@ SELECT 3 AS period_type_id
         , schedule_from_date
         , next_due_date
     FROM chore_completions_schedule_from_dates
-    JOIN chore_day_of_week USING (chore_id)
     JOIN nearest_due_dates_from_chore_day_of_week USING (chore_completion_id)
-    WHERE chore_id NOT IN (SELECT chore_id
+    JOIN chore_day_of_week
+        ON chore_completions_schedule_from_dates.chore_id = chore_day_of_week.chore_id
+        AND WEEKDAY(next_due_date) = day_of_week
+    WHERE chore_completions_schedule_from_dates.chore_id NOT IN (SELECT chore_id
             FROM chore_frequencies))
 SELECT period_type_id
         , chore_completion_id
