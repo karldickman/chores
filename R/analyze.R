@@ -28,7 +28,7 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
   title <- paste("Histogram of", chore.name, "duration")
   xlab <- paste(chore.name, "duration (minutes)")
   if (is.na(sd.log)) {
-    cat("Insufficient to fit distribution for", chore.name, "\n")
+    cat("Insufficient data to fit distribution for", chore.name, "\n")
     tryCatch({
         hist(duration.minutes, main = title, xlab = xlab, freq = FALSE)
       },
