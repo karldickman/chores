@@ -26,17 +26,19 @@ stop.with.message <- function (message) {
 
 using.database <- function (operation) {
   database <- NULL
-  tryCatch({
+  withCallingHandlers({
     database <- connect()
     operation(function (query) {
       fetch.query.results(database, query)
     })
-  },
-  error = stop.with.message,
-  warning = stop.with.message,
-  finally = {
     if (!is.null(database)) {
       dbDisconnect(database)
+      database <- NULL
     }
-  })
+  },
+  error = stop.with.message,
+  warning = stop.with.message)
+  if (!is.null(database)) {
+    dbDisconnect(database)
+  }
 }
