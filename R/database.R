@@ -20,10 +20,6 @@ fetch.query.results <- function (database, query) {
   })
 }
 
-stop.with.message <- function (message) {
-  stop(message)
-}
-
 using.database <- function (operation) {
   database <- NULL
   withCallingHandlers({
@@ -36,8 +32,20 @@ using.database <- function (operation) {
       database <- NULL
     }
   },
-  error = stop.with.message,
-  warning = stop.with.message)
+  error = function (message) {
+    if (!is.null(database)) {
+      dbDisconnect(database)
+      database <- NULL
+    }
+    stop(message)
+  },
+  warning = function (message) {
+    if (!is.null(database)) {
+      dbDisconnect(database)
+      database <- NULL
+    }
+    stop(message)
+  })
   if (!is.null(database)) {
     dbDisconnect(database)
   }
