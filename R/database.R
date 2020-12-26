@@ -7,17 +7,32 @@ connect <- function () {
 
 fetch.query.results <- function (database, query) {
   result <- NULL
-  tryCatch({
+  withCallingHandlers({
     result <- dbSendQuery(database, query)
-    dbFetch(result)
-  },
-  error = stop.with.message,
-  warning = stop.with.message,
-  finally = {
+    fetched <- dbFetch(result)
     if (!is.null(result)) {
       dbClearResult(result)
+      result <- NULL
     }
+    return(fetched)
+  },
+  error = function (message) {
+    if (!is.null(result)) {
+      dbClearResult(result)
+      result <- NULL
+    }
+    stop(message)
+  },
+  warning = function (message) {
+    if (!is.null(result)) {
+      dbClearResult(result)
+      result <- NULL
+    }
+    stop(message)
   })
+  if (!is.null(result)) {
+    dbClearResult(result)
+  }
 }
 
 using.database <- function (operation) {
