@@ -20,13 +20,13 @@ BEGIN
                     THEN remaining_minutes
                 ELSE 0
                 END) AS remaining_minutes
-            , SUM(`95% CI UB`) AS `95% CI UB`
+            , SUM(`95%ile`) AS `95%ile`
         FROM incomplete_chores_progress
         JOIN relevant_chore_completions USING (chore_completion_id)),
     total AS (SELECT number_of_chores
             , completed_minutes
             , remaining_minutes
-            , `95% CI UB`
+            , `95%ile`
         FROM backlog_calculations
         WHERE number_of_chores > 0),
     by_chore_and_total AS (SELECT FALSE AS is_total
@@ -36,7 +36,7 @@ BEGIN
             , last_completed
             , completed_minutes
             , remaining_minutes
-            , `95% CI UB`
+            , `95%ile`
         FROM incomplete_chores_progress
         LEFT JOIN chore_order USING (chore_id)
         JOIN relevant_chore_completions USING (chore_completion_id)
@@ -48,7 +48,7 @@ BEGIN
             , NULL AS last_completed
             , completed_minutes
             , remaining_minutes
-            , `95% CI UB`
+            , `95%ile`
         FROM total
         WHERE show_totals)
     SELECT chore
@@ -56,7 +56,7 @@ BEGIN
             , COALESCE(DATE_FORMAT(last_completed, '%Y-%m-%d %H:%i'), '') AS last_completed
             , format_duration(completed_minutes) AS completed
             , format_duration(remaining_minutes) AS remaining
-            , format_duration(`95% CI UB`) AS `95% CI UB`
+            , format_duration(`95%ile`) AS `95%ile`
         FROM by_chore_and_total
         ORDER BY is_total, due_date, order_hint;
 END$$
