@@ -34,6 +34,34 @@ SELECT chore_measured
         , chore_completion_id
         , chore_id
         , chore
+        , chore_completion_status_id
+        , chore_completion_status_since
+        , due_date
+        , aggregate_by_id
+        , completions_per_day
+        , aggregate_key
+        , times_completed
+        , last_completed
+        , mean_number_of_sessions
+        , arithmetic_mean_duration_minutes
+        , NULL AS arithmetic_sd_duration_minutes
+        , NULL AS mean_log_duration_minutes
+        , NULL AS sd_log_duration_minutes
+        , NULL AS mode_duration_minutes
+        , NULL AS median_duration_minutes
+        , NULL AS mean_duration_minutes
+        , NULL AS sd_duration_minutes
+        , arithmetic_mean_duration_minutes AS central_tendency_duration_minutes
+        , completed_minutes
+        , hierarchical_completed_minutes
+        , remaining_minutes
+        , `95%ile`
+    FROM completed_once_chores_progress
+UNION
+SELECT chore_measured
+        , chore_completion_id
+        , chore_id
+        , chore
         , NULL AS chore_completion_status_id
         , NULL AS chore_completion_status_since
         , due_date

@@ -20,5 +20,6 @@ SELECT chore_completions.chore_completion_id
     LEFT JOIN hierarchical_chore_completion_durations USING (chore_completion_id)
     LEFT JOIN last_chore_completion_times USING (chore_id)
     WHERE chore_completion_status_id = 1 # scheduled
-        AND chore_completion_id NOT IN (SELECT chore_completion_id
-                FROM incomplete_measured_chores_progress);
+        AND chore_id NOT IN (SELECT chore_id
+                FROM chore_durations
+                WHERE times_completed > 0);

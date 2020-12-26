@@ -37,8 +37,9 @@ expected_duration_and_completed AS (SELECT chore_completion_id
     LEFT JOIN last_chore_completion_times USING (chore_id)
     LEFT JOIN chore_completion_durations USING (chore_completion_id)
     LEFT JOIN hierarchical_chore_completion_durations USING (chore_completion_id)
-    WHERE aggregate_by_id = 0
-        OR aggregate_by_id = 2 AND weekendity(due_date) = aggregate_key)
+    WHERE times_completed > 1 # Valid summary metrics
+        AND (aggregate_by_id = 0
+            OR aggregate_by_id = 2 AND weekendity(due_date) = aggregate_key))
 SELECT TRUE AS chore_measured
         , chore_completion_id
         , chore_id
