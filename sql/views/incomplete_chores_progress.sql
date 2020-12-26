@@ -27,8 +27,7 @@ SELECT chore_measured
         , completed_minutes
         , hierarchical_completed_minutes
         , remaining_minutes
-        , NULL AS critical_value
-        , `95% CI UB`
+        , `95%ile`
     FROM incomplete_measured_chores_progress 
 UNION
 SELECT chore_measured
@@ -56,8 +55,7 @@ SELECT chore_measured
         , completed_minutes
         , NULL AS hierarchical_completed_minutes
         , remaining_minutes
-        , critical_value
-        , `95% CI UB`
+        , `95%ile`
     FROM never_measured_chores_progress
     JOIN chores USING (chore_id)
     JOIN aggregate_keys USING (aggregate_by_id);

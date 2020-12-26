@@ -31,7 +31,7 @@ BEGIN
             , central_tendency_duration_minutes
             , completed_minutes
             , remaining_minutes
-            , `95% CI UB`
+            , `95%ile`
         FROM chores.time_remaining_by_chore
         WHERE is_completed AND when_completed BETWEEN @`from` AND @`until`
             OR NOT is_completed AND due_date < @`until`),
@@ -45,7 +45,7 @@ BEGIN
             , SUM(central_tendency_duration_minutes) AS central_tendency_duration_minutes
             , SUM(completed_minutes) AS completed_minutes
             , SUM(CASE WHEN remaining_minutes > 0 THEN remaining_minutes ELSE 0 END) AS remaining_minutes
-            , SUM(`95% CI UB`) AS `95% CI UB`
+            , SUM(`95%ile`) AS `95%ile`
         FROM time_remaining_by_chore
         JOIN meal_chores USING (chore_completion_id)
         GROUP BY DATE(due_date)),
@@ -57,7 +57,7 @@ BEGIN
             , central_tendency_duration_minutes
             , completed_minutes
             , remaining_minutes
-            , `95% CI UB`
+            , `95%ile`
         FROM time_remaining_by_chore
         LEFT JOIN chore_periods_days USING (chore_id)
         WHERE chore_completion_id NOT IN (SELECT chore_completion_id
@@ -71,7 +71,7 @@ BEGIN
             , central_tendency_duration_minutes
             , completed_minutes
             , remaining_minutes
-            , `95% CI UB`
+            , `95%ile`
         FROM meal_summary)
     SELECT chore
             , DATE_FORMAT(due_date, '%Y-%m-%d') AS due_date
@@ -84,7 +84,7 @@ BEGIN
             , central_tendency_duration_minutes AS duration_minutes
             , completed_minutes
             , remaining_minutes
-            , `95% CI UB`
+            , `95%ile`
         FROM chores_and_meals
         LEFT JOIN frequency_category_ranges
             ON period_days > minimum_period_days AND period_days < maximum_period_days

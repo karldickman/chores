@@ -29,8 +29,7 @@ SELECT chore_measured
         , completed_minutes
         , hierarchical_completed_minutes
         , remaining_minutes
-        , critical_value
-        , `95% CI UB`
+        , `95%ile`
     FROM incomplete_chores_progress
     # Exclude hierarchical chores with incomplete children
     WHERE chore_completion_id NOT IN (SELECT parent_chore_completion_id
@@ -65,8 +64,7 @@ SELECT chore_measured
         , duration_minutes AS completed_minutes
         , NULL AS hierarchical_completed_minutes
         , 0 AS remaining_minutes
-        , NULL AS critical_value
-        , 0 AS `95% CI UB`
+        , 0 AS `95%ile`
     FROM chore_completion_durations_measured_and_unmeasured
     JOIN hierarchical_chore_schedule USING (chore_completion_id)
     JOIN chore_durations USING (chore_id)

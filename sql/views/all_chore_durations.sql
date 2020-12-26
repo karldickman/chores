@@ -10,7 +10,7 @@ SELECT number_of_chores_with_data
         , mean_duration_minutes
         , sd_duration_minutes
         , critical_value
-        , mean_duration_minutes + critical_value * sd_duration_minutes AS `95% CI UB`
+        , mean_duration_minutes + critical_value * sd_duration_minutes AS `95%ile`
     FROM chore_statistics
     JOIN students_t_critical_values_unlimited_degrees_of_freedom
         WHERE one_tail_confidence = 0.05;

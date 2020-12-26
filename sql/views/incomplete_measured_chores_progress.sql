@@ -63,7 +63,7 @@ SELECT TRUE AS chore_measured
         , completed_minutes
         , hierarchical_completed_minutes
         , median_duration_minutes - hierarchical_completed_minutes AS remaining_minutes
-        , `value` * EXP(mean_log_duration_minutes) AS `95% CI UB`
+        , `value` * EXP(mean_log_duration_minutes) AS `95%ile`
     FROM expected_duration_and_completed
     LEFT JOIN log_normal_quantiles
         ON ABS(sd_log_duration_minutes - log_normal_standard_deviation) < 0.0005

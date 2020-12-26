@@ -12,7 +12,7 @@ SELECT chore_completions.chore_completion_id
         , mean_duration_minutes - COALESCE(hierarchical_chore_completion_durations.duration_minutes, 0) AS remaining_minutes
         , sd_duration_minutes
         , critical_value
-        , `95% CI UB`
+        , `95%ile`
     FROM chore_completions
     JOIN chore_schedule USING (chore_completion_id)
     CROSS JOIN all_chore_durations
