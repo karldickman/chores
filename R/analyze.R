@@ -71,6 +71,40 @@ chore.histograms <- function (chore.durations, fitted.chore.durations) {
   }
 }
 
+chores.completed.and.remaining.chart <- function (completed.and.remaining, title) {
+  # Sort in descending order of remaining duration, then by completed
+  completed.and.remaining$sort_key <- ifelse(
+    completed.and.remaining$is_completed == 1,
+    completed.and.remaining$completed_minutes,
+    completed.and.remaining$completed_minutes - completed.and.remaining$median_duration_minutes)
+  completed.and.remaining <- completed.and.remaining %>%
+    subset(!is.na(sd_log_duration_minutes)) %>%
+    arrange(is_completed, sort_key)
+  # Calculate key values
+  diff <- function (completed, minuend, subtrahend) {
+    ifelse(
+      completed == 0,
+      ifelse(
+        minuend > subtrahend,
+        minuend - subtrahend,
+        0),
+      NA)
+  }
+  completed <- completed.and.remaining$completed_minutes
+  mode.diff <- diff(completed.and.remaining$is_completed, completed.and.remaining$mode_duration_minutes, completed)
+  median.diff <- diff(completed.and.remaining$is_completed, completed.and.remaining$median_duration_minutes, completed + mode.diff)
+  mean.diff <- diff(completed.and.remaining$is_completed, completed.and.remaining$mean_duration_minutes, completed + mode.diff + median.diff)
+  q.95 <- qlnorm(0.95, completed.and.remaining$mean_log_duration_minutes, completed.and.remaining$sd_log_duration_minutes)
+  q.95.diff <- diff(completed.and.remaining$is_completed, q.95, completed + mode.diff + median.diff + mean.diff)
+  # Transpose data frame for presentation in stacked bar chart
+  summary.values <- data.frame(completed, mode.diff, median.diff, mean.diff, q.95.diff) %>% transpose
+  colnames(summary.values) <- completed.and.remaining$chore
+  rownames(summary.values) <- c("completed", "mode", "median", "mean", "95%ile")
+  # Create stacked bar chart
+  summary.values %>% as.matrix %>%
+    barplot(main = title, ylab = "Duration (minutes)", las = 2)
+}
+
 expand.many.chore.completions.per.day <- function (fitted.chore.durations) {
   # Split up many per day and at most once per day because they need to be dealt with separately
   many.per.day <- subset(fitted.chore.durations, completions_per_day > 1)
@@ -183,18 +217,18 @@ main <- function (analysis = "") {
     }
     else if (analysis == "weekday chores") {
       "SELECT chore_id
-          , chore
-          , completions_per_day
-          , mean_log_duration_minutes
-          , sd_log_duration_minutes
-          , mode_duration_minutes
-          , median_duration_minutes
-          , mean_duration_minutes
-          , daily
-          , weekendity
-          , chore_id IN (SELECT chore_id FROM chore_hierarchy) AS child_chore
-        FROM chore_durations_per_day
-        WHERE is_active" %>%
+            , chore
+            , completions_per_day
+            , mean_log_duration_minutes
+            , sd_log_duration_minutes
+            , mode_duration_minutes
+            , median_duration_minutes
+            , mean_duration_minutes
+            , daily
+            , weekendity
+            , chore_id IN (SELECT chore_id FROM chore_hierarchy) AS child_chore
+          FROM chore_durations_per_day
+          WHERE is_active" %>%
         fetch.query.results %>%
         subset(daily == 1 & weekendity == 0 & child_chore == 0) %>%
         expand.many.chore.completions.per.day %>%
@@ -203,23 +237,32 @@ main <- function (analysis = "") {
         sum.chores.histogram("Weekday chores")
     } else if (analysis == "weekday chore breakdown") {
       "SELECT chore_id
-          , chore
-          , completions_per_day
-          , mean_log_duration_minutes
-          , sd_log_duration_minutes
-          , mode_duration_minutes
-          , median_duration_minutes
-          , mean_duration_minutes
-          , daily
-          , weekendity
-          , category_id
-          , chore_id IN (SELECT chore_id FROM chore_hierarchy) AS child_chore
-        FROM chore_durations_per_day
-        LEFT JOIN chore_categories USING (chore_id)
-        WHERE is_active" %>%
+            , chore
+            , completions_per_day
+            , mean_log_duration_minutes
+            , sd_log_duration_minutes
+            , mode_duration_minutes
+            , median_duration_minutes
+            , mean_duration_minutes
+            , daily
+            , weekendity
+            , category_id
+            , chore_id IN (SELECT chore_id FROM chore_hierarchy) AS child_chore
+          FROM chore_durations_per_day
+          LEFT JOIN chore_categories USING (chore_id)
+          WHERE is_active" %>%
         fetch.query.results %>%
         subset(daily == 1 & weekendity == 0 & child_chore == 0 & (is.na(category_id) | category_id != 1)) %>%
         chore.breakdown.chart("Weekday chore breakdown")
+    } else if (analysis == "progress") {
+      "SELECT time_remaining_by_chore.*, period_days, category_id
+          FROM time_remaining_by_chore
+          LEFT JOIN chore_categories USING (chore_id)
+          LEFT JOIN chore_periods_days USING (chore_id)
+          WHERE due_date BETWEEN DATE(NOW()) AND DATE_ADD(DATE_ADD(DATE(NOW()), INTERVAL 1 DAY), INTERVAL -1 SECOND)" %>%
+        fetch.query.results %>%
+        subset(period_days < 7 & (is.na(category_id) | category_id != 1)) %>%
+        chores.completed.and.remaining.chart("Chore progress today")
     } else if (analysis == "") {
       cat("No analysis specified, exiting.\n")
     } else {
