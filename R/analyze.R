@@ -49,7 +49,7 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
   y <- dlnorm(x, mean.log, sd.log)
   fit.max.density <- dlnorm(mode, mean.log, sd.log)
   ymax <- max(c(fit.max.density, histogram$density))
-  hist(duration.minutes, main = title, xlab = xlab, freq =FALSE, xlim = c(xmin, xmax), ylim = c(0, ymax))
+  hist(duration.minutes, main = title, xlab = xlab, freq = FALSE, xlim = c(xmin, xmax), ylim = c(0, ymax))
   lines(x, y)
 }
 
@@ -113,8 +113,13 @@ sum.chores <- function (fitted.chore.durations) {
   accumulator <- 0
   for(i in 1:nrow(fitted.chore.durations)) {
     chore.data <- fitted.chore.durations[i,]
+    chore.name <- chore.data$chore
     mean.log <- chore.data$mean_log_duration_minutes
     sd.log <- chore.data$sd_log_duration_minutes
+    if (is.na(sd.log)) {
+      cat("Insufficient data to fit distribution for", chore.name, "\n")
+      next()
+    }
     accumulator <- accumulator + rvlnorm(mean = mean.log, sd = sd.log)
   }
   return(accumulator)
@@ -152,33 +157,73 @@ analyze.meals <- function (fitted.chore.durations, weekendity) {
 main <- function (analysis = "") {
   setnsims(1000000)
   using.database(function (fetch.query.results) {
-    chore.durations.sql <- "SELECT *, weekendity(due_date) AS weekendity
-      FROM hierarchical_chore_completion_durations
-      JOIN chore_completions USING (chore_completion_id)
-      JOIN chore_schedule USING (chore_completion_id)
-      JOIN chores USING (chore_id)
-      WHERE chore_completion_status_id = 4"
-    fitted.chore.durations.sql <- "SELECT *, chore_id IN (SELECT chore_id FROM chore_hierarchy) AS child_chore
-      FROM chore_durations_per_day
-      LEFT JOIN chore_categories USING (chore_id)
-      WHERE is_active"
-    chore.durations <- fetch.query.results(chore.durations.sql)
-    fitted.chore.durations <- fetch.query.results(fitted.chore.durations.sql)
-    if (analysis == "chore.histograms") {
+    if (analysis == "chore histograms") {
+      chore.durations.sql <- "SELECT chore_id
+          , chore
+          , duration_minutes
+          , weekendity(due_date) AS weekendity
+        FROM hierarchical_chore_completion_durations
+        JOIN chore_completions USING (chore_completion_id)
+        LEFT JOIN chore_schedule USING (chore_completion_id)
+        JOIN chores USING (chore_id)
+        WHERE chore_completion_status_id = 4"
+      fitted.chore.durations.sql <- "SELECT chore_id
+          , chores.chore
+          , chores.aggregate_by_id
+          , aggregate_key
+          , mean_log_duration_minutes
+          , sd_log_duration_minutes
+          , mode_duration_minutes
+        FROM chores
+        LEFT JOIN chore_durations USING (chore_id)
+        WHERE chores.is_active"
+      chore.durations <- fetch.query.results(chore.durations.sql)
+      fitted.chore.durations <- fetch.query.results(fitted.chore.durations.sql)
       chore.histograms(chore.durations, fitted.chore.durations)
     }
     else if (analysis == "weekday chores") {
-      fitted.chore.durations %>%
+      "SELECT chore_id
+          , chore
+          , completions_per_day
+          , mean_log_duration_minutes
+          , sd_log_duration_minutes
+          , mode_duration_minutes
+          , median_duration_minutes
+          , mean_duration_minutes
+          , daily
+          , weekendity
+          , chore_id IN (SELECT chore_id FROM chore_hierarchy) AS child_chore
+        FROM chore_durations_per_day
+        WHERE is_active" %>%
+        fetch.query.results %>%
         subset(daily == 1 & weekendity == 0 & child_chore == 0) %>%
         expand.many.chore.completions.per.day %>%
         scale.less.than.one.chore.completion.per.day %>%
         sum.chores %>%
         sum.chores.histogram("Weekday chores")
     } else if (analysis == "weekday chore breakdown") {
-      subset(fitted.chore.durations, daily == 1 & weekendity == 0 & child_chore == 0 & (is.na(category_id) | category_id != 1)) %>%
+      "SELECT chore_id
+          , chore
+          , completions_per_day
+          , mean_log_duration_minutes
+          , sd_log_duration_minutes
+          , mode_duration_minutes
+          , median_duration_minutes
+          , mean_duration_minutes
+          , daily
+          , weekendity
+          , category_id
+          , chore_id IN (SELECT chore_id FROM chore_hierarchy) AS child_chore
+        FROM chore_durations_per_day
+        LEFT JOIN chore_categories USING (chore_id)
+        WHERE is_active" %>%
+        fetch.query.results %>%
+        subset(daily == 1 & weekendity == 0 & child_chore == 0 & (is.na(category_id) | category_id != 1)) %>%
         chore.breakdown.chart("Weekday chore breakdown")
-    } else {
+    } else if (analysis == "") {
       cat("No analysis specified, exiting.\n")
+    } else {
+      cat("Unknown analysis", analysis, "exiting.\n")
     }
   })
 }
