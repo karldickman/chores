@@ -4,6 +4,11 @@ library(dplyr)
 source("database.R")
 source("log_normal.R")
 
+arrange.by.remaining.then.completed <- function (completed.and.remaining) {
+  # Sort in descending order of remaining duration, then by completed
+  arrange(completed.and.remaining, completed_minutes - median_duration_minutes * (!is_completed))
+}
+
 chore.breakdown.chart <- function (fitted.chore.durations, title) {
   durations <- fitted.chore.durations %>%
     expand.many.chore.completions.per.day %>%
@@ -72,14 +77,9 @@ chore.histograms <- function (chore.durations, fitted.chore.durations) {
 }
 
 chores.completed.and.remaining.chart <- function (completed.and.remaining, title) {
-  # Sort in descending order of remaining duration, then by completed
-  completed.and.remaining$sort_key <- ifelse(
-    completed.and.remaining$is_completed == 1,
-    completed.and.remaining$completed_minutes,
-    completed.and.remaining$completed_minutes - completed.and.remaining$median_duration_minutes)
   completed.and.remaining <- completed.and.remaining %>%
-    subset(!is.na(sd_log_duration_minutes)) %>%
-    arrange(is_completed, sort_key)
+    subset(is_completed | !is.na(sd_log_duration_minutes)) %>%
+    arrange.by.remaining.then.completed()
   # Calculate key values
   diff <- function (completed, minuend, subtrahend) {
     ifelse(
