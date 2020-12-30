@@ -22,7 +22,8 @@ BEGIN
     IF @`until` = DATE(@`until`) THEN
         SET @`until` = DATE_ADD(DATE(@`until`), INTERVAL 1 DAY);
     END IF;
-    WITH time_remaining_by_chore AS (SELECT chore_id
+    SET @meal_chore_category_id = 1;
+    WITH time_remaining_by_chore_completion AS (SELECT chore_id
             , chore
             , chore_completion_id
             , due_date
@@ -35,10 +36,19 @@ BEGIN
         FROM chores.time_remaining_by_chore
         WHERE is_completed AND when_completed BETWEEN @`from` AND @`until`
             OR NOT is_completed AND due_date < @`until`),
+    time_remaining_by_chore AS (SELECT chore_id
+            , due_date
+            , MIN(is_completed) AS is_completed
+            , SUM(central_tendency_duration_minutes) AS central_tendency_duration_minutes
+            , SUM(completed_minutes) AS completed_minutes
+            , SUM(remaining_minutes) AS remaining_minutes
+            , SUM(`95%ile`) AS `95%ile`
+        FROM time_remaining_by_chore_completion
+        GROUP BY chore_id, due_date),
     meal_chores AS (SELECT chore_completion_id
         FROM chore_completions
         JOIN chore_categories USING (chore_id)
-        WHERE category_id = 1), # meals
+        WHERE category_id = @meal_chore_category_id),
     meal_summary AS (SELECT DATE(due_date) AS due_date
             , MIN(is_completed) AS is_completed
             , MAX(when_completed) AS when_completed
@@ -46,10 +56,10 @@ BEGIN
             , SUM(completed_minutes) AS completed_minutes
             , SUM(CASE WHEN remaining_minutes > 0 THEN remaining_minutes ELSE 0 END) AS remaining_minutes
             , SUM(`95%ile`) AS `95%ile`
-        FROM time_remaining_by_chore
+        FROM time_remaining_by_chore_completion
         JOIN meal_chores USING (chore_completion_id)
         GROUP BY DATE(due_date)),
-    chores_and_meals AS (SELECT time_remaining_by_chore.chore
+    chores_and_meals AS (SELECT chore
             , due_date
             , is_completed
             , FALSE AS meal
@@ -60,8 +70,9 @@ BEGIN
             , `95%ile`
         FROM time_remaining_by_chore
         LEFT JOIN chore_periods_days USING (chore_id)
-        WHERE chore_completion_id NOT IN (SELECT chore_completion_id
-            FROM meal_chores)
+        WHERE chore_id NOT IN (SELECT chore_id
+            FROM chore_categories
+            WHERE category_id = @meal_chore_category_id)
     UNION ALL
     SELECT CONCAT('meals ', DATE_FORMAT(due_date, '%m-%d')) AS chore
             , due_date
