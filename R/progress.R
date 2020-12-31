@@ -31,7 +31,7 @@ chores.completed.and.remaining.chart <- function (completed.and.remaining, title
   q.95 <- qlnorm(0.95, completed.and.remaining$mean_log_duration_minutes, completed.and.remaining$sd_log_duration_minutes)
   q.95.diff <- diff(completed.and.remaining$is_completed, q.95, completed + mode.diff + median.diff + mean.diff)
   # Transpose data frame for presentation in stacked bar chart
-  summary.values <- data.frame(completed, mode.diff, median.diff, mean.diff, q.95.diff) %>% transpose
+  summary.values <- data.frame(completed, mode.diff, median.diff, mean.diff, q.95.diff) %>% data.table::transpose()
   colnames(summary.values) <- completed.and.remaining$chore
   rownames(summary.values) <- c("completed", "mode", "median", "mean", "95%ile")
   # Create stacked bar chart
