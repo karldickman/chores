@@ -1,5 +1,6 @@
 install.packages("data.table")
 install.packages("dplyr")
+install.packages("purrr")
 # Configure could not find suitable mysql/mariadb client library. Try installing:
 #  * deb: libmariadbclient-dev (Debian, Ubuntu)
 #  * rpm: mariadb-connector-c-devel | mariadb-devel | mysql-devel (Fedora, CentOS, RHEL)
