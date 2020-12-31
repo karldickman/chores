@@ -37,9 +37,10 @@ fetch.query.results <- function (database, query) {
 
 using.database <- function (operation) {
   database <- NULL
+  result <- NULL
   withCallingHandlers({
     database <- connect()
-    operation(function (query) {
+    result <- operation(function (query) {
       fetch.query.results(database, query)
     })
     if (!is.null(database)) {
@@ -64,4 +65,5 @@ using.database <- function (operation) {
   if (!is.null(database)) {
     dbDisconnect(database)
   }
+  return(result)
 }
