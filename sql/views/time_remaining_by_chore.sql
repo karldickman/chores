@@ -66,6 +66,6 @@ SELECT chore_measured
         , 0 AS remaining_minutes
         , 0 AS `95%ile`
     FROM chore_completion_durations_measured_and_unmeasured
-    JOIN hierarchical_chore_schedule USING (chore_completion_id)
+    LEFT JOIN hierarchical_chore_schedule USING (chore_completion_id)
     JOIN chore_durations USING (chore_id)
     LEFT JOIN last_chore_completion_times USING (chore_id);

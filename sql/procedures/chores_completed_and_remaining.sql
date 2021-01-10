@@ -49,7 +49,7 @@ BEGIN
         FROM chore_completions
         JOIN chore_categories USING (chore_id)
         WHERE category_id = @meal_chore_category_id),
-    meal_summary AS (SELECT DATE(due_date) AS due_date
+    meal_summary AS (SELECT DATE(COALESCE(due_date, when_completed)) AS due_date
             , MIN(is_completed) AS is_completed
             , MAX(when_completed) AS when_completed
             , SUM(central_tendency_duration_minutes) AS central_tendency_duration_minutes
@@ -58,7 +58,7 @@ BEGIN
             , SUM(`95%ile`) AS `95%ile`
         FROM time_remaining_by_chore_completion
         JOIN meal_chores USING (chore_completion_id)
-        GROUP BY DATE(due_date)),
+        GROUP BY DATE(COALESCE(due_date, when_completed))),
     chores_and_meals AS (SELECT chore
             , due_date
             , is_completed
