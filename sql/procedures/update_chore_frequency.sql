@@ -9,7 +9,7 @@ BEGIN
     SET @`to` = NOW();
     INSERT INTO chore_frequency_history
         (chore_id, `from`, `to`, frequency, frequency_unit_id)
-        SELECT chore_id, schedule_from_id_since, @`to`, frequency, frequency_unit_id
+        SELECT chore_id, frequency_since, @`to`, frequency, frequency_unit_id
             FROM chore_frequencies
             WHERE chore_id = chore_id_to_update;
     UPDATE chore_frequencies
