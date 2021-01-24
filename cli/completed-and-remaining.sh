@@ -64,4 +64,4 @@ fi
 
 # Invoke SQL
 sql="CALL chores_completed_and_remaining($from, $to)"
-chore-database "$sql" ${options[@]}
+chore-database "$sql" ${options[@]} --column-names --silent=false
