@@ -32,9 +32,11 @@ SELECT period_type_id
         , mean_duration_minutes
         , mean_duration_minutes * chore_completions_per_day.completions_per_day AS mean_duration_per_day
         , sd_duration_minutes
+        , category_id IS NOT NULL AND category_id = 1 AS meals
         , period_days < 4 AS daily
         , period_days < 14 AS weekly
         , NOT ((chore_durations.aggregate_by_id = 0 AND period_days < 4
             OR chore_durations.aggregate_by_id = 2 AND aggregate_key = 0)) AS weekendity
     FROM chore_durations
-    LEFT JOIN chore_completions_per_day USING (chore_id);
+    LEFT JOIN chore_completions_per_day USING (chore_id)
+    LEFT JOIN chore_categories USING (chore_id);

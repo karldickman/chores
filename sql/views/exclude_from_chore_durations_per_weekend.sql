@@ -20,10 +20,11 @@ SELECT 'has parent chore' AS reason, chore_id
     FROM chore_hierarchy
 UNION
 # physical therapy
-SELECT 'physical therapy' AS reason, chore_id
+SELECT 'physical therapy/hygiene' AS reason, chore_id
     FROM chore_categories
-    WHERE category_id = 2
+    WHERE category_id IN (2, 3)
 UNION
+# weekday chores
 SELECT 'weekday' AS reason, saturday.chore_id
     FROM chore_day_of_week_booleans AS saturday
     NATURAL JOIN chores
@@ -31,4 +32,11 @@ SELECT 'weekday' AS reason, saturday.chore_id
         ON saturday.chore_id = sunday.chore_id
         AND saturday.day_of_week = 5
         AND sunday.day_of_week = 6
-    WHERE NOT (saturday.chore_on_day OR sunday.chore_on_day);
+    WHERE NOT (saturday.chore_on_day OR sunday.chore_on_day)
+UNION
+# eat meals
+SELECT 'eat meals' AS reason, chore_id
+    FROM chores
+    JOIN chore_categories USING (chore_id)
+    WHERE category_id = 1 # meals
+        AND chore LIKE 'eat%';
