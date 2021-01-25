@@ -23,7 +23,7 @@ chores.completed.and.remaining.stack <- function (completed.and.remaining) {
         minuend > subtrahend,
         minuend - subtrahend,
         0),
-      NA)
+      0)
   }
   completed <- completed.and.remaining$completed_minutes
   mode.diff <- diff(completed.and.remaining$is_completed, completed.and.remaining$mode_duration_minutes, completed)
