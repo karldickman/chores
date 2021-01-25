@@ -1,5 +1,5 @@
-library(data.table)
 library(dplyr)
+library(plotly)
 library(purrr)
 
 source("database.R")
@@ -10,10 +10,11 @@ arrange.by.remaining.then.completed <- function (completed.and.remaining) {
   arrange(completed.and.remaining, completed_minutes - median_duration_minutes * (!is_completed))
 }
 
-chores.completed.and.remaining.chart <- function (completed.and.remaining, title) {
-  completed.and.remaining <- completed.and.remaining %>%
+chores.completed.and.remaining.stack <- function (completed.and.remaining) {
+  completed.and.remaining %>%
     subset(is_completed | !is.na(sd_log_duration_minutes)) %>%
-    arrange.by.remaining.then.completed()
+    arrange.by.remaining.then.completed() ->
+    completed.and.remaining
   # Calculate key values
   diff <- function (completed, minuend, subtrahend) {
     ifelse(
@@ -30,13 +31,16 @@ chores.completed.and.remaining.chart <- function (completed.and.remaining, title
   mean.diff <- diff(completed.and.remaining$is_completed, completed.and.remaining$mean_duration_minutes, completed + mode.diff + median.diff)
   q.95 <- qlnorm(0.95, completed.and.remaining$mean_log_duration_minutes, completed.and.remaining$sd_log_duration_minutes)
   q.95.diff <- diff(completed.and.remaining$is_completed, q.95, completed + mode.diff + median.diff + mean.diff)
-  # Transpose data frame for presentation in stacked bar chart
-  summary.values <- data.frame(completed, mode.diff, median.diff, mean.diff, q.95.diff) %>% data.table::transpose()
-  colnames(summary.values) <- completed.and.remaining$chore
-  rownames(summary.values) <- c("completed", "mode", "median", "mean", "95%ile")
-  # Create stacked bar chart
-  summary.values %>% as.matrix %>%
-    barplot(main = title, ylab = "Duration (minutes)", las = 2)
+  data.frame(chore = completed.and.remaining$chore, completed, mode.diff, median.diff, mean.diff, q.95.diff)
+}
+
+chores.completed.and.remaining.chart <- function (completed.and.remaining, title) {
+  plot_ly(completed.and.remaining, x = ~chore, y = ~completed, type = "bar", name = "completed") %>%
+    add_trace(y = ~mode.diff, name = "mode") %>%
+    add_trace(y = ~median.diff, name = "median") %>%
+    add_trace(y = ~mean.diff, name = "mean") %>%
+    add_trace(y = ~q.95.diff, name = "95 %ile") %>%
+    layout(yaxis = list(title = "Duration (minutes)"), barmode = "stack")
 }
 
 cumulative.duration.remaining.sims <- function (completed.and.remaining) {
@@ -69,21 +73,26 @@ cumulative.sims <- function (chore.sims) {
 
 main <- function () {
   setnsims(1000000)
-  using.database(function (fetch.query.results) {
+  # Load data
+  completed.and.remaining <- using.database(function (fetch.query.results) {
     "SELECT time_remaining_by_chore.*, period_days, category_id
         FROM time_remaining_by_chore
         LEFT JOIN chore_categories USING (chore_id)
         LEFT JOIN chore_periods_days USING (chore_id)
         WHERE due_date BETWEEN DATE(NOW()) AND DATE_ADD(DATE_ADD(DATE(NOW()), INTERVAL 1 DAY), INTERVAL -1 SECOND)" %>%
       fetch.query.results %>%
-      subset(period_days < 7 & (is.na(category_id) | category_id != 1)) %>%
-      #chores.completed.and.remaining.chart("Chore progress today")
-      arrange.by.remaining.then.completed() %>%
-      cumulative.duration.remaining.sims() %>%
-      cumulative.sims() %>%
-      cumulative.duration.remaining.summary.values() %>%
-      print()
+      subset(period_days < 7 & (is.na(category_id) | category_id != 1))
   })
+  # Calculate cumulative summary values
+  completed.and.remaining %>%
+    arrange.by.remaining.then.completed() %>%
+    cumulative.duration.remaining.sims() %>%
+    cumulative.sims() %>%
+    cumulative.duration.remaining.summary.values() ->
+    cumulative.summary.values
+  completed.and.remaining %>%
+    chores.completed.and.remaining.stack() %>%
+    chores.completed.and.remaining.chart("Chore progress today")
 }
 
 if (interactive()) {
