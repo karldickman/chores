@@ -20,7 +20,7 @@ chores.completed.and.remaining.chart <- function (data) {
     add_trace(y = ~median.diff, name = "median") %>%
     add_trace(y = ~mean.diff, name = "mean") %>%
     add_trace(y = ~q.95.diff, name = "95 %ile") %>%
-    layout(yaxis = list(title = "Duration (minutes)"), barmode = "stack")
+    layout(barmode = "stack", yaxis = list(title = "Duration (minutes)"), legend = list(orientation = "h", y = -0.3))
 }
 
 chores.completed.and.remaining.stack <- function (data) {
