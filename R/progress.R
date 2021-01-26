@@ -185,7 +185,9 @@ main <- function () {
     chore.durations <- query.chore_durations(fetch.query.results)
     list(completed.and.remaining, chore.durations)
   })
-  completed.and.remaining <- database.results[[1]] %>%
+  meal.progress <- database.results[[1]] %>%
+    subset(category_id == 1)
+  daily.progress <- database.results[[1]] %>%
     subset(period_days < 7 & (is.na(category_id) | category_id != 1))
   avg.chore.duration <- database.results[[2]] %>%
     rv.avg.chore.duration() %>% # Use rv to simulate average chore duration
@@ -197,9 +199,14 @@ main <- function () {
   #  cumulative.sims() %>%
   #  cumulative.duration.remaining.summary.values() ->
   #  cumulative.summary.values
-  completed.and.remaining %>%
+  meal.progress %>%
     group.by.chore(avg.chore.duration) %>%
     arrange.by.remaining.then.completed() %>%
     chores.completed.and.remaining.stack() %>%
     chores.completed.and.remaining.chart()
+  #daily.progress %>%
+  #  group.by.chore(avg.chore.duration) %>%
+  #  arrange.by.remaining.then.completed() %>%
+  #  chores.completed.and.remaining.stack() %>%
+  #  chores.completed.and.remaining.chart()
 }
