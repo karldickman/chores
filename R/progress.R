@@ -3,7 +3,7 @@ library(plotly)
 library(purrr)
 
 source("database.R")
-source("log_normal.R")
+source("rv_chore.R")
 
 arrange.by.remaining.then.completed <- function (data) {
   data <- cbind(data)
@@ -134,14 +134,6 @@ group.by.chore <- function (data) {
       remaining.mean = sum(remaining.mean),
       remaining.q.95 = sum(remaining.q.95)) %>%
     as.data.frame()
-}
-
-rv.chore <- function (chore, mean_log_duration_minutes, sd_log_duration_minutes, count = 1, ...) {
-  sims <- 0
-  for (. in 1:count) {
-    sims <- sims + rvlnorm(mean = mean_log_duration_minutes, sd = sd_log_duration_minutes)
-  }
-  list(chore = chore, sims = sims)
 }
 
 summarize.rv <- function (chore.sims) {
