@@ -7,6 +7,9 @@ source("database.R")
 source("log_normal.R")
 source("rv_chore.R")
 
+# Suppress summarise info
+options(dplyr.summarise.inform = FALSE)
+
 arrange.by.remaining.then.completed <- function (data) {
   data <- cbind(data)
   # Sort in descending order of remaining duration, then by completed
