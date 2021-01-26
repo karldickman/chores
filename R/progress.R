@@ -23,7 +23,12 @@ chores.completed.and.remaining.chart <- function (data) {
     layout(
       barmode = "stack",
       yaxis = list(title = "Duration (minutes)"),
-      legend = list(orientation = "h", y = -0.3))
+      legend = list(
+        orientation = "h",
+        traceorder = "normal",
+        y = -0.3
+      )
+    )
 }
 
 chores.completed.and.remaining.stack <- function (data) {
