@@ -59,7 +59,7 @@ BEGIN
         FROM time_remaining_by_chore_completion
         JOIN meal_chores USING (chore_completion_id)
         GROUP BY DATE(COALESCE(due_date, when_completed))),
-    chores_and_meals AS (SELECT chore
+    chores_and_meals AS (SELECT chores.chore
             , due_date
             , is_completed
             , FALSE AS meal
@@ -69,6 +69,7 @@ BEGIN
             , remaining_minutes
             , `95%ile`
         FROM time_remaining_by_chore
+        JOIN chores USING (chore_id)
         LEFT JOIN chore_periods_days USING (chore_id)
         WHERE chore_id NOT IN (SELECT chore_id
             FROM chore_categories
