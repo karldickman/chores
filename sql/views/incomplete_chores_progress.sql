@@ -5,12 +5,10 @@ AS
 SELECT chore_measured
         , chore_completion_id
         , chore_id
-        , chore
         , chore_completion_status_id
         , chore_completion_status_since
         , due_date
         , aggregate_by_id
-        , completions_per_day
         , aggregate_key
         , times_completed
         , last_completed
@@ -33,12 +31,10 @@ UNION
 SELECT chore_measured
         , chore_completion_id
         , chore_id
-        , chore
         , chore_completion_status_id
         , chore_completion_status_since
         , due_date
         , aggregate_by_id
-        , completions_per_day
         , aggregate_key
         , times_completed
         , last_completed
@@ -61,12 +57,10 @@ UNION
 SELECT chore_measured
         , chore_completion_id
         , chore_id
-        , chore
         , NULL AS chore_completion_status_id
         , NULL AS chore_completion_status_since
         , due_date
         , aggregate_by_id
-        , completions_per_day
         , aggregate_key
         , 0 AS times_completed
         , last_completed

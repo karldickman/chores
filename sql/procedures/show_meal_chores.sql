@@ -38,6 +38,7 @@ BEGIN
             , remaining_minutes
             , `95%ile`
         FROM incomplete_chores_progress
+        JOIN chores USING (chore_id)
         LEFT JOIN chore_order USING (chore_id)
         JOIN relevant_chore_completions USING (chore_completion_id)
     UNION ALL
