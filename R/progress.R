@@ -156,7 +156,10 @@ query.time_remaining_by_chore <- function (fetch.query.results) {
       FROM time_remaining_by_chore
       LEFT JOIN chore_categories USING (chore_id)
       LEFT JOIN chore_periods_days USING (chore_id)
-      WHERE due_date BETWEEN DATE(NOW()) AND DATE_ADD(DATE_ADD(DATE(NOW()), INTERVAL 1 DAY), INTERVAL -1 SECOND)" %>%
+      WHERE is_completed
+              AND when_completed BETWEEN DATE(NOW()) AND DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)
+          OR NOT is_completed
+              AND due_date < DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)" %>%
     fetch.query.results()
 }
 
