@@ -191,7 +191,3 @@ main <- function () {
     chores.completed.and.remaining.stack() %>%
     chores.completed.and.remaining.chart()
 }
-
-if (interactive()) {
-  main()
-}
