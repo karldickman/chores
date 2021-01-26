@@ -163,18 +163,17 @@ main <- function () {
       subset(period_days < 7 & (is.na(category_id) | category_id != 1))
   })
   completed.and.remaining$is_completed <- completed.and.remaining$is_completed == 1
-  # Calculate cumulative summary values
-  #completed.and.remaining %>%
-  #  arrange.by.remaining.then.completed() %>%
-  #  cumulative.duration.remaining.sims() %>%
-  #  cumulative.sims() %>%
-  #  cumulative.duration.remaining.summary.values() ->
-  #  cumulative.summary.values
   completed.and.remaining %>%
     group.by.chore() %>%
     arrange.by.remaining.then.completed() %>%
     chores.completed.and.remaining.stack() %>%
     chores.completed.and.remaining.chart()
+  # Calculate cumulative summary values
+  completed.and.remaining %>%
+    arrange.by.remaining.then.completed() %>%
+    cumulative.duration.remaining.sims() %>%
+    cumulative.sims() %>%
+    cumulative.duration.remaining.summary.values()
 }
 
 if (interactive()) {
