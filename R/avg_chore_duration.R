@@ -61,7 +61,3 @@ main <- function () {
     probability = TRUE,
     add = TRUE)
 }
-
-if (interactive()) {
-  main()
-}
