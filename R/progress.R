@@ -80,7 +80,6 @@ cumulative.sims <- function (chore.sims) {
 
 group.by.chore <- function (data) {
   final.colnames <- c("chore", "is_completed", "completed", "mode", "median", "mean", "q.95")
-  data$is_completed <- data$is_completed == 1
   # Add 0.95 quantile -- data from database is difference between quantile and completed, not the actual quantile
   data$q.95 <- qlnorm(0.95, data$mean_log_duration_minutes, data$sd_log_duration_minutes)
   # Count occurrences of each chore, summarize completed minutes
@@ -163,6 +162,7 @@ main <- function () {
       fetch.query.results %>%
       subset(period_days < 7 & (is.na(category_id) | category_id != 1))
   })
+  completed.and.remaining$is_completed <- completed.and.remaining$is_completed == 1
   # Calculate cumulative summary values
   #completed.and.remaining %>%
   #  arrange.by.remaining.then.completed() %>%
