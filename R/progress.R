@@ -4,6 +4,7 @@ library(purrr)
 
 source("avg_chore_duration.R")
 source("database.R")
+source("log_normal.R")
 source("rv_chore.R")
 
 arrange.by.remaining.then.completed <- function (data) {
@@ -124,7 +125,7 @@ group.by.chore <- function (data, avg.chore.duration) {
       pmap(rv.chore) %>%
       map_dfr(summarize.rv) %>%
       merge(data.summarized[c("chore", "total_completed_minutes")]) %>%
-      merge(data.frame(is_completed = FALSE, mode = NA))
+      merge(data.frame(is_completed = FALSE))
     many <- many[c("chore", "is_completed", "total_completed_minutes", "mode", "median", "mean", "q.95")]
     colnames(many) <- final.colnames
     # Recombine one and many
@@ -165,6 +166,7 @@ summarize.rv <- function (chore.sims) {
   quantiles <- quantile(sims, c(0.5, 0.95))
   data.frame(
     chore,
+    mode = log.normal.mode(mean(log(sims)), sd(log(sims))), # Assume log normal distribution to estimate mode
     median = quantiles[["50%"]],
     mean = mean(sims),
     q.95 = quantiles[["95%"]])
