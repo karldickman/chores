@@ -163,7 +163,11 @@ summarize.rv <- function (chore.sims) {
   chore <- chore.sims$chore
   sims <- chore.sims$sims
   quantiles <- quantile(sims, c(0.5, 0.95))
-  data.frame(chore, median = quantiles[["50%"]], mean = mean(sims), q.95 = quantiles[["95%"]])
+  data.frame(
+    chore,
+    median = quantiles[["50%"]],
+    mean = mean(sims),
+    q.95 = quantiles[["95%"]])
 }
 
 main <- function () {
