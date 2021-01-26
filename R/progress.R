@@ -136,6 +136,15 @@ group.by.chore <- function (data) {
     as.data.frame()
 }
 
+query.time_remaining_by_chore <- function (fetch.query.results) {
+  "SELECT time_remaining_by_chore.*, period_days, category_id
+      FROM time_remaining_by_chore
+      LEFT JOIN chore_categories USING (chore_id)
+      LEFT JOIN chore_periods_days USING (chore_id)
+      WHERE due_date BETWEEN DATE(NOW()) AND DATE_ADD(DATE_ADD(DATE(NOW()), INTERVAL 1 DAY), INTERVAL -1 SECOND)" %>%
+    fetch.query.results()
+}
+
 summarize.rv <- function (chore.sims) {
   chore <- chore.sims$chore
   sims <- chore.sims$sims
@@ -146,15 +155,9 @@ summarize.rv <- function (chore.sims) {
 main <- function () {
   setnsims(1000000)
   # Load data
-  completed.and.remaining <- using.database(function (fetch.query.results) {
-    "SELECT time_remaining_by_chore.*, period_days, category_id
-        FROM time_remaining_by_chore
-        LEFT JOIN chore_categories USING (chore_id)
-        LEFT JOIN chore_periods_days USING (chore_id)
-        WHERE due_date BETWEEN DATE(NOW()) AND DATE_ADD(DATE_ADD(DATE(NOW()), INTERVAL 1 DAY), INTERVAL -1 SECOND)" %>%
-      fetch.query.results %>%
-      subset(period_days < 7 & (is.na(category_id) | category_id != 1))
-  })
+  completed.and.remaining <- query.time_remaining_by_chore %>%
+    using.database() %>%
+    subset(period_days < 7 & (is.na(category_id) | category_id != 1))
   # Calculate cumulative summary values
   #completed.and.remaining %>%
   #  arrange.by.remaining.then.completed() %>%
