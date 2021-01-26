@@ -15,11 +15,12 @@ arrange.by.remaining.then.completed <- function (data) {
 
 chores.completed.and.remaining.chart <- function (data) {
   data %>%
-    plot_ly(type = "bar", x = ~chore, y = ~completed, name = "completed") %>%
-    add_trace(y = ~mode.diff, name = "mode") %>%
-    add_trace(y = ~median.diff, name = "median") %>%
-    add_trace(y = ~mean.diff, name = "mean") %>%
-    add_trace(y = ~q.95.diff, name = "95 %ile") %>%
+    plot_ly(x = ~chore) %>%
+    add_bars(y = ~completed, name = "completed", marker = list(color = "rgb(0, 0, 0)")) %>%
+    add_bars(y = ~mode.diff, name = "mode", marker = list(color = "rgb(51.2, 51.2, 51.2)")) %>%
+    add_bars(y = ~median.diff, name = "median", marker = list(color = "rgb(102.4, 102.4, 102.4)")) %>%
+    add_bars(y = ~mean.diff, name = "mean", marker = list(color = "rgb(153.6, 153.6, 153.6)")) %>%
+    add_bars(y = ~q.95.diff, name = "95 %ile", marker = list(color = "rgb(204.8, 204.8, 204.8)")) %>%
     layout(
       barmode = "stack",
       yaxis = list(title = "Duration (minutes)"),
