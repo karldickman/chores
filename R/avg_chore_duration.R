@@ -6,6 +6,19 @@ add.rv.chore <- function (total, mean_log_duration_minutes, sd_log_duration_minu
   total + sims
 }
 
+fitted.avg.chore.duration <- function (avg.chore.duration) {
+  mean.log <- mean(log(avg.chore.duration))
+  sd.log <- sd(log(avg.chore.duration))
+  data.frame(mean_log_duration_minutes = mean.log, sd_log_duration_minutes = sd.log)
+}
+
+query.chore_durations <- function (fetch.query.results) {
+  "SELECT *
+      FROM chore_durations
+      WHERE times_completed > 1" %>%
+    fetch.query.results()
+}
+
 rv.avg.chore.duration <- function (chore.durations) {
   total <- 0
   for (i in 1:nrow(chore.durations)) {
@@ -17,17 +30,15 @@ rv.avg.chore.duration <- function (chore.durations) {
 }
 
 main <- function () {
+  setnsims(4000)
   # Read data from database
-  avg.chore.duration <- using.database(function (fetch.query.results) {
-    "SELECT *
-        FROM chore_durations
-        WHERE times_completed > 1" %>%
-      fetch.query.results()
-  }) %>%
+  avg.chore.duration <- query.chore_durations %>%
+    using.database() %>%
     rv.avg.chore.duration() # Use rv to simulate average chore duration
   # Fit log-normal distribution to rv simulation
-  mean.log <- mean(log(avg.chore.duration))
-  sd.log <- sd(log(avg.chore.duration))
+  fitted.distribution <- fitted.avg.chore.duration(avg.chore.duration)
+  mean.log <- fitted.distribution$mean_log_duration_minutes
+  sd.log <- fitted.distribution$sd_log_duration_minutes
   mode <- exp(mean.log)
   # Find boundaries of histogram plot
   histogram <- hist(avg.chore.duration, plot = FALSE)
