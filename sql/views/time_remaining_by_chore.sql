@@ -2,15 +2,17 @@ USE chores;
 
 CREATE OR REPLACE VIEW time_remaining_by_chore
 AS
+WITH aggregate_keys AS (SELECT chore_completion_id
+        , aggregate_by_id
+        , aggregate_key
+    FROM chore_completion_aggregate_keys)
 SELECT chore_measured
         , chore_completion_id
         , chore_id
-        , chore
         , chore_completion_status_id
         , chore_completion_status_since
         , due_date
         , aggregate_by_id
-        , completions_per_day
         , aggregate_key
         , FALSE AS is_completed
         , NULL AS when_completed
@@ -40,12 +42,10 @@ UNION
 SELECT chore_measured
         , chore_completion_id
         , chore_id
-        , chore
         , chore_completion_status_id
         , chore_completion_status_since
         , due_date
         , aggregate_by_id
-        , completions_per_day
         , aggregate_key
         , TRUE AS is_completed
         , when_completed
@@ -66,6 +66,7 @@ SELECT chore_measured
         , 0 AS remaining_minutes
         , 0 AS `95%ile`
     FROM chore_completion_durations_measured_and_unmeasured
+    JOIN aggregate_keys USING (chore_completion_id)
     LEFT JOIN hierarchical_chore_schedule USING (chore_completion_id)
-    JOIN chore_durations USING (chore_id)
+    JOIN chore_durations USING (chore_id, aggregate_by_id, aggregate_key)
     LEFT JOIN last_chore_completion_times USING (chore_id);

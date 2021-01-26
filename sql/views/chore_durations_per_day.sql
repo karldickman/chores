@@ -12,14 +12,12 @@ WITH chore_completions_per_day AS (SELECT period_type_id
     FROM chores.chore_completions_per_day)
 SELECT period_type_id
         , chore_id
-        , chore
         , period
         , period_unit_id
         , period_days
         , chore_completions_per_day.completions_per_day
         , period_since
         , aggregate_by_id
-        , is_active
         , aggregate_key
         , times_completed
         , mean_number_of_sessions

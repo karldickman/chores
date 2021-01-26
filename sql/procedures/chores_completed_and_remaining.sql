@@ -24,7 +24,6 @@ BEGIN
     END IF;
     SET @meal_chore_category_id = 1;
     WITH time_remaining_by_chore_completion AS (SELECT chore_id
-            , chore
             , chore_completion_id
             , due_date
             , is_completed
