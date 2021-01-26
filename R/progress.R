@@ -94,17 +94,22 @@ group.by.chore <- function (data) {
   one$mean <- zero.if.completed(one$mean)
   one$q.95 <- zero.if.completed(one$q.95)
   # Separate out chores with multiple repetitions, simulate using rv
-  many <- data[c("chore", "is_completed", "count", "mean_log_duration_minutes", "sd_log_duration_minutes")] %>%
-    subset(count > 1) %>%
-    unique() %>%
-    pmap(rv.chore) %>%
-    map_dfr(summarize.rv) %>%
-    merge(data.summarized[c("chore", "total_completed_minutes")]) %>%
-    merge(data.frame(is_completed = FALSE, mode = NA))
-  many <- many[c("chore", "is_completed", "total_completed_minutes", "mode", "median", "mean", "q.95")]
-  colnames(many) <- final.colnames
-  # Recombine one and many
-  data <- rbind(one, many)
+  many <- subset(data, count > 1)
+  if (nrow(many) > 0) {
+    many <- many %>%
+      unique() %>%
+      pmap(rv.chore) %>%
+      map_dfr(summarize.rv) %>%
+      merge(data.summarized[c("chore", "total_completed_minutes")]) %>%
+      merge(data.frame(is_completed = FALSE, mode = NA))
+    many <- many[c("chore", "is_completed", "total_completed_minutes", "mode", "median", "mean", "q.95")]
+    colnames(many) <- final.colnames
+    # Recombine one and many
+    data <- rbind(one, many)
+  }
+  else {
+    data <- one
+  }
   # Convert summary metrics to remaining duration
   data$remaining.mode <- ifelse(!is.na(data$mode), ifelse(!data$is_completed, data$mode - data$completed, 0), 0)
   data$remaining.median <- ifelse(!data$is_completed, data$median - data$completed, 0)
