@@ -170,6 +170,9 @@ group.by.chore <- function (data, avg.chore.duration) {
       remaining.mean = sum(remaining.mean),
       remaining.q.95 = sum(remaining.q.95))
   # Recombine complete and incomplete, summarize, and return
+  summary.metrics.by.chore <- data[c("chore", "mode_duration_minutes", "median_duration_minutes", "mean_duration_minutes", "q.95")] %>%
+    unique()
+  colnames(summary.metrics.by.chore) <- c("chore", "mode", "median", "mean", "q.95")
   rbind(complete, incomplete) %>%
     group_by(chore) %>%
     summarise(
@@ -178,7 +181,8 @@ group.by.chore <- function (data, avg.chore.duration) {
       remaining.mode = sum(remaining.mode),
       remaining.median = sum(remaining.median),
       remaining.mean = sum(remaining.mean),
-      remaining.q.95 = sum(remaining.q.95))
+      remaining.q.95 = sum(remaining.q.95)) %>%
+    merge(summary.metrics.by.chore)
 }
 
 query.time_remaining_by_chore <- function (fetch.query.results) {
