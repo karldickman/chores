@@ -13,7 +13,14 @@ options(dplyr.summarise.inform = FALSE)
 arrange.by.remaining.then.completed <- function (data) {
   data <- cbind(data)
   # Sort in descending order of remaining duration, then by completed
-  chore.order <- order(ifelse(data$is_completed, data$completed, -data$remaining.median))
+  chore.order <- ifelse(
+    data$is_completed,
+    data$completed,
+    ifelse(
+      data$remaining.median > 0,
+      -data$remaining.median,
+      0)) %>%
+    order()
   data$chore <- factor(data$chore, levels = unique(data$chore)[chore.order])
   arrange(data, chore)
 }
