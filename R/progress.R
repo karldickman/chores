@@ -186,11 +186,15 @@ group.by.chore <- function (data, avg.chore.duration) {
 }
 
 query.time_remaining_by_chore <- function (fetch.query.results) {
-  "SELECT chores.chore, time_remaining_by_chore.*, period_days, category_id
+  "SELECT chores.chore, time_remaining_by_chore.*, period_days, category_id, frequency_category
       FROM time_remaining_by_chore
       JOIN chores USING (chore_id)
       LEFT JOIN chore_categories USING (chore_id)
       LEFT JOIN chore_periods_days USING (chore_id)
+      LEFT JOIN frequency_category_ranges
+          ON period_days > minimum_period_days AND period_days < maximum_period_days
+          OR period_days = minimum_period_days AND minimum_period_inclusive
+          OR period_days = maximum_period_days AND maximum_period_inclusive
       WHERE is_completed
               AND when_completed BETWEEN DATE(NOW()) AND DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)
           OR NOT is_completed
@@ -210,24 +214,20 @@ summarize.rv <- function (chore.sims) {
     q.95 = quantiles[["95%"]])
 }
 
-main <- function (chart = "daily") {
+main <- function (charts = "daily") {
   # Load data
   database.results <- using.database(function (fetch.query.results) {
     completed.and.remaining <- query.time_remaining_by_chore(fetch.query.results)
     chore.durations <- query.chore_durations(fetch.query.results)
     list(completed.and.remaining, chore.durations)
   })
-  if (chart == "meals") {
-    relevant.data <- function (data) { subset(data, category_id == 1) }
-  }
-  else if (chart == "daily") {
-    relevant.data <- function (data) { subset(data, period_days < 7 & (is.na(category_id) | category_id != 1)) }
-  }
-  else {
-    stop(paste("Unknown chart type", chart))
-  }
-  completed.and.remaining <- database.results[[1]] %>%
-    relevant.data()
+  completed.and.remaining <- database.results[[1]]
+  # Convert category_id = 1 (meals) to frequency category meals
+  completed.and.remaining$frequency_category <- ifelse(
+    is.na(completed.and.remaining$category_id) | completed.and.remaining$category_id != 1,
+    completed.and.remaining$frequency_category,
+    "meals")
+  # Fit average chore duration (fallback when chore has been completed 1 or fewer times)
   avg.chore.duration <- database.results[[2]] %>%
     rv.avg.chore.duration() %>% # Use rv to simulate average chore duration
     fitted.avg.chore.duration() # Fit log-normal distribution to rv simulation
@@ -239,6 +239,7 @@ main <- function (chart = "daily") {
   #  cumulative.duration.remaining.summary.values() ->
   #  cumulative.summary.values
   completed.and.remaining %>%
+    subset(frequency_category %in% charts) %>%
     group.by.chore(avg.chore.duration) %>%
     arrange.by.remaining.then.completed() %>%
     chores.completed.and.remaining.stack() %>%
