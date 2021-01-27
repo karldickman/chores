@@ -86,35 +86,35 @@ cumulative.sims <- function (chore.sims) {
 group.by.chore <- function (data, avg.chore.duration) {
   # Convert is_completed column from 0/1 Boolean to true Boolean
   data$is_completed <- data$is_completed == 1
+  # If chore has been completed 1 or fewer times, fall back on average chore duration
+  data <- merge(data, avg.chore.duration, by = c(), suffixes = c("", ".y"))
+  data$mean_log_duration_minutes <- ifelse(
+    data$times_completed <= 1,
+    data$mean_log_duration_minutes.y,
+    data$mean_log_duration_minutes)
+  data$sd_log_duration_minutes <- ifelse(
+    data$times_completed <= 1,
+    data$sd_log_duration_minutes.y,
+    data$sd_log_duration_minutes)
+  data$mean_log_duration_minutes.y <- NULL
+  data$sd_log_duration_minutes.y <- NULL
+  data$mode_duration_minutes <- ifelse(
+    data$times_completed <= 1,
+    log.normal.mode(data$mean_log_duration_minutes, data$sd_log_duration_minutes),
+    data$mode_duration_minutes)
+  data$median_duration_minutes <- ifelse(
+    data$times_completed <= 1,
+    log.normal.median(data$mean_log_duration_minutes, data$sd_log_duration_minutes),
+    data$median_duration_minutes)
+  data$mean_duration_minutes <- ifelse(
+    data$times_completed <= 1,
+    log.normal.mean(data$mean_log_duration_minutes, data$sd_log_duration_minutes),
+    data$mean_duration_minutes)
+  # Add 0.95 quantile -- data from database is difference between quantile and completed, not the actual quantile
+  data$q.95 <- qlnorm(0.95, data$mean_log_duration_minutes, data$sd_log_duration_minutes)
   # Split up completed and not completed
   complete <- subset(data, is_completed)
   incomplete <- subset(data, !is_completed)
-  # If chore has been completed 1 or fewer times, fall back on average chore duration
-  incomplete <- merge(incomplete, avg.chore.duration, by = c(), suffixes = c("", ".y"))
-  incomplete$mean_log_duration_minutes <- ifelse(
-    incomplete$times_completed <= 1,
-    incomplete$mean_log_duration_minutes.y,
-    incomplete$mean_log_duration_minutes)
-  incomplete$sd_log_duration_minutes <- ifelse(
-    incomplete$times_completed <= 1,
-    incomplete$sd_log_duration_minutes.y,
-    incomplete$sd_log_duration_minutes)
-  incomplete$mean_log_duration_minutes.y <- NULL
-  incomplete$sd_log_duration_minutes.y <- NULL
-  incomplete$mode_duration_minutes <- ifelse(
-    incomplete$times_completed <= 1,
-    log.normal.mode(incomplete$mean_log_duration_minutes, incomplete$sd_log_duration_minutes),
-    incomplete$mode_duration_minutes)
-  incomplete$median_duration_minutes <- ifelse(
-    incomplete$times_completed <= 1,
-    log.normal.median(incomplete$mean_log_duration_minutes, incomplete$sd_log_duration_minutes),
-    incomplete$median_duration_minutes)
-  incomplete$mean_duration_minutes <- ifelse(
-    incomplete$times_completed <= 1,
-    log.normal.mean(incomplete$mean_log_duration_minutes, incomplete$sd_log_duration_minutes),
-    incomplete$mean_duration_minutes)
-  # Add 0.95 quantile -- data from database is difference between quantile and completed, not the actual quantile
-  incomplete$q.95 <- qlnorm(0.95, incomplete$mean_log_duration_minutes, incomplete$sd_log_duration_minutes)
   # Count occurrences of each chore, summarize completed minutes
   incomplete.summarized <- incomplete %>%
     group_by(chore) %>%
