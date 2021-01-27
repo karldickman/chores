@@ -155,8 +155,9 @@ group.by.chore <- function (data, avg.chore.duration) {
 }
 
 query.time_remaining_by_chore <- function (fetch.query.results) {
-  "SELECT chore, time_remaining_by_chore.*, period_days, category_id
+  "SELECT chores.chore, time_remaining_by_chore.*, period_days, category_id
       FROM time_remaining_by_chore
+      JOIN chores USING (chore_id)
       LEFT JOIN chore_categories USING (chore_id)
       LEFT JOIN chore_periods_days USING (chore_id)
       WHERE is_completed
