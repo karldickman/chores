@@ -11,5 +11,5 @@ install.packages("purrr")
 #  * rpm: mariadb-connector-c-devel | mariadb-devel | mysql-devel (Fedora, CentOS, RHEL)
 #  * csw: mysql56_dev (Solaris)
 #  * brew: mariadb-connector-c (OSX)
-install.packages("RMariaDB")
+install.packages("RMariaDB") # Minimum version 1.1.0, needed to support using server time zone
 install.packages("rv")

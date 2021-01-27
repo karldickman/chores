@@ -2,7 +2,7 @@ library(RMariaDB)
 
 connect <- function () {
   settings <- paste(Sys.getenv("HOME"), ".my.cnf", sep = "/")
-  dbConnect(RMariaDB::MariaDB(), default.file = settings, groups = "clientchores")
+  dbConnect(MariaDB(), default.file = settings, groups = "clientchores", timezone = Sys.timezone())
 }
 
 fetch.query.results <- function (database, query) {

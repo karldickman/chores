@@ -3,10 +3,7 @@ USE chores;
 CREATE OR REPLACE VIEW hypothetical_confidence_intervals
 AS
 SELECT chore_id
-        , chore
         , aggregate_by_id
-        , completions_per_day
-        , is_active
         , aggregate_key
         , times_completed
         , mean_number_of_sessions

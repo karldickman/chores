@@ -45,10 +45,7 @@ completions_needed_unlimited_df AS (SELECT confidence_interval_type
     FROM target_chore_duration_confidence_bounds)
 SELECT confidence_interval_type
         , chore_id
-        , chore
         , aggregate_by_id
-        , completions_per_day
-        , is_active
         , aggregate_key
         , times_completed
         , mean_number_of_sessions

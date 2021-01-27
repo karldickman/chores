@@ -4,7 +4,6 @@ CREATE OR REPLACE VIEW chore_durations_by_person_per_day
 AS
 SELECT period_type_id
         , chore_id
-        , chore
         , period
         , period_unit_id
         , period_days

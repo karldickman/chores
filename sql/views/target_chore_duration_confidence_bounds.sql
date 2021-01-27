@@ -4,10 +4,7 @@ CREATE OR REPLACE VIEW target_chore_duration_confidence_bounds
 AS
 WITH inequality_coefficients AS (SELECT 'absolute' AS confidence_interval_type
         , chore_id
-        , chore
         , aggregate_by_id
-        , completions_per_day
-        , is_active
         , aggregate_key
         , times_completed
         , mean_number_of_sessions
@@ -31,10 +28,7 @@ WITH inequality_coefficients AS (SELECT 'absolute' AS confidence_interval_type
 UNION
 SELECT 'relative' AS confidence_interval_type
         , chore_id
-        , chore
         , aggregate_by_id
-        , completions_per_day
-        , is_active
         , aggregate_key
         , times_completed
         , mean_number_of_sessions
@@ -57,10 +51,7 @@ SELECT 'relative' AS confidence_interval_type
     FROM hypothetical_critical_values_with_unlimited_degrees_of_freedom),
 quadratic_coefficients AS (SELECT confidence_interval_type
         , chore_id
-        , chore
         , aggregate_by_id
-        , completions_per_day
-        , is_active
         , aggregate_key
         , times_completed
         , mean_number_of_sessions
@@ -85,10 +76,7 @@ quadratic_coefficients AS (SELECT confidence_interval_type
     FROM inequality_coefficients)
 SELECT confidence_interval_type
         , chore_id
-        , chore
         , aggregate_by_id
-        , completions_per_day
-        , is_active
         , aggregate_key
         , times_completed
         , mean_number_of_sessions
