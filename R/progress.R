@@ -186,11 +186,15 @@ group.by.chore <- function (data, avg.chore.duration) {
 }
 
 query.time_remaining_by_chore <- function (fetch.query.results) {
-  "SELECT chores.chore, time_remaining_by_chore.*, period_days, category_id
+  "SELECT chores.chore, time_remaining_by_chore.*, period_days, category_id, frequency_category
       FROM time_remaining_by_chore
       JOIN chores USING (chore_id)
       LEFT JOIN chore_categories USING (chore_id)
       LEFT JOIN chore_periods_days USING (chore_id)
+      LEFT JOIN frequency_category_ranges
+          ON period_days > minimum_period_days AND period_days < maximum_period_days
+          OR period_days = minimum_period_days AND minimum_period_inclusive
+          OR period_days = maximum_period_days AND maximum_period_inclusive
       WHERE is_completed
               AND when_completed BETWEEN DATE(NOW()) AND DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)
           OR NOT is_completed
