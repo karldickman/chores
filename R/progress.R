@@ -89,9 +89,12 @@ group.by.chore <- function (data, avg.chore.duration) {
   # If chore has been completed 1 or fewer times, fall back on average chore duration
   data <- merge(data, avg.chore.duration, by = c(), suffixes = c("", ".y"))
   data$mean_log_duration_minutes <- ifelse(
-    data$times_completed <= 1,
+    data$times_completed == 0,
     data$mean_log_duration_minutes.y,
-    data$mean_log_duration_minutes)
+    ifelse(
+      data$times_completed == 1,
+      log(data$arithmetic_mean_duration_minutes),
+      data$mean_log_duration_minutes))
   data$sd_log_duration_minutes <- ifelse(
     data$times_completed <= 1,
     data$sd_log_duration_minutes.y,
