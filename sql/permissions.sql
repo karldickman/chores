@@ -8,6 +8,7 @@ GRANT SELECT ON chore_hierarchy TO 'chores'@'localhost';
 GRANT SELECT ON chore_periods_days TO 'chores'@'localhost';
 GRANT SELECT ON chore_schedule TO 'chores'@'localhost';
 GRANT SELECT ON completions_needed TO 'chores'@'localhost';
+GRANT SELECT ON frequency_category_ranges TO 'chores'@'localhost';
 GRANT SELECT ON hierarchical_chore_completion_durations TO 'chores'@'localhost';
 GRANT SELECT ON skippable_chores TO 'chores'@'localhost';
 GRANT SELECT ON time_remaining_by_chore TO 'chores'@'localhost';
