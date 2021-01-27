@@ -49,7 +49,7 @@ chores.completed.and.remaining.stack <- function (data) {
       0)
   }
   completed <- data$completed
-  mode.diff <- data$remaining.mode
+  mode.diff <- diff(data$remaining.mode, 0)
   median.diff <- diff(data$remaining.median, mode.diff)
   mean.diff <- diff(data$remaining.mean, mode.diff + median.diff)
   q.95.diff <- diff(data$remaining.q.95, mode.diff + median.diff + mean.diff)
