@@ -210,17 +210,24 @@ summarize.rv <- function (chore.sims) {
     q.95 = quantiles[["95%"]])
 }
 
-main <- function () {
+main <- function (chart = "daily") {
   # Load data
   database.results <- using.database(function (fetch.query.results) {
     completed.and.remaining <- query.time_remaining_by_chore(fetch.query.results)
     chore.durations <- query.chore_durations(fetch.query.results)
     list(completed.and.remaining, chore.durations)
   })
-  meal.progress <- database.results[[1]] %>%
-    subset(category_id == 1)
-  daily.progress <- database.results[[1]] %>%
-    subset(period_days < 7 & (is.na(category_id) | category_id != 1))
+  if (chart == "meals") {
+    relevant.data <- function (data) { subset(data, category_id == 1) }
+  }
+  else if (chart == "daily") {
+    relevant.data <- function (data) { subset(data, period_days < 7 & (is.na(category_id) | category_id != 1)) }
+  }
+  else {
+    stop(paste("Unknown chart type", chart))
+  }
+  completed.and.remaining <- database.results[[1]] %>%
+    relevant.data()
   avg.chore.duration <- database.results[[2]] %>%
     rv.avg.chore.duration() %>% # Use rv to simulate average chore duration
     fitted.avg.chore.duration() # Fit log-normal distribution to rv simulation
@@ -231,14 +238,9 @@ main <- function () {
   #  cumulative.sims() %>%
   #  cumulative.duration.remaining.summary.values() ->
   #  cumulative.summary.values
-  meal.progress %>%
+  completed.and.remaining %>%
     group.by.chore(avg.chore.duration) %>%
     arrange.by.remaining.then.completed() %>%
     chores.completed.and.remaining.stack() %>%
     chores.completed.and.remaining.chart()
-  #daily.progress %>%
-  #  group.by.chore(avg.chore.duration) %>%
-  #  arrange.by.remaining.then.completed() %>%
-  #  chores.completed.and.remaining.stack() %>%
-  #  chores.completed.and.remaining.chart()
 }
