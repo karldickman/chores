@@ -238,9 +238,8 @@ main <- function (charts = "daily") {
     completed.and.remaining$frequency_category,
     "meals")
   # Fit average chore duration (fallback when chore has been completed 1 or fewer times)
-  avg.chore.duration <- database.results[[2]] %>%
-    rv.avg.chore.duration() %>% # Use rv to simulate average chore duration
-    fitted.avg.chore.duration() # Fit log-normal distribution to rv simulation
+  avg.chore.duration <- database.results[[2]]$duration_minutes %>%
+    fitted.avg.chore.duration() # Fit log-normal distribution to observed durations
   # Calculate cumulative summary values
   #completed.and.remaining %>%
   #  arrange.by.remaining.then.completed() %>%
