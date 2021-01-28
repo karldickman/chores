@@ -25,6 +25,13 @@ arrange.by.remaining.then.completed <- function (data) {
   arrange(data, chore)
 }
 
+calculate.q.95 <- function (data) {
+  data <- cbind(data)
+  # Add 0.95 quantile -- data from database is difference between quantile and completed, not the actual quantile
+  data$q.95 <- qlnorm(0.95, data$mean_log_duration_minutes, data$sd_log_duration_minutes)
+  return(data)
+}
+
 chores.completed.and.remaining.chart <- function (data) {
   data %>%
     plot_ly(x = ~chore) %>%
@@ -123,8 +130,6 @@ fallback.on.avg.chore.duration <- function (data, avg.chore.duration) {
 }
 
 group.by.chore <- function (data, avg.chore.duration) {
-  # Add 0.95 quantile -- data from database is difference between quantile and completed, not the actual quantile
-  data$q.95 <- qlnorm(0.95, data$mean_log_duration_minutes, data$sd_log_duration_minutes)
   # Split up completed and not completed
   complete <- subset(data, is_completed)
   incomplete <- subset(data, !is_completed)
@@ -250,6 +255,7 @@ main <- function (charts = "daily") {
   completed.and.remaining %>%
     subset(frequency_category %in% charts) %>%
     fallback.on.avg.chore.duration(avg.chore.duration) %>%
+    calculate.q.95() %>%
     group.by.chore() %>%
     arrange.by.remaining.then.completed() %>%
     chores.completed.and.remaining.stack() %>%
