@@ -73,7 +73,3 @@ main <- function () {
     chore.histograms(chore.durations, fitted.chore.durations)
   })
 }
-
-if (interactive()) {
-  main()
-}

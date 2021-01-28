@@ -46,7 +46,3 @@ main <- function () {
       chore.breakdown.chart("Weekday chore breakdown")
   })
 }
-
-if (interactive()) {
-  main()
-}

@@ -13,12 +13,10 @@ WITH incomplete_chore_completions AS (SELECT chore_completion_id
 SELECT FALSE AS chore_measured
         , chore_completion_id
         , chore_id
-        , chore
         , chore_completion_status_id
         , chore_completion_status_since
         , due_date
         , aggregate_by_id
-        , completions_per_day
         , aggregate_key
         , times_completed
         , last_completed

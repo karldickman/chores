@@ -11,6 +11,7 @@ BEGIN
             , times_completed
             , completions_needed
         FROM completions_needed
+        JOIN chores USING (chore_id, aggregate_by_id)
         WHERE chore = chore_name
             AND (aggregate_by_id = 0 # empty
                 OR aggregate_by_id = 2 # weekendity

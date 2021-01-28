@@ -72,7 +72,3 @@ main <- function () {
       sum.chores.histogram("Weekday chores")
   })
 }
-
-if (interactive()) {
-  main()
-}
