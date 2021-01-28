@@ -230,6 +230,7 @@ main <- function (charts = "daily") {
     list(completed.and.remaining, chore.durations)
   })
   completed.and.remaining <- database.results[[1]]
+  avg.chore.duration <- database.results[[2]]
   # Convert is_completed column from 0/1 Boolean to true Boolean
   completed.and.remaining$is_completed <- completed.and.remaining$is_completed == 1
   # Convert category_id = 1 (meals) to frequency category meals
@@ -238,7 +239,7 @@ main <- function (charts = "daily") {
     completed.and.remaining$frequency_category,
     "meals")
   # Fit average chore duration (fallback when chore has been completed 1 or fewer times)
-  avg.chore.duration <- database.results[[2]]$duration_minutes %>%
+  avg.chore.duration <- avg.chore.duration$duration_minutes %>%
     fitted.avg.chore.duration() # Fit log-normal distribution to observed durations
   # Calculate cumulative summary values
   completed.and.remaining %>%
