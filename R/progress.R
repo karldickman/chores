@@ -90,9 +90,10 @@ cumulative.sims <- function (chore.sims) {
   return(cumulative)
 }
 
-group.by.chore <- function (data, avg.chore.duration) {
+fallback.on.avg.chore.duration <- function (data, avg.chore.duration) {
   # If chore has been completed 1 or fewer times, fall back on average chore duration
-  data <- merge(data, avg.chore.duration, by = c(), suffixes = c("", ".y"))
+  data <- cbind(data) %>%
+    merge(avg.chore.duration, by = c(), suffixes = c("", ".y"))
   data$mean_log_duration_minutes <- ifelse(
     data$times_completed == 0,
     data$mean_log_duration_minutes.y,
@@ -118,6 +119,10 @@ group.by.chore <- function (data, avg.chore.duration) {
     data$times_completed <= 1,
     log.normal.mean(data$mean_log_duration_minutes, data$sd_log_duration_minutes),
     data$mean_duration_minutes)
+  return(data)
+}
+
+group.by.chore <- function (data, avg.chore.duration) {
   # Add 0.95 quantile -- data from database is difference between quantile and completed, not the actual quantile
   data$q.95 <- qlnorm(0.95, data$mean_log_duration_minutes, data$sd_log_duration_minutes)
   # Split up completed and not completed
@@ -244,7 +249,8 @@ main <- function (charts = "daily") {
   # Calculate cumulative summary values
   completed.and.remaining %>%
     subset(frequency_category %in% charts) %>%
-    group.by.chore(avg.chore.duration) %>%
+    fallback.on.avg.chore.duration(avg.chore.duration) %>%
+    group.by.chore() %>%
     arrange.by.remaining.then.completed() %>%
     chores.completed.and.remaining.stack() %>%
     chores.completed.and.remaining.chart()
