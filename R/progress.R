@@ -5,7 +5,6 @@ library(purrr)
 source("avg_chore_duration.R")
 source("database.R")
 source("log_normal.R")
-source("rv_chore.R")
 
 # Suppress summarise info
 options(dplyr.summarise.inform = FALSE)
@@ -129,7 +128,7 @@ fallback.on.avg.chore.duration <- function (data, avg.chore.duration) {
   return(data)
 }
 
-group.by.chore <- function (data, avg.chore.duration) {
+group.by.chore <- function (data) {
   # Split up completed and not completed
   complete <- subset(data, is_completed)
   incomplete <- subset(data, !is_completed)
@@ -147,11 +146,10 @@ group.by.chore <- function (data, avg.chore.duration) {
   # Separate out chores with multiple repetitions, simulate using rv
   many <- subset(incomplete, count > 1)
   if (nrow(many) > 0) {
-    # Use RV to simulate distribution of remaining chore duration
-    many <- many[c("chore", "count", "mean_log_duration_minutes", "sd_log_duration_minutes")] %>%
-      unique() %>%
-      pmap(rv.chore) %>%
-      map_dfr(summarize.rv) %>%
+    many <- many %>%
+      group_by(chore) %>%
+      summarise(sims = sum.sims(remaining.duration.sims)) %>%
+      summarize.remaining.duration() %>%
       merge(incomplete.summarized[c("chore", "total_completed_minutes")]) %>%
       merge(data.frame(is_completed = FALSE))
     many <- many[c("chore", "is_completed", "total_completed_minutes", "mode", "median", "mean", "q.95")]
@@ -220,16 +218,46 @@ query.time_remaining_by_chore <- function (fetch.query.results) {
     fetch.query.results()
 }
 
-summarize.rv <- function (chore.sims) {
-  chore <- chore.sims$chore
-  sims <- chore.sims$sims
-  quantiles <- quantile(sims, c(0.5, 0.95))
-  data.frame(
-    chore,
-    mode = log.normal.mode(mean(log(sims)), sd(log(sims))), # Assume log normal distribution to estimate mode
-    median = quantiles[["50%"]],
-    mean = mean(sims),
-    q.95 = quantiles[["95%"]])
+rv.remaining.duration <- function (is_completed, completed_minutes, mean_log_duration_minutes, sd_log_duration_minutes, ...) {
+  if (is_completed) return(0)
+  # Use RV to simulate distribution of remaining chore duration
+  rvlnorm(mean = mean_log_duration_minutes, sd = sd_log_duration_minutes) - completed_minutes
+}
+
+simulate.remaining.duration <- function (data) {
+  data <- cbind(data)
+  data$remaining.duration.sims <- pmap(data, rv.remaining.duration)
+  data
+}
+
+sum.sims <- function (sims) {
+  total <- 0
+  for (i in 1:length(sims)) {
+    total <- total + sims[[i]]
+  }
+  list(total)
+}
+
+summarize.remaining.duration <- function (data) {
+  chore <- data$chore
+  mode <- data$sims %>%
+    map(function (sims) {
+      # Assume log normal distribution to estimate mode
+      log.normal.mode(mean(log(sims)), sd(log(sims)))
+    }) %>%
+    unlist()
+  median <- data$sims %>%
+    map(median) %>%
+    unlist()
+  mean <- data$sims %>%
+    map(mean) %>%
+    unlist()
+  q.95 <- data$sims %>%
+    map(function (sims) {
+      quantile(sims, 0.95)[["95%"]]
+    }) %>%
+    unlist()
+  data.frame(chore, mode, median, mean, q.95)
 }
 
 main <- function (charts = "daily") {
@@ -255,6 +283,7 @@ main <- function (charts = "daily") {
   completed.and.remaining %>%
     subset(frequency_category %in% charts) %>%
     fallback.on.avg.chore.duration(avg.chore.duration) %>%
+    simulate.remaining.duration() %>%
     calculate.q.95() %>%
     group.by.chore() %>%
     arrange.by.remaining.then.completed() %>%
