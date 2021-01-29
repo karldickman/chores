@@ -118,7 +118,7 @@ chores.completed.and.remaining.stack <- function (data) {
 }
 
 cumulative.sims <- function (data) {
-  sims <- 0
+  cumulative.sims <- 0
   completed <- 0
   cumulative.mode <- c()
   cumulative.median <- c()
@@ -127,11 +127,12 @@ cumulative.sims <- function (data) {
   cumulative.completed <- c()
   for (i in 1:nrow(data)) {
     # Remaining
-    sims <- sims + c(data$remaining.sims[[i]])
-    cumulative.mode <- c(cumulative.mode, mode.sims(sims))
-    cumulative.median <- c(cumulative.median, median(sims))
-    cumulative.mean <- c(cumulative.mean, mean(sims))
-    cumulative.q.95 <- c(cumulative.q.95, q.95.sims(sims))
+    sims <- c(data$remaining.sims[[i]])
+    cumulative.sims <- cumulative.sims + ifelse(sims >= 0, sims, 0)
+    cumulative.mode <- c(cumulative.mode, mode.sims(cumulative.sims))
+    cumulative.median <- c(cumulative.median, median(cumulative.sims))
+    cumulative.mean <- c(cumulative.mean, mean(cumulative.sims))
+    cumulative.q.95 <- c(cumulative.q.95, q.95.sims(cumulative.sims))
     # Completed
     completed <- completed + data$completed[[i]]
     cumulative.completed <- c(cumulative.completed, completed)
