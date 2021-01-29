@@ -84,7 +84,8 @@ chores.completed.and.remaining.chart <- function (data) {
         overlaying = "y",
         side = "right",
         title = "Cumulative duration (hours)",
-        rangemode = "tozero"),
+        rangemode = "tozero",
+        showgrid = FALSE),
       legend = list(
         orientation = "h",
         traceorder = "normal",
