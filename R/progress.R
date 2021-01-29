@@ -51,15 +51,10 @@ calculate.remaining.durations <- function (data) {
   # Recalculate summary metrics for all chores with more than one incompletion
   data %>%
     mutate(
-      mode_duration_minutes = summarize.sims(is.completed, incomplete.count, mode_duration_minutes, remaining.sims, function (sims) {
-        # Assume log normal distribution to estimate mode
-        log.normal.mode(mean(log(sims)), sd(log(sims)))
-      }),
+      mode_duration_minutes = summarize.sims(is.completed, incomplete.count, mode_duration_minutes, remaining.sims, mode.sims),
       median_duration_minutes = summarize.sims(is.completed, incomplete.count, median_duration_minutes, remaining.sims, median),
       mean_duration_minutes = summarize.sims(is.completed, incomplete.count, mean_duration_minutes, remaining.sims, mean),
-      q.95 = summarize.sims(is.completed, incomplete.count, q.95, remaining.sims, function (sims) {
-        quantile(sims, 0.95)[["95%"]]
-      })) %>%
+      q.95 = summarize.sims(is.completed, incomplete.count, q.95, remaining.sims, q.95.sims)) %>%
     rename(mode = mode_duration_minutes, median = median_duration_minutes, mean = mean_duration_minutes) %>%
     # Calculate remaining duration according to each summary metric
     mutate(
@@ -113,25 +108,27 @@ chores.completed.and.remaining.stack <- function (data) {
     q.95.diff)
 }
 
-cumulative.duration.remaining.sims <- function (completed.and.remaining) {
-  completed.and.remaining %>%
-    subset(!is.na(sd_log_duration_minutes)) %>%
-    pmap(rv.chore)
-}
-
-cumulative.duration.remaining.summary.values <- function (cumulative.duration.remaining) {
-  map_dfr(cumulative.duration.remaining, summarize.rv)
-}
-
-cumulative.sims <- function (chore.sims) {
+cumulative.sims <- function (data) {
   cumulative <- list()
   sims <- 0
-  for (i in 1:length(chore.sims)) {
-    chore <- chore.sims[[i]]$chore
-    sims <- sims + chore.sims[[i]]$sims
-    cumulative[[i]] <- list(chore = chore, sims = sims)
+  cumulative.mode <- c()
+  cumulative.median <- c()
+  cumulative.mean <- c()
+  cumulative.q.95 <- c()
+  for (i in 1:nrow(data)) {
+    sims <- sims + c(data$remaining.sims[[i]])
+    cumulative.mode <- c(cumulative.mode, mode.sims(sims))
+    cumulative.median <- c(cumulative.median, median(sims))
+    cumulative.mean <- c(cumulative.mean, mean(sims))
+    cumulative.q.95 <- c(cumulative.q.95, q.95.sims(sims))
+    cumulative[[i]] <- sims
   }
-  return(cumulative)
+  data.frame(
+    chore = data$chore,
+    cumulative.mode,
+    cumulative.median,
+    cumulative.mean,
+    cumulative.q.95)
 }
 
 fallback.on.avg.chore.duration <- function (data, avg.chore.duration) {
@@ -185,6 +182,15 @@ group.by.chore <- function (data) {
     "q.95")] %>%
     unique() %>%
     merge(completed.and.remaining)
+}
+
+mode.sims <- function (sims) {
+  # Assume log normal distribution to estimate mode
+  log.normal.mode(mean(log(sims)), sd(log(sims)))
+}
+
+q.95.sims <- function (sims) {
+  quantile(sims, 0.95)[["95%"]]
 }
 
 query.time_remaining_by_chore <- function (fetch.query.results) {
@@ -254,10 +260,7 @@ main <- function (charts = "daily") {
     arrange.by.remaining.then.completed()
   # Calculate cumulative summary values
   completed.and.remaining %>%
-    arrange.by.remaining.then.completed() %>%
-    cumulative.duration.remaining.sims() %>%
-    cumulative.sims() %>%
-    cumulative.duration.remaining.summary.values()
+    cumulative.sims()
   # Generate chart
   completed.and.remaining %>%
     chores.completed.and.remaining.stack() %>%
