@@ -80,7 +80,11 @@ chores.completed.and.remaining.chart <- function (data) {
     layout(
       barmode = "stack",
       yaxis = list(title = "Duration (minutes)"),
-      yaxis2 = list(overlaying = "y", side = "right", title = "Cumulative duration (hours)", rangemode = "tozero"),
+      yaxis2 = list(
+        overlaying = "y",
+        side = "right",
+        title = "Cumulative duration (hours)",
+        rangemode = "tozero"),
       legend = list(
         orientation = "h",
         traceorder = "normal",
