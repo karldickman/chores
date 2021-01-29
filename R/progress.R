@@ -244,20 +244,22 @@ main <- function (charts = "daily") {
   avg.chore.duration <- avg.chore.duration$duration_minutes %>%
     fitted.avg.chore.duration() # Fit log-normal distribution to observed durations
   # Calculate total remaining duration by chore
-  completed.and.remaining %>%
+  completed.and.remaining <- completed.and.remaining %>%
     subset(frequency_category %in% charts) %>%
     fallback.on.avg.chore.duration(avg.chore.duration) %>%
     simulate.remaining.duration() %>%
     calculate.q.95() %>%
     group.by.chore() %>%
     calculate.remaining.durations() %>%
-    arrange.by.remaining.then.completed() %>%
-    chores.completed.and.remaining.stack() %>%
-    chores.completed.and.remaining.chart()
+    arrange.by.remaining.then.completed()
   # Calculate cumulative summary values
   completed.and.remaining %>%
     arrange.by.remaining.then.completed() %>%
     cumulative.duration.remaining.sims() %>%
     cumulative.sims() %>%
     cumulative.duration.remaining.summary.values()
+  # Generate chart
+  completed.and.remaining %>%
+    chores.completed.and.remaining.stack() %>%
+    chores.completed.and.remaining.chart()
 }
