@@ -84,7 +84,7 @@ chores.completed.and.remaining.chart <- function (data) {
 }
 
 chores.completed.and.remaining.stack <- function (data) {
-  # Calculate key values
+  # Truncated difference, 0 if subtrahend greater than minuend
   diff <- function (minuend, subtrahend) {
     ifelse(
       !is.na(minuend),
@@ -94,18 +94,16 @@ chores.completed.and.remaining.stack <- function (data) {
         0),
       0)
   }
-  completed <- data$completed
   mode.diff <- diff(data$remaining.mode, 0)
   median.diff <- diff(data$remaining.median, mode.diff)
   mean.diff <- diff(data$remaining.mean, mode.diff + median.diff)
   q.95.diff <- diff(data$remaining.q.95, mode.diff + median.diff + mean.diff)
-  data.frame(
-    chore = data$chore,
-    completed,
-    mode.diff,
-    median.diff,
-    mean.diff,
-    q.95.diff)
+  data %>%
+    mutate(
+      mode.diff,
+      median.diff,
+      mean.diff,
+      q.95.diff)
 }
 
 cumulative.sims <- function (data) {
