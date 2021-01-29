@@ -243,7 +243,7 @@ main <- function (charts = "daily") {
   # Fit average chore duration (fallback when chore has been completed 1 or fewer times)
   avg.chore.duration <- avg.chore.duration$duration_minutes %>%
     fitted.avg.chore.duration() # Fit log-normal distribution to observed durations
-  # Calculate cumulative summary values
+  # Calculate total remaining duration by chore
   completed.and.remaining %>%
     subset(frequency_category %in% charts) %>%
     fallback.on.avg.chore.duration(avg.chore.duration) %>%
