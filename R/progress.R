@@ -72,9 +72,14 @@ chores.completed.and.remaining.chart <- function (data) {
     add_bars(y = ~mean.diff, name = "mean", marker = list(color = "rgb(153.6, 153.6, 153.6)")) %>%
     add_bars(y = ~q.95.diff, name = "95 %ile", marker = list(color = "rgb(204.8, 204.8, 204.8)")) %>%
     add_bars(y = ~completed, name = "completed", marker = list(color = "rgb(0, 0, 0)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.mode, name = "mode", line = list(color = "rgb(0, 0, 0)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.median, name = "median", line = list(color = "rgb(0, 0, 0)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.mean, name = "mean", line = list(color = "rgb(0, 0, 0)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.q.95, name = "95 %ile", line = list(color = "rgb(0, 0, 0)")) %>%
     layout(
       barmode = "stack",
       yaxis = list(title = "Duration (minutes)"),
+      yaxis2 = list(overlaying = "y", side = "right", title = "Cumulative duration (minutes)", rangemode = "tozero"),
       legend = list(
         orientation = "h",
         traceorder = "normal",
@@ -257,10 +262,10 @@ main <- function (charts = "daily") {
     calculate.remaining.durations() %>%
     arrange.by.remaining.then.completed()
   # Calculate cumulative summary values
-  completed.and.remaining %>%
-    cumulative.sims()
+  cumulative.completed.and.remaining <- cumulative.sims(completed.and.remaining)
   # Generate chart
   completed.and.remaining %>%
+    merge(cumulative.completed.and.remaining) %>%
     chores.completed.and.remaining.stack() %>%
     chores.completed.and.remaining.chart()
 }
