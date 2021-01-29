@@ -76,6 +76,7 @@ chores.completed.and.remaining.chart <- function (data) {
     add_lines(yaxis = "y2", y = ~cumulative.median, name = "median", line = list(color = "rgb(0, 0, 0)")) %>%
     add_lines(yaxis = "y2", y = ~cumulative.mean, name = "mean", line = list(color = "rgb(0, 0, 0)")) %>%
     add_lines(yaxis = "y2", y = ~cumulative.q.95, name = "95 %ile", line = list(color = "rgb(0, 0, 0)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.completed, name = "completed", line = list(color = "rgb(0, 0, 0)")) %>%
     layout(
       barmode = "stack",
       yaxis = list(title = "Duration (minutes)"),
@@ -113,23 +114,30 @@ chores.completed.and.remaining.stack <- function (data) {
 
 cumulative.sims <- function (data) {
   sims <- 0
+  completed <- 0
   cumulative.mode <- c()
   cumulative.median <- c()
   cumulative.mean <- c()
   cumulative.q.95 <- c()
+  cumulative.completed <- c()
   for (i in 1:nrow(data)) {
+    # Remaining
     sims <- sims + c(data$remaining.sims[[i]])
     cumulative.mode <- c(cumulative.mode, mode.sims(sims))
     cumulative.median <- c(cumulative.median, median(sims))
     cumulative.mean <- c(cumulative.mean, mean(sims))
     cumulative.q.95 <- c(cumulative.q.95, q.95.sims(sims))
+    # Completed
+    completed <- completed + data$completed[[i]]
+    cumulative.completed <- c(cumulative.completed, completed)
   }
   data.frame(
     chore = data$chore,
     cumulative.mode,
     cumulative.median,
     cumulative.mean,
-    cumulative.q.95)
+    cumulative.q.95,
+    cumulative.completed)
 }
 
 fallback.on.avg.chore.duration <- function (data, avg.chore.duration) {
