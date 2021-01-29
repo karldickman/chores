@@ -13,7 +13,7 @@ arrange.by.remaining.then.completed <- function (data) {
   data <- cbind(data)
   # Sort in descending order of remaining duration, then by completed
   chore.order <- ifelse(
-    data$is_completed,
+    data$is.completed,
     data$completed,
     ifelse(
       data$remaining.median > 0,
@@ -129,76 +129,62 @@ fallback.on.avg.chore.duration <- function (data, avg.chore.duration) {
 }
 
 group.by.chore <- function (data) {
-  # Split up completed and not completed
-  complete <- subset(data, is_completed)
-  incomplete <- subset(data, !is_completed)
-  # Count occurrences of each chore, summarize completed minutes
-  incomplete.summarized <- incomplete %>%
+  # Group by chore to sum up completed and remaining minutes
+  completed.and.remaining <- data %>%
     group_by(chore) %>%
     summarise(
-      count = n(),
-      total_completed_minutes = sum(completed_minutes))
-  incomplete <- merge(incomplete, incomplete.summarized)
-  # Separate out chores with one repetition, drop irrelevant columns
-  one <- subset(incomplete, count == 1)
-  one <- one[c("chore", "is_completed", "completed_minutes", "mode_duration_minutes", "median_duration_minutes", "mean_duration_minutes", "q.95")]
-  colnames(one) <- c("chore", "is_completed", "completed", "mode", "median", "mean", "q.95")
-  # Separate out chores with multiple repetitions, simulate using rv
-  many <- subset(incomplete, count > 1)
-  if (nrow(many) > 0) {
-    many <- many %>%
-      group_by(chore) %>%
-      summarise(sims = sum.sims(remaining.duration.sims)) %>%
-      summarize.remaining.duration() %>%
-      merge(incomplete.summarized[c("chore", "total_completed_minutes")]) %>%
-      merge(data.frame(is_completed = FALSE))
-    many <- many[c("chore", "is_completed", "total_completed_minutes", "mode", "median", "mean", "q.95")]
-    colnames(many) <- colnames(one)
-    # Recombine one and many
-    incomplete <- rbind(one, many)
-  }
-  else {
-    incomplete <- one
-  }
-  # Convert summary metrics to remaining duration
-  incomplete$remaining.mode <- ifelse(!is.na(incomplete$mode), incomplete$mode - incomplete$completed, 0)
-  incomplete$remaining.median <- incomplete$median - incomplete$completed
-  incomplete$remaining.mean <- incomplete$mean - incomplete$completed
-  incomplete$remaining.q.95 <- incomplete$q.95 - incomplete$completed
-  # Summarize complete
-  complete <- complete %>%
-    group_by(chore) %>%
-    summarise(
-      is_completed = TRUE,
+      is.completed = all(is_completed),
+      total.count = n(),
+      incomplete.count = sum(!is_completed),
       completed = sum(completed_minutes),
-      remaining.mode = 0,
-      remaining.median = 0,
-      remaining.mean = 0,
-      remaining.q.95 = 0)
-  # Summarize incomplete
-  incomplete <- incomplete %>%
-    group_by(chore) %>%
-    summarise(
-      is_completed = FALSE,
-      completed = sum(completed),
-      remaining.mode = sum(remaining.mode),
-      remaining.median = sum(remaining.median),
-      remaining.mean = sum(remaining.mean),
-      remaining.q.95 = sum(remaining.q.95))
-  # Recombine complete and incomplete, summarize, and return
-  summary.metrics.by.chore <- data[c("chore", "mode_duration_minutes", "median_duration_minutes", "mean_duration_minutes", "q.95")] %>%
-    unique()
-  colnames(summary.metrics.by.chore) <- c("chore", "mode", "median", "mean", "q.95")
-  rbind(complete, incomplete) %>%
-    group_by(chore) %>%
-    summarise(
-      is_completed = all(is_completed),
-      completed = sum(completed),
-      remaining.mode = sum(remaining.mode),
-      remaining.median = sum(remaining.median),
-      remaining.mean = sum(remaining.mean),
-      remaining.q.95 = sum(remaining.q.95)) %>%
-    merge(summary.metrics.by.chore)
+      remaining.sims = sum.sims(remaining.duration.sims))
+  # Get summary metrics for all chores
+  data[c(
+    "chore",
+    "mode_duration_minutes",
+    "median_duration_minutes",
+    "mean_duration_minutes",
+    "q.95")] %>%
+    unique() %>%
+    merge(completed.and.remaining)
+}
+
+calculate.remaining.durations <- function (data) {
+  remaining <- function (is.completed, total.count, completed, summary.metric) {
+    ifelse(
+      is.completed,
+      0,
+      ifelse(
+        total.count == 1,
+        summary.metric - completed,
+        summary.metric))
+  }
+  summarize.sims <- function (is.completed, incomplete.count, summary.metric, sims, summarize) {
+    ifelse(
+      !is.completed & incomplete.count > 1,
+      map(sims, summarize) %>%
+        unlist(),
+      summary.metric)
+  }
+  # Recalculate summary metrics for all chores with more than one incompletion
+  data %>%
+    mutate(
+      mode_duration_minutes = summarize.sims(is.completed, incomplete.count, mode_duration_minutes, remaining.sims, function (sims) {
+        # Assume log normal distribution to estimate mode
+        log.normal.mode(mean(log(sims)), sd(log(sims)))
+      }),
+      median_duration_minutes = summarize.sims(is.completed, incomplete.count, median_duration_minutes, remaining.sims, median),
+      mean_duration_minutes = summarize.sims(is.completed, incomplete.count, mean_duration_minutes, remaining.sims, mean),
+      q.95 = summarize.sims(is.completed, incomplete.count, q.95, remaining.sims, function (sims) {
+        quantile(sims, 0.95)[["95%"]]
+      })) %>%
+    rename(mode = mode_duration_minutes, median = median_duration_minutes, mean = mean_duration_minutes) %>%
+    # Calculate remaining duration according to each summary metric
+    mutate(
+      remaining.mode = remaining(is.completed, total.count, completed, mode),
+      remaining.median = remaining(is.completed, total.count, completed, median),
+      remaining.mean = remaining(is.completed, total.count, completed, mean),
+      remaining.q.95 = remaining(is.completed, total.count, completed, q.95))
 }
 
 query.time_remaining_by_chore <- function (fetch.query.results) {
@@ -233,31 +219,9 @@ simulate.remaining.duration <- function (data) {
 sum.sims <- function (sims) {
   total <- 0
   for (i in 1:length(sims)) {
-    total <- total + sims[[i]]
+    total <- total + unlist(sims[[i]])
   }
   list(total)
-}
-
-summarize.remaining.duration <- function (data) {
-  chore <- data$chore
-  mode <- data$sims %>%
-    map(function (sims) {
-      # Assume log normal distribution to estimate mode
-      log.normal.mode(mean(log(sims)), sd(log(sims)))
-    }) %>%
-    unlist()
-  median <- data$sims %>%
-    map(median) %>%
-    unlist()
-  mean <- data$sims %>%
-    map(mean) %>%
-    unlist()
-  q.95 <- data$sims %>%
-    map(function (sims) {
-      quantile(sims, 0.95)[["95%"]]
-    }) %>%
-    unlist()
-  data.frame(chore, mode, median, mean, q.95)
 }
 
 main <- function (charts = "daily") {
@@ -286,6 +250,7 @@ main <- function (charts = "daily") {
     simulate.remaining.duration() %>%
     calculate.q.95() %>%
     group.by.chore() %>%
+    calculate.remaining.durations() %>%
     arrange.by.remaining.then.completed() %>%
     chores.completed.and.remaining.stack() %>%
     chores.completed.and.remaining.chart()
