@@ -72,11 +72,11 @@ chores.completed.and.remaining.chart <- function (data) {
     add_bars(y = ~mean.diff, name = "mean", marker = list(color = "rgb(153.6, 153.6, 153.6)")) %>%
     add_bars(y = ~q.95.diff, name = "95 %ile", marker = list(color = "rgb(204.8, 204.8, 204.8)")) %>%
     add_bars(y = ~completed, name = "completed", marker = list(color = "rgb(0, 0, 0)")) %>%
-    add_lines(yaxis = "y2", y = ~cumulative.mode / 60, name = "mode", line = list(color = "rgb(0, 0, 0)")) %>%
-    add_lines(yaxis = "y2", y = ~cumulative.median / 60, name = "median", line = list(color = "rgb(0, 0, 0)")) %>%
-    add_lines(yaxis = "y2", y = ~cumulative.mean / 60, name = "mean", line = list(color = "rgb(0, 0, 0)")) %>%
-    add_lines(yaxis = "y2", y = ~cumulative.q.95 / 60, name = "95 %ile", line = list(color = "rgb(0, 0, 0)")) %>%
-    add_lines(yaxis = "y2", y = ~cumulative.completed / 60, name = "completed", line = list(color = "rgb(0, 0, 0)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.mode / 60, name = "mode", line = list(color = "rgb(128, 128, 128)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.median / 60, name = "median", line = list(color = "rgb(128, 128, 128)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.mean / 60, name = "mean", line = list(color = "rgb(128, 128, 128)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.q.95 / 60, name = "95 %ile", line = list(color = "rgb(128, 128, 128)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.completed / 60, name = "completed", line = list(color = "rgb(128, 128, 128)")) %>%
     layout(
       barmode = "stack",
       yaxis = list(title = "Duration (minutes)"),
