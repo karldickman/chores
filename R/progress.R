@@ -11,15 +11,20 @@ options(dplyr.summarise.inform = FALSE)
 
 arrange.by.remaining.then.completed <- function (data) {
   data <- cbind(data)
-  # Sort in descending order of remaining duration, then by completed
-  chore.order <- ifelse(
-    data$is.completed,
-    data$completed,
-    ifelse(
-      data$remaining.median > 0,
-      -data$remaining.median,
-      0)) %>%
-    order()
+  if (any(is.na(data$order_hint))) {
+    # Sort in descending order of remaining duration, then by completed
+    chore.order <- ifelse(
+      data$is.completed,
+      data$completed,
+      ifelse(
+        data$remaining.median > 0,
+        -data$remaining.median,
+        0)) %>%
+      order()
+  }
+  else {
+    chore.order <- order(data$order_hint)
+  }
   data$chore <- factor(data$chore, levels = unique(data$chore)[chore.order])
   arrange(data, chore)
 }
@@ -191,6 +196,7 @@ group.by.chore <- function (data) {
   # Get summary metrics for all chores
   data[c(
     "chore",
+    "order_hint",
     "mode_duration_minutes",
     "median_duration_minutes",
     "mean_duration_minutes",
@@ -213,9 +219,10 @@ q.95.sims <- function (sims) {
 }
 
 query.time_remaining_by_chore <- function (fetch.query.results) {
-  "SELECT chores.chore, time_remaining_by_chore.*, period_days, category_id, frequency_category
+  "SELECT chores.chore, time_remaining_by_chore.*, order_hint, period_days, category_id, frequency_category
       FROM time_remaining_by_chore
       JOIN chores USING (chore_id)
+      LEFT JOIN chore_order USING (chore_id)
       LEFT JOIN chore_categories USING (chore_id)
       LEFT JOIN chore_periods_days USING (chore_id)
       LEFT JOIN frequency_category_ranges
