@@ -31,7 +31,7 @@ calculate.q.95 <- function (data) {
   return(data)
 }
 
-calculate.remaining.durations <- function (data) {
+calculate.remaining <- function (data) {
   remaining <- function (is.completed, total.count, completed, summary.metric) {
     ifelse(
       is.completed,
@@ -187,7 +187,7 @@ group.by.chore <- function (data) {
       total.count = n(),
       incomplete.count = sum(!is_completed),
       completed = sum(completed_minutes),
-      remaining.sims = sum.sims(remaining.duration.sims))
+      remaining.sims = sum.remaining.sims(remaining.sims))
   # Get summary metrics for all chores
   data[c(
     "chore",
@@ -228,19 +228,19 @@ query.time_remaining_by_chore <- function (fetch.query.results) {
     fetch.query.results()
 }
 
-rv.remaining.duration <- function (is_completed, completed_minutes, mean_log_duration_minutes, sd_log_duration_minutes, ...) {
+rv.remaining <- function (is_completed, completed_minutes, mean_log_duration_minutes, sd_log_duration_minutes, ...) {
   if (is_completed) return(0)
   # Use RV to simulate distribution of remaining chore duration
   rvlnorm(mean = mean_log_duration_minutes, sd = sd_log_duration_minutes) - completed_minutes
 }
 
-simulate.remaining.duration <- function (data) {
+simulate.remaining <- function (data) {
   data <- cbind(data)
-  data$remaining.duration.sims <- pmap(data, rv.remaining.duration)
+  data$remaining.sims <- pmap(data, rv.remaining)
   data
 }
 
-sum.sims <- function (sims) {
+sum.remaining.sims <- function (sims) {
   total <- 0
   for (i in 1:length(sims)) {
     total <- total + unlist(sims[[i]])
@@ -271,10 +271,10 @@ main <- function (charts = "daily") {
   completed.and.remaining <- completed.and.remaining %>%
     subset(frequency_category %in% charts) %>%
     fallback.on.avg.chore.duration(avg.chore.duration) %>%
-    simulate.remaining.duration() %>%
+    simulate.remaining() %>%
     calculate.q.95() %>%
     group.by.chore() %>%
-    calculate.remaining.durations() %>%
+    calculate.remaining() %>%
     arrange.by.remaining.then.completed()
   # Calculate cumulative summary values
   cumulative.completed.and.remaining <- cumulative.sims(completed.and.remaining)
