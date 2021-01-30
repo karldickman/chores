@@ -240,12 +240,15 @@ simulate.remaining <- function (data) {
   data
 }
 
-sum.remaining.sims <- function (sims) {
-  total <- 0
-  for (i in 1:length(sims)) {
-    total <- total + unlist(sims[[i]])
-  }
-  list(total)
+sum.remaining.sims <- function (remaining.sims) {
+  remaining.sims %>%
+    map(function (remaining.sims) {
+      ifelse(remaining.sims >= 0, remaining.sims, 0) # Truncate remaining to 0, negative remaining is nonsensical
+    }) %>%
+    reduce(function (total, remaining.sims) {
+      total + remaining.sims
+    }) %>%
+    list()
 }
 
 main <- function (charts = "daily") {
