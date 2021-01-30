@@ -5,6 +5,7 @@ GRANT SELECT ON chore_completions TO 'chores'@'localhost';
 GRANT SELECT ON chore_durations TO 'chores'@'localhost';
 GRANT SELECT ON chore_durations_per_day TO 'chores'@'localhost';
 GRANT SELECT ON chore_hierarchy TO 'chores'@'localhost';
+GRANT SELECT ON chore_order TO 'chores'@'localhost';
 GRANT SELECT ON chore_periods_days TO 'chores'@'localhost';
 GRANT SELECT ON chore_schedule TO 'chores'@'localhost';
 GRANT SELECT ON completions_needed TO 'chores'@'localhost';
