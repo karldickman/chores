@@ -10,25 +10,23 @@ source("log_normal.R")
 options(dplyr.summarise.inform = FALSE)
 
 arrange.by.remaining.then.completed <- function (data) {
-  data <- cbind(data)
   # Sort in descending order of remaining duration, then by completed
-  chore.order <- ifelse(
-    data$is.completed,
-    data$completed,
+  chore.order <- with(data, ifelse(
+    is.completed,
+    completed,
     ifelse(
-      data$remaining.median > 0,
-      -data$remaining.median,
-      0)) %>%
+      remaining.median > 0,
+      -remaining.median,
+      0))) %>%
     order()
-  data$chore <- factor(data$chore, levels = unique(data$chore)[chore.order])
-  arrange(data, chore)
+  data %>%
+    mutate(chore = factor(chore, levels = unique(chore)[chore.order])) %>%
+    arrange(chore)
 }
 
 calculate.q.95 <- function (data) {
-  data <- cbind(data)
   # Add 0.95 quantile -- data from database is difference between quantile and completed, not the actual quantile
-  data$q.95 <- qlnorm(0.95, data$mean_log_duration_minutes, data$sd_log_duration_minutes)
-  return(data)
+  mutate(data, q.95 = qlnorm(0.95, mean_log_duration_minutes, sd_log_duration_minutes))
 }
 
 calculate.remaining <- function (data) {
@@ -148,34 +146,34 @@ cumulative.sims <- function (data) {
 
 fallback.on.avg.chore.duration <- function (data, avg.chore.duration) {
   # If chore has been completed 1 or fewer times, fall back on average chore duration
-  data <- cbind(data) %>%
-    merge(avg.chore.duration, by = c(), suffixes = c("", ".y"))
-  data$mean_log_duration_minutes <- ifelse(
-    data$times_completed == 0,
-    data$mean_log_duration_minutes.y,
-    ifelse(
-      data$times_completed == 1,
-      log(data$arithmetic_mean_duration_minutes),
-      data$mean_log_duration_minutes))
-  data$sd_log_duration_minutes <- ifelse(
-    data$times_completed <= 1,
-    data$sd_log_duration_minutes.y,
-    data$sd_log_duration_minutes)
-  data$mean_log_duration_minutes.y <- NULL
-  data$sd_log_duration_minutes.y <- NULL
-  data$mode_duration_minutes <- ifelse(
-    data$times_completed <= 1,
-    log.normal.mode(data$mean_log_duration_minutes, data$sd_log_duration_minutes),
-    data$mode_duration_minutes)
-  data$median_duration_minutes <- ifelse(
-    data$times_completed <= 1,
-    log.normal.median(data$mean_log_duration_minutes, data$sd_log_duration_minutes),
-    data$median_duration_minutes)
-  data$mean_duration_minutes <- ifelse(
-    data$times_completed <= 1,
-    log.normal.mean(data$mean_log_duration_minutes, data$sd_log_duration_minutes),
-    data$mean_duration_minutes)
-  return(data)
+  data %>%
+    merge(avg.chore.duration, by = c(), suffixes = c("", ".y")) %>%
+    mutate(
+      mean_log_duration_minutes = ifelse(
+        times_completed == 0,
+        mean_log_duration_minutes.y,
+        ifelse(
+          times_completed == 1,
+          log(arithmetic_mean_duration_minutes),
+          mean_log_duration_minutes)),
+      sd_log_duration_minutes = ifelse(
+        times_completed <= 1,
+        sd_log_duration_minutes.y,
+        sd_log_duration_minutes)) %>%
+    select(!c(mean_log_duration_minutes.y, sd_log_duration_minutes.y)) %>%
+    mutate(
+      mode_duration_minutes = ifelse(
+        times_completed <= 1,
+        log.normal.mode(mean_log_duration_minutes, sd_log_duration_minutes),
+        mode_duration_minutes),
+      median_duration_minutes = ifelse(
+        times_completed <= 1,
+        log.normal.median(mean_log_duration_minutes, sd_log_duration_minutes),
+        median_duration_minutes),
+      mean_duration_minutes = ifelse(
+        times_completed <= 1,
+        log.normal.mean(mean_log_duration_minutes, sd_log_duration_minutes),
+        mean_duration_minutes))
 }
 
 group.by.chore <- function (data) {
@@ -189,12 +187,8 @@ group.by.chore <- function (data) {
       completed = sum(completed_minutes),
       remaining.sims = sum.remaining.sims(remaining.sims))
   # Get summary metrics for all chores
-  data[c(
-    "chore",
-    "mode_duration_minutes",
-    "median_duration_minutes",
-    "mean_duration_minutes",
-    "q.95")] %>%
+  data %>%
+    select(chore, mode_duration_minutes, median_duration_minutes, mean_duration_minutes, q.95) %>%
     unique() %>%
     merge(completed.and.remaining)
 }
@@ -236,9 +230,7 @@ rv.remaining <- function (is_completed, completed_minutes, mean_log_duration_min
 }
 
 simulate.remaining <- function (data) {
-  data <- cbind(data)
-  data$remaining.sims <- pmap(data, rv.remaining)
-  data
+  mutate(data, remaining.sims = pmap(data, rv.remaining))
 }
 
 sum.remaining.sims <- function (remaining.sims) {
@@ -261,13 +253,16 @@ main <- function (charts = "daily") {
   })
   completed.and.remaining <- database.results[[1]]
   avg.chore.duration <- database.results[[2]]
-  # Convert is_completed column from 0/1 Boolean to true Boolean
-  completed.and.remaining$is_completed <- completed.and.remaining$is_completed == 1
-  # Convert category_id = 1 (meals) to frequency category meals
-  completed.and.remaining$frequency_category <- ifelse(
-    is.na(completed.and.remaining$category_id) | completed.and.remaining$category_id != 1,
-    completed.and.remaining$frequency_category,
-    "meals")
+  # Clean up certain columns from the database
+  completed.and.remaining <- completed.and.remaining %>%
+    mutate(
+      # Convert is_completed column from 0/1 Boolean to true Boolean
+      is_completed = completed.and.remaining$is_completed == 1,
+      # Convert category_id = 1 (meals) to frequency category meals
+      frequency_category = ifelse(
+        is.na(category_id) | category_id != 1,
+        frequency_category,
+        "meals"))
   # Fit average chore duration (fallback when chore has been completed 1 or fewer times)
   avg.chore.duration <- avg.chore.duration$duration_minutes %>%
     fitted.avg.chore.duration() # Fit log-normal distribution to observed durations
