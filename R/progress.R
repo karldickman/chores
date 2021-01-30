@@ -202,7 +202,8 @@ group.by.chore <- function (data) {
 mode.sims <- function (sims) {
   if (length(sims) == 1) return(sims[[1]])
   # Negative remaining duration is really 0
-  sims <- ifelse(sims >= 0, sims, 0)
+  one.hundredth.of.a.second <- 0.01 / 60
+  sims <- ifelse(sims >= one.hundredth.of.a.second, sims, one.hundredth.of.a.second)
   # Assume log normal distribution to estimate mode
   log.normal.mode(mean(log(sims)), sd(log(sims)))
 }
