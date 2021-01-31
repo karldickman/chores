@@ -232,7 +232,7 @@ query.time_remaining_by_chore <- function (fetch.query.results) {
       WHERE is_completed
               AND when_completed BETWEEN DATE(NOW()) AND DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)
           OR NOT is_completed
-              AND due_date < DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)" %>%
+              AND due_date < NOW()" %>%
     fetch.query.results()
 }
 
