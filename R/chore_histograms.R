@@ -29,7 +29,7 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
   lines(x, y)
 }
 
-chore.histograms <- function (chore.durations, fitted.chore.durations) {
+chore.histograms <- function (fitted.chore.durations, chore.durations) {
   for(i in 1:nrow(fitted.chore.durations)) {
     chore.data <- fitted.chore.durations[i,]
     chore.name <- chore.data$chore
@@ -76,11 +76,11 @@ query.fitted.chore.durations <- function (fetch.query.results) {
 
 main <- function () {
   database.results <- using.database(function (fetch.query.results) {
-    chore.durations <- query.chore.durations(fetch.query.results)
     fitted.chore.durations <- query.fitted.chore.durations(fetch.query.results)
-    list(chore.durations, fitted.chore.durations)
+    chore.durations <- query.chore.durations(fetch.query.results)
+    list(fitted.chore.durations, chore.durations)
   })
-  chore.durations <- database.results[[1]]
-  fitted.chore.durations <- database.results[[2]]
-  chore.histograms(chore.durations, fitted.chore.durations)
+  fitted.chore.durations <- database.results[[1]]
+  chore.durations <- database.results[[2]]
+  chore.histograms(fitted.chore.durations, chore.durations)
 }
