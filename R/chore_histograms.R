@@ -15,12 +15,18 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
   breaks <- histogram$breaks
   xmin <- min(c(qlnorm(left.tail, mean.log, sd.log), breaks))
   xmax <- max(c(qlnorm(right.tail, mean.log, sd.log), breaks))
-  x <- seq(0, xmax, 0.01)
-  y <- dlnorm(x, mean.log, sd.log)
   fit.max.density <- dlnorm(mode, mean.log, sd.log)
   ymax <- max(c(fit.max.density, histogram$density))
-  hist(duration.minutes, main = title, xlab = xlab, freq = FALSE, xlim = c(xmin, xmax), ylim = c(0, ymax))
-  lines(x, y)
+  # Plot log-normal fit
+  plot(
+    function (x) { dlnorm(x, mean.log, sd.log) },
+    xlim = c(xmin, xmax),
+    ylim = c(0, ymax),
+    main = title,
+    xlab = xlab,
+    ylab = "Density")
+  # Plot histogram
+  hist(duration.minutes, freq = FALSE, add = TRUE)
 }
 
 chore.histograms <- function (fitted.chore.durations, chore.completion.durations) {
