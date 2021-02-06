@@ -29,12 +29,12 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
   lines(x, y)
 }
 
-chore.histograms <- function (fitted.chore.durations, chore.durations) {
+chore.histograms <- function (fitted.chore.durations, chore.completion.durations) {
   for(i in 1:nrow(fitted.chore.durations)) {
     chore.data <- fitted.chore.durations[i,]
     chore.name <- chore.data$chore
     aggregate.by <- chore.data$aggregate_by_id
-    chore.completions <- subset(chore.durations, chore == chore.name)
+    chore.completions <- subset(chore.completion.durations, chore == chore.name)
     if (aggregate.by == 2) {
       aggregate.key <- chore.data$aggregate_key
       chore.completions <- subset(chore.completions, weekendity == aggregate.key)
@@ -47,7 +47,7 @@ chore.histograms <- function (fitted.chore.durations, chore.durations) {
   }
 }
 
-query.chore.durations <- function (fetch.query.results) {
+query.chore.completion.durations <- function (fetch.query.results) {
   "SELECT chore_id
         , chore
         , duration_minutes
@@ -77,10 +77,10 @@ query.fitted.chore.durations <- function (fetch.query.results) {
 main <- function () {
   database.results <- using.database(function (fetch.query.results) {
     fitted.chore.durations <- query.fitted.chore.durations(fetch.query.results)
-    chore.durations <- query.chore.durations(fetch.query.results)
-    list(fitted.chore.durations, chore.durations)
+    chore.completion.durations <- query.chore.completion.durations(fetch.query.results)
+    list(fitted.chore.durations, chore.completion.durations)
   })
   fitted.chore.durations <- database.results[[1]]
-  chore.durations <- database.results[[2]]
-  chore.histograms(fitted.chore.durations, chore.durations)
+  chore.completion.durations <- database.results[[2]]
+  chore.histograms(fitted.chore.durations, chore.completion.durations)
 }
