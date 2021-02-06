@@ -264,11 +264,15 @@ main <- function (charts = "daily") {
     mutate(
       # Convert is_completed column from 0/1 Boolean to true Boolean
       is_completed = completed.and.remaining$is_completed == 1,
-      # Convert category_id = 1 (meals) to frequency category meals
       frequency_category = ifelse(
-        is.na(category_id) | category_id != 1,
-        frequency_category,
-        "meals"))
+        # Convert category_id = 1 (meals) to frequency category meals
+        !is.na(category_id) & category_id == 1,
+        "meals",
+        ifelse(
+          # Convert category_id = 2 (physical therapy) to daily
+          !is.na(category_id) & category_id == 2,
+          "daily",
+          frequency_category)))
   # Fit average chore duration (fallback when chore has been completed 1 or fewer times)
   avg.chore.duration <- avg.chore.duration$duration_minutes %>%
     fitted.avg.chore.duration() # Fit log-normal distribution to observed durations
