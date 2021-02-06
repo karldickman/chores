@@ -6,7 +6,7 @@ WITH last_due_dates AS (SELECT chore_id, MAX(due_date) AS last_due_date
     FROM chore_schedule
     JOIN chore_completions USING (chore_completion_id)
     JOIN chore_schedule_in_advance USING (chore_id)
-    JOIN chore_schedule_from USING (chore_id)
+    JOIN chores USING (chore_id)
     WHERE schedule_from_id = 2 # 'due date'
     GROUP BY chore_id),
 scheduling_parameters AS (SELECT chore_id
