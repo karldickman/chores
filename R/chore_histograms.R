@@ -1,20 +1,14 @@
 source("database.R")
 
 chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode, left.tail = 0.0001, right.tail = 0.995) {
+  if (length(duration.minutes) == 0) {
+    cat("Insufficient data to plot", chore.name, "\n")
+    return()
+  }
   title <- paste("Histogram of", chore.name, "duration")
   xlab <- paste(chore.name, "duration (minutes)")
   if (is.na(sd.log)) {
     cat("Insufficient data to fit distribution for", chore.name, "\n")
-    tryCatch({
-        hist(duration.minutes, main = title, xlab = xlab, freq = FALSE)
-      },
-      error = function (error) {
-        cat("Cannot plot", chore.name, "\n")
-      },
-      warning = function (warning) {
-        cat("Cannot plot", chore.name, "\n")
-      }
-    )
     return()
   }
   histogram <- hist(duration.minutes, plot = FALSE)
