@@ -68,7 +68,7 @@ query.fitted.chore.durations <- function (fetch.query.results) {
     fetch.query.results()
 }
 
-main <- function () {
+main <- function (chore.names = NULL) {
   database.results <- using.database(function (fetch.query.results) {
     fitted.chore.durations <- query.fitted.chore.durations(fetch.query.results)
     chore.completion.durations <- query.chore.completion.durations(fetch.query.results)
@@ -76,5 +76,8 @@ main <- function () {
   })
   fitted.chore.durations <- database.results[[1]]
   chore.completion.durations <- database.results[[2]]
+  if (!is.null(chore.names)) {
+    fitted.chore.durations <- subset(fitted.chore.durations, chore %in% chore.names)
+  }
   chore.histograms(fitted.chore.durations, chore.completion.durations)
 }
