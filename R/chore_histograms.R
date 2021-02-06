@@ -48,7 +48,7 @@ chore.histograms <- function (chore.durations, fitted.chore.durations) {
 }
 
 main <- function () {
-  using.database(function (fetch.query.results) {
+  database.results <- using.database(function (fetch.query.results) {
     chore.durations.sql <- "SELECT chore_id
         , chore
         , duration_minutes
@@ -70,6 +70,9 @@ main <- function () {
       WHERE chores.is_active"
     chore.durations <- fetch.query.results(chore.durations.sql)
     fitted.chore.durations <- fetch.query.results(fitted.chore.durations.sql)
-    chore.histograms(chore.durations, fitted.chore.durations)
+    list(chore.durations, fitted.chore.durations)
   })
+  chore.durations <- database.results[[1]]
+  fitted.chore.durations <- database.results[[2]]
+  chore.histograms(chore.durations, fitted.chore.durations)
 }
