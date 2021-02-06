@@ -1,25 +1,16 @@
 source("database.R")
 
-chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode, left.tail = 0.0001, right.tail = 0.995) {
-  if (length(duration.minutes) == 0) {
-    cat("Insufficient data to plot", chore.name, "\n")
-    return()
-  }
+chore.histogram <- function (chore.name, duration.minutes, fitted.density, xlim, ylim) {
   title <- paste("Histogram of", chore.name, "duration")
   xlab <- paste(chore.name, "duration (minutes)")
-  if (is.na(sd.log)) {
-    cat("Insufficient data to fit distribution for", chore.name, "\n")
-    return()
-  }
   histogram <- hist(duration.minutes, plot = FALSE)
   breaks <- histogram$breaks
-  xmin <- min(c(qlnorm(left.tail, mean.log, sd.log), breaks))
-  xmax <- max(c(qlnorm(right.tail, mean.log, sd.log), breaks))
-  fit.max.density <- dlnorm(mode, mean.log, sd.log)
-  ymax <- max(c(fit.max.density, histogram$density))
+  xmin <- min(c(xlim, breaks))
+  xmax <- max(c(xlim, breaks))
+  ymax <- max(c(ylim, histogram$density))
   # Plot log-normal fit
   plot(
-    function (x) { dlnorm(x, mean.log, sd.log) },
+    fitted.density,
     xlim = c(xmin, xmax),
     ylim = c(0, ymax),
     main = title,
@@ -29,21 +20,46 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
   hist(duration.minutes, freq = FALSE, add = TRUE)
 }
 
-chore.histograms <- function (fitted.chore.durations, chore.completion.durations) {
+chore.histograms <- function (fitted.chore.durations, chore.completion.durations, left.tail = 0.0001, right.tail = 0.995) {
   for(i in 1:nrow(fitted.chore.durations)) {
+    # Current row of the fitted.chore.durations data frame
     chore.data <- fitted.chore.durations[i,]
     chore.name <- chore.data$chore
     aggregate.by <- chore.data$aggregate_by_id
     chore.completions <- subset(chore.completion.durations, chore == chore.name)
+    # If chores are aggregated by weekendity, add "weekday/weekend" tags to each chore
     if (aggregate.by == 2) {
       aggregate.key <- chore.data$aggregate_key
       chore.completions <- subset(chore.completions, weekendity == aggregate.key)
       chore.name <- paste(ifelse(aggregate.key == 0, "weekday", "weekend"), chore.name)
     }
+    # Extract chore completion durations and check for data sufficiency
+    duration.minutes <- chore.completions$duration_minutes
+    if (length(duration.minutes) == 0) {
+      cat("Insufficient data to plot", chore.name, "\n")
+      next()
+    }
+    # Use log-transformed mean and standard deviation to fit a distribution
     mean.log <- chore.data$mean_log_duration_minutes
     sd.log <- chore.data$sd_log_duration_minutes
-    mode <- chore.data$mode_duration_minutes
-    chore.histogram(chore.name, chore.completions$duration_minutes, mean.log, sd.log, mode)
+    if (is.na(sd.log)) {
+      cat("Insufficient data to fit distribution for", chore.name, "\n")
+      xlim <- c()
+      ylim <- c()
+    }
+    else {
+      mode <- chore.data$mode_duration_minutes
+      fit.max.density <- dlnorm(mode, mean.log, sd.log)
+      xmin <- min(qlnorm(left.tail, mean.log, sd.log))
+      xmax <- max(qlnorm(right.tail, mean.log, sd.log))
+      xlim <- c(xmin, xmax)
+      ymax <- max(fit.max.density)
+      ylim <- c(0, ymax)
+      fitted.density <- function (x) {
+        dlnorm(x, mean.log, sd.log)
+      }
+    }
+    chore.histogram(chore.name, duration.minutes, fitted.density, xlim, ylim)
   }
 }
 
