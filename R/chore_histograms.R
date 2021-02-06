@@ -47,9 +47,8 @@ chore.histograms <- function (chore.durations, fitted.chore.durations) {
   }
 }
 
-main <- function () {
-  database.results <- using.database(function (fetch.query.results) {
-    chore.durations.sql <- "SELECT chore_id
+query.chore.durations <- function (fetch.query.results) {
+  "SELECT chore_id
         , chore
         , duration_minutes
         , weekendity(due_date) AS weekendity
@@ -57,8 +56,12 @@ main <- function () {
       JOIN chore_completions USING (chore_completion_id)
       LEFT JOIN chore_schedule USING (chore_completion_id)
       JOIN chores USING (chore_id)
-      WHERE chore_completion_status_id = 4"
-    fitted.chore.durations.sql <- "SELECT chore_id
+      WHERE chore_completion_status_id = 4" %>% # completed
+    fetch.query.results()
+}
+
+query.fitted.chore.durations <- function (fetch.query.results) {
+  "SELECT chore_id
         , chores.chore
         , chores.aggregate_by_id
         , aggregate_key
@@ -67,9 +70,14 @@ main <- function () {
         , mode_duration_minutes
       FROM chores
       LEFT JOIN chore_durations USING (chore_id)
-      WHERE chores.is_active"
-    chore.durations <- fetch.query.results(chore.durations.sql)
-    fitted.chore.durations <- fetch.query.results(fitted.chore.durations.sql)
+      WHERE chores.is_active" %>%
+    fetch.query.results()
+}
+
+main <- function () {
+  database.results <- using.database(function (fetch.query.results) {
+    chore.durations <- query.chore.durations(fetch.query.results)
+    fitted.chore.durations <- query.fitted.chore.durations(fetch.query.results)
     list(chore.durations, fitted.chore.durations)
   })
   chore.durations <- database.results[[1]]
