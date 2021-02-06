@@ -42,10 +42,14 @@ chore.histograms <- function (fitted.chore.durations, chore.completion.durations
     # Use log-transformed mean and standard deviation to fit a distribution
     mean.log <- chore.data$mean_log_duration_minutes
     sd.log <- chore.data$sd_log_duration_minutes
+    xlim <- c()
+    ylim <- c()
+    fitted.density <- NULL
     if (is.na(sd.log)) {
       cat("Insufficient data to fit distribution for", chore.name, "\n")
-      xlim <- c()
-      ylim <- c()
+    }
+    else if (chore.name == "put away dishes") {
+      cat("\"Put away dishes\" is a bimodal distribution for which a log normal fit is inappropriate.")
     }
     else {
       mode <- chore.data$mode_duration_minutes
