@@ -1,3 +1,5 @@
+library(dplyr)
+
 source("database.R")
 
 chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mode, left.tail = 0.0001, right.tail = 0.995) {
