@@ -45,14 +45,14 @@ nearest_due_dates_from_chore_day_of_week AS (SELECT chore_completion_id, MIN(nex
         , frequency_unit_id
         , time_unit AS frequency_unit
         , frequency_since
-        , CASE
+        , COALESCE(day_of_week, CASE
             WHEN frequency >= 7 AND frequency_unit_id = 1 OR frequency > 0.25 AND frequency_unit_id = 2
                 THEN 5
-            END AS day_of_week
-        , CASE
+            END) AS day_of_week
+        , COALESCE(chore_day_of_week.since, CASE
             WHEN frequency >= 7 AND frequency_unit_id = 1 OR frequency > 0.25 AND frequency_unit_id = 2
                 THEN frequency_since
-            END AS day_of_week_since
+            END) AS day_of_week_since
         , chore_schedule_from_id
         , chore_schedule_from_since
         , chore_completion_status_schedule_from_id
@@ -66,6 +66,7 @@ nearest_due_dates_from_chore_day_of_week AS (SELECT chore_completion_id, MIN(nex
             END AS next_due_date
     FROM chore_completions_schedule_from_dates
     JOIN chore_frequencies USING (chore_id)
+    LEFT JOIN chore_day_of_week USING (chore_id)
     JOIN time_units
         ON frequency_unit_id = time_units.time_unit_id
 UNION
