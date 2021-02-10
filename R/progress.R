@@ -16,8 +16,8 @@ arrange.by.remaining.then.completed <- function (data) {
       is.completed,
       completed,
       ifelse(
-        remaining.median > 0,
-        -remaining.median,
+        remaining.mean > 0,
+        -remaining.mean,
         0))) %>%
       order()
   }
