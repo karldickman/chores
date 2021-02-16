@@ -91,6 +91,6 @@ do
 		then
 			sql="$sql;SELECT @c"
 		fi
-		mysql --defaults-group-suffix=chores chores -e "$sql" "${arguments[@]}" $mysql_column_names $mysql_silent
+		mysql --defaults-group-suffix=chores chores -e "START TRANSACTION; $sql; COMMIT" "${arguments[@]}" $mysql_column_names $mysql_silent
 	fi
 done
