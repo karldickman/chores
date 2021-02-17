@@ -13,7 +13,7 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
     cat("Insufficient data to fit distribution for", chore.name, "\n")
     return()
   }
-  histogram <- hist(duration.minutes, plot = FALSE)
+  histogram <- hist(duration.minutes, breaks = "Freedman-Diaconis", plot = FALSE)
   breaks <- histogram$breaks
   xmin <- min(c(qlnorm(left.tail, mean.log, sd.log), breaks))
   xmax <- max(c(qlnorm(right.tail, mean.log, sd.log), breaks))
@@ -21,7 +21,14 @@ chore.histogram <- function (chore.name, duration.minutes, mean.log, sd.log, mod
   y <- dlnorm(x, mean.log, sd.log)
   fit.max.density <- dlnorm(mode, mean.log, sd.log)
   ymax <- max(c(fit.max.density, histogram$density))
-  hist(duration.minutes, main = title, xlab = xlab, freq = FALSE, xlim = c(xmin, xmax), ylim = c(0, ymax))
+  hist(
+    duration.minutes,
+    breaks = "Freedman-Diaconis",
+    main = title,
+    xlab = xlab,
+    freq = FALSE,
+    xlim = c(xmin, xmax),
+    ylim = c(0, ymax))
   lines(x, y)
 }
 
