@@ -40,7 +40,8 @@ this_procedure:BEGIN
     IF @next_due_date IS NULL
     THEN
         SET @message = CONCAT('Could not find next due date for chore id ', @chore_id, '.');
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @message;
+        SIGNAL SQLSTATE '01000' SET MESSAGE_TEXT = @message;
+        LEAVE this_procedure;
     END IF;
     # Leave the procedure if there is a later due date than this one
     IF EXISTS(SELECT *
