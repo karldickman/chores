@@ -8,7 +8,7 @@ nsims <- 10000
 chore.histogram <- function (chore.name, duration.minutes, fitted.density, xlim, ylim) {
   title <- paste("Histogram of", chore.name, "duration")
   xlab <- paste(chore.name, "duration (minutes)")
-  histogram <- hist(duration.minutes, plot = FALSE)
+  histogram <- hist(duration.minutes, breaks = "Freedman-Diaconis", plot = FALSE)
   breaks <- histogram$breaks
   xmin <- min(c(xlim, breaks))
   xmax <- max(c(xlim, breaks))
@@ -22,7 +22,7 @@ chore.histogram <- function (chore.name, duration.minutes, fitted.density, xlim,
     xlab = xlab,
     ylab = "Density")
   # Plot histogram
-  hist(duration.minutes, freq = FALSE, add = TRUE)
+  hist(duration.minutes, breaks = "Freedman-Diaconis", freq = FALSE, add = TRUE)
 }
 
 chore.histograms <- function (fitted.chore.durations, chore.completion.durations, left.tail = 0.0001, right.tail = 0.995) {
@@ -93,6 +93,7 @@ put.away.dishes.histogram <- function (fitted.chore.durations, chore.completion.
       empty.dishwasher,
       empty.drainer)) %>%
     hist(
+      breaks = "Freedman-Diaconis",
       freq = FALSE,
       main = "Modelled duration of put away dishes",
       xlab = "put away dishes duration (minutes)")
