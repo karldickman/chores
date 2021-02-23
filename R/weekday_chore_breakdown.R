@@ -28,7 +28,7 @@ main <- function () {
   using.database(function (fetch.query.results) {
     "SELECT chore_id
           , chore
-          , completions_per_day
+          , chore_durations_per_day.completions_per_day
           , mean_log_duration_minutes
           , sd_log_duration_minutes
           , mode_duration_minutes
@@ -39,6 +39,7 @@ main <- function () {
           , category_id
           , chore_id IN (SELECT chore_id FROM chore_hierarchy) AS child_chore
         FROM chore_durations_per_day
+        JOIN chores USING (chore_id)
         LEFT JOIN chore_categories USING (chore_id)
         WHERE is_active" %>%
       fetch.query.results %>%
