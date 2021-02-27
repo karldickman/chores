@@ -3,7 +3,10 @@ echo "All commands are prefixed with \"chore-\".
 
 READ COMMANDS
 burndown
-	Get a burndown report.
+    Get a burndown report.
+completions-needed
+    Get the number of completions needed to achieve high confidence in the
+    average chore duration.
 get-completion-id
     Get the database identifier of the active completion of a chore.
 history

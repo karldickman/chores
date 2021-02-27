@@ -4,27 +4,33 @@ usage="$(basename "$0") SQL_COMMAND [SQL_COMMAND...] [OPTIONS]
 
 Execute one or more SQL commands in the chores database.
 Arguments:
-    SQL_COMMAND     SQL command to be excuted.
+  SQL_COMMAND    SQL command to be excuted.
 
 Options:
-    --column-names  Write column names in results.
-    -h, --help      Show this help text and exit.
-    --line-numbers  Write line numbers for errors.
-    --preview       Show the SQL command but do not execute.
-    -q, --quiet     Suppress output.
-   --silent         Boolean.  Indicates whether --silent flag should be passed to mysql command.
-    -v, --verbose   Show SQL commands as they are executed."
+  -h, --help     Show this help text and exit.
+  --preview      Show the SQL command but do not execute.
+  -q, --quiet    Suppress output.
+  --silent       Boolean.  Indicates whether --silent flag should be passed to
+                 mysql command.
+  -v, --verbose  Show SQL commands as they are executed."
 
 # Process arguments
 i=0
 execute=1
 mysql_column_names="--skip-column-names"
-mysql_line_numbers="--skip-line-numbers"
 mysql_silent="--silent"
+parse_options=1
 verbosity=1
 for arg in "$@"
 do
-	if [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
+	if [[ $arg == "--" ]]
+	then
+		parse_options=0
+	elif [[ $parse_options -eq 0 ]]
+	then
+		arguments[$a]=$arg
+		((a++))
+	elif [[ $arg == "-h" ]] || [[ $arg == "--help" ]]
 	then
 		echo "$usage"
 		exit
@@ -57,14 +63,11 @@ do
 	elif [[ $arg == "--column-names" ]]
 	then
 		mysql_column_names=$arg
-	elif [[ $arg == "--line-numbers" ]]
-	then
-		mysql_line_numbers=$arg
 	elif [[ ${arg,,} == --silent=false ]]
 	then
 		mysql_silent=""
 	else
-		echo "Unknown option $arg."
+		echo "$0: invalid option -- '$arg'"
 		exit 3
 	fi
 done
@@ -88,6 +91,6 @@ do
 		then
 			sql="$sql;SELECT @c"
 		fi
-		mysql --login-path=chores chores -e "$sql" $mysql_column_names $mysql_line_numbers $mysql_silent
+		mysql --defaults-group-suffix=chores chores -e "START TRANSACTION; $sql; COMMIT" "${arguments[@]}" $mysql_column_names $mysql_silent
 	fi
 done

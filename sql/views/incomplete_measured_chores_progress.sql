@@ -1,8 +1,6 @@
 USE chores;
 
-DROP VIEW IF EXISTS incomplete_measured_chores_progress;
-
-CREATE VIEW incomplete_measured_chores_progress
+CREATE OR REPLACE VIEW incomplete_measured_chores_progress
 AS
 WITH incomplete_chore_completions AS (SELECT chore_completion_id
         , chore_id
@@ -12,92 +10,58 @@ WITH incomplete_chore_completions AS (SELECT chore_completion_id
     FROM chore_completions
     INNER JOIN chore_schedule USING (chore_completion_id)
     WHERE chore_completion_status_id = 1 /* Incomplete */),
-chore_completion_durations_by_empty AS (SELECT chore_completion_id
+expected_duration_and_completed AS (SELECT chore_completion_id
         , chore_id
         , chore_completion_status_id
         , chore_completion_status_since
         , due_date
+        , aggregate_by_id
+        , aggregate_key
         , times_completed
-        , avg_number_of_sessions
-        , avg_duration_minutes
-        , stdev_duration_minutes
-    FROM incomplete_chore_completions
-    INNER JOIN chore_durations_by_empty USING (chore_id)),
-chore_completion_durations_by_weekday AS (SELECT chore_completion_id
-        , incomplete_chore_completions.chore_id
-        , chore_durations_by_weekday.week_day
-        , chore_completion_status_id
-        , chore_completion_status_since
-        , due_date
-        , times_completed
-        , avg_number_of_sessions
-        , avg_duration_minutes
-        , stdev_duration_minutes
-    FROM incomplete_chore_completions
-    INNER JOIN chore_durations_by_weekday
-        ON incomplete_chore_completions.chore_id = chore_durations_by_weekday.chore_id
-        AND WEEKDAY(due_date) = chore_durations_by_weekday.week_day),
-chore_completion_durations_by_weekendity AS (SELECT chore_completion_id
-        , incomplete_chore_completions.chore_id
-        , chore_durations_by_weekendity.weekendity
-        , chore_completion_status_id
-        , chore_completion_status_since
-        , due_date
-        , times_completed
-        , avg_number_of_sessions
-        , avg_duration_minutes
-        , stdev_duration_minutes
-    FROM incomplete_chore_completions
-    INNER JOIN chore_durations_by_weekendity
-        ON incomplete_chore_completions.chore_id = chore_durations_by_weekendity.chore_id
-        AND weekendity(due_date) = chore_durations_by_weekendity.weekendity),
-chore_completion_durations AS (SELECT chore_completion_id
-        , chore_id
-        , chore_completion_status_id
-        , chore_completion_status_since
-        , due_date
-        , times_completed
-        , avg_number_of_sessions
-        , avg_duration_minutes
-        , stdev_duration_minutes
-    FROM chore_completion_durations_by_empty
-UNION
-SELECT chore_completion_id
-        , chore_id
-        , chore_completion_status_id
-        , chore_completion_status_since
-        , due_date
-        , times_completed
-        , avg_number_of_sessions
-        , avg_duration_minutes
-        , stdev_duration_minutes
-    FROM chore_completion_durations_by_weekday
-UNION
-SELECT chore_completion_id
-        , chore_id
-        , chore_completion_status_id
-        , chore_completion_status_since
-        , due_date
-        , times_completed
-        , avg_number_of_sessions
-        , avg_duration_minutes
-        , stdev_duration_minutes
-    FROM chore_completion_durations_by_weekendity)
-SELECT chore_completions.chore_completion_id
-        , chore_completions.chore_id
-        , TRUE AS chore_measured
-        , due_date
         , last_completed
-        , times_completed
-        , chore_completions.avg_duration_minutes AS duration_minutes
+        , mean_number_of_sessions
+        , arithmetic_mean_duration_minutes
+        , arithmetic_sd_duration_minutes
+        , mean_log_duration_minutes
+        , sd_log_duration_minutes
+        , mode_duration_minutes
+        , median_duration_minutes
+        , mean_duration_minutes
+        , sd_duration_minutes
         , COALESCE(chore_completion_durations.duration_minutes, 0) AS completed_minutes
-        , chore_completions.avg_duration_minutes - COALESCE(hierarchical_chore_completion_durations.duration_minutes, 0) AS remaining_minutes
-        , COALESCE(chore_completions.stdev_duration_minutes, all_chore_durations.stdev_duration_minutes) AS stdev_duration_minutes
-    FROM chore_completion_durations AS chore_completions
-    LEFT OUTER JOIN last_chore_completion_times
-        ON chore_completions.chore_id = last_chore_completion_times.chore_id
-    LEFT OUTER JOIN chores.chore_completion_durations
-        ON chore_completions.chore_completion_id = chore_completion_durations.chore_completion_id
-    LEFT OUTER JOIN hierarchical_chore_completion_durations
-        ON chore_completions.chore_completion_id = hierarchical_chore_completion_durations.chore_completion_id
-    CROSS JOIN all_chore_durations
+        , COALESCE(hierarchical_chore_completion_durations.duration_minutes, 0) AS hierarchical_completed_minutes
+    FROM incomplete_chore_completions
+    JOIN chore_durations USING (chore_id)
+    LEFT JOIN last_chore_completion_times USING (chore_id)
+    LEFT JOIN chore_completion_durations USING (chore_completion_id)
+    LEFT JOIN hierarchical_chore_completion_durations USING (chore_completion_id)
+    WHERE times_completed > 1 # Valid summary metrics
+        AND (aggregate_by_id = 0
+            OR aggregate_by_id = 2 AND weekendity(due_date) = aggregate_key))
+SELECT TRUE AS chore_measured
+        , chore_completion_id
+        , chore_id
+        , chore_completion_status_id
+        , chore_completion_status_since
+        , due_date
+        , aggregate_by_id
+        , aggregate_key
+        , times_completed
+        , last_completed
+        , mean_number_of_sessions
+        , arithmetic_mean_duration_minutes
+        , arithmetic_sd_duration_minutes
+        , mean_log_duration_minutes
+        , sd_log_duration_minutes
+        , mode_duration_minutes
+        , median_duration_minutes
+        , mean_duration_minutes
+        , sd_duration_minutes
+        , completed_minutes
+        , hierarchical_completed_minutes
+        , median_duration_minutes - hierarchical_completed_minutes AS remaining_minutes
+        , `value` * EXP(mean_log_duration_minutes) AS `95%ile`
+    FROM expected_duration_and_completed
+    LEFT JOIN log_normal_quantiles
+        ON ABS(sd_log_duration_minutes - log_normal_standard_deviation) < 0.0005
+        AND quantile = 0.95;

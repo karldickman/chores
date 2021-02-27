@@ -1,22 +1,32 @@
 USE chores;
 
-DROP VIEW IF EXISTS hierarchical_chore_sessions;
+#DROP VIEW hierarchical_chore_sessions;
 
-CREATE VIEW hierarchical_chore_sessions
+CREATE OR REPLACE VIEW hierarchical_chore_sessions
 AS
-SELECT chore_completion_id
+SELECT FALSE AS hierarchical
+        , chore_completion_id
+        , chore_id
+        , chore_completion_status_id
+        , chore_completion_status_since
         , chore_session_id
         , when_completed
         , duration_minutes
         , when_recorded
     FROM chore_completions
-    NATURAL JOIN chore_sessions
+    JOIN chore_sessions USING (chore_completion_id)
 UNION
-SELECT parent_chore_completion_id
+SELECT TRUE AS hierarchical
+        , parent_chore_completion_id
+        , chore_id
+        , chore_completion_status_id
+        , chore_completion_status_since
         , chore_session_id
         , when_completed
         , duration_minutes
         , when_recorded
     FROM chore_completion_hierarchy
-    NATURAL JOIN chore_sessions
-    NATURAL JOIN chores_measured_hierarchically
+    JOIN chore_sessions USING (chore_completion_id)
+    JOIN chore_completions
+        ON parent_chore_completion_id = chore_completions.chore_completion_id
+    JOIN chores_measured_hierarchically USING (chore_id);

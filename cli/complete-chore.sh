@@ -6,8 +6,7 @@ Record a chore completion.
 Arguments:
     CHORE           The name of the chore completed.
     DURATION        How long it took to complete the chore in MM:SS.SS format.
-    WHEN_COMPLETED  (Optional) When the chore was completed in
-                    YYYY-MM-DD HH:MM:SS format.
+    WHEN_COMPLETED  When the chore was completed in YYYY-MM-DD HH:MM:SS format.
 Options:
     -h, --help      Show this help text and exit.
     --preview       Show the SQL command to be executed.

@@ -1,2 +1,6 @@
 *.pyc
 bin/
+.RData
+.Rhistory
+.Rproj.user
+Rplots.pdf

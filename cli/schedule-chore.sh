@@ -1,12 +1,13 @@
 #!/bin/bash
 
-usage="$(basename "$0") CHORE DUE_DATE [OPTIONS]
+usage="$(basename "$0") CHORE [DUE_DATE] [OPTIONS]
 
 Schedule a chore to be due on a particular date.
 Arguments:
     CHORE          The name of the chore completed.
-    DUE_DATE       When the chore is due in
-                   YYYY-MM-DD format.
+    DUE_DATE       When the chore is due in YYYY-MM-DD format; today if
+                   unspecified.
+
 Options:
     -h, --help     Show this help text and exit.
     --preview      Show the SQL command to be executed.
@@ -39,15 +40,14 @@ then
 	echo "$usage"
 	exit 1
 fi
+chore=${arguments[0]//\'/\\\'}
 if [[ ${#arguments[@]} -lt 2 ]]
 then
-	echo "Missing required argument DUE_DATE."
-	echo "$usage"
-	exit 1
+	due_date=$(date --iso)
+else
+	due_date=${arguments[1]//\'/\\\'}
 fi
 
-chore=${arguments[0]//\'/\\\'}
-due_date=${arguments[1]//\'/\\\'}
 sql="CALL schedule_chore('$chore', '$due_date', @c)"
 
 # Invoke SQL
