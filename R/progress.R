@@ -251,6 +251,7 @@ sum.remaining.sims <- function (remaining.sims) {
 }
 
 main <- function (charts = "daily") {
+  setnsims(4000)
   # Load data
   database.results <- using.database(function (fetch.query.results) {
     completed.and.remaining <- query.time_remaining_by_chore(fetch.query.results)
