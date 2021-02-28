@@ -3,8 +3,6 @@ library(dplyr)
 source("database.R")
 source("log_normal.R")
 
-nsims <- 10000
-
 chore.histogram <- function (chore.name, duration.minutes, fitted.density, xlim, ylim) {
   title <- paste("Histogram of", chore.name, "duration")
   xlab <- paste(chore.name, "duration (minutes)")
@@ -127,7 +125,7 @@ query.fitted.chore.durations <- function (fetch.query.results) {
 }
 
 main <- function (chore.names = NULL) {
-  setnsims(nsims)
+  setnsims(10000)
   database.results <- using.database(function (fetch.query.results) {
     fitted.chore.durations <- query.fitted.chore.durations(fetch.query.results)
     chore.completion.durations <- query.chore.completion.durations(fetch.query.results)
