@@ -121,6 +121,15 @@ chores.completed.and.remaining.stack <- function (data) {
 }
 
 cumulative.sims <- function (data) {
+  if (nrow(data) == 0) {
+    return(data.frame(
+      chore = data$chore,
+      cumulative.mode = double(),
+      cumulative.median = double(),
+      cumulative.mean = double(),
+      cumulative.q.95 = double(),
+      cumulative.completed = double()))
+  }
   cumulative.sims <- 0
   completed <- 0
   cumulative.mode <- c()
@@ -246,7 +255,7 @@ sum.remaining.sims <- function (remaining.sims) {
     }) %>%
     reduce(function (total, remaining.sims) {
       total + remaining.sims
-    }) %>%
+    }, .init = 0) %>%
     list()
 }
 
