@@ -50,12 +50,12 @@ query.fitted.chore.durations <- function (fetch.query.results) {
     fetch.query.results()
 }
 
-main <- function (chore.names) {
+main <- function (chore.names, aggregate.keys = 0) {
   setnsims(1000000)
   using.database(function (fetch.query.results) {
     query.fitted.chore.durations(fetch.query.results)
   }) %>%
-    subset(chore %in% chore.names) %>%
+    subset(chore %in% chore.names & aggregate_key %in% aggregate.keys) %>%
     sum.chores() %>%
     sum.chores.histogram("Sum of chores")
 }
