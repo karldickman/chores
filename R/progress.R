@@ -289,11 +289,16 @@ main <- function (charts = "daily") {
   # Calculate total remaining duration by chore
   completed.and.remaining <- completed.and.remaining %>%
     subset(frequency_category %in% charts) %>%
+    # For chores completed once or fewer, use mean and sd of all chore completions as fallback
     fallback.on.avg.chore.duration(avg.chore.duration) %>%
+    # Use rv to simulate remaining duration for each chore completion based on mean log and sd log
     simulate.remaining() %>%
+    # Calculate 95%ile for each chore completion
     calculate.q.95() %>%
+    # Group and sum by chore name
     group.by.chore() %>%
     calculate.remaining() %>%
+    # Sort
     arrange.by.remaining.then.completed()
   # Calculate cumulative summary values
   cumulative.completed.and.remaining <- cumulative.sims(completed.and.remaining)
