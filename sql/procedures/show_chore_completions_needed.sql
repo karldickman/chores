@@ -6,6 +6,11 @@ DELIMITER $$
 
 CREATE PROCEDURE show_chore_completions_needed(chore_name VARCHAR(256))
 BEGIN
+    IF NOT EXISTS(SELECT * FROM chores WHERE chore = chore_name)
+    THEN
+        SET @message = CONCAT('Procedure show_chore_completions_needed: no chore with name "', chore_name, '" exists.');
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @message;
+    END IF;
     SET @weekendity = weekendity(NOW());
     WITH to_30_s_and_5_percent AS (SELECT confidence_interval_type
             , times_completed
