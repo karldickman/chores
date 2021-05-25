@@ -24,7 +24,9 @@ BEGIN
             ON chore_completion_next_due_dates.schedule_from_id = schedule_from.schedule_from_id
         WHERE chore_completion_status_id = 1 # Status = scheduled
             AND next_due_date <= skippable_as_of
-            AND chore_schedule_from_id != 2; # Schedule from due date
+            AND chore_schedule_from_id != 2 # Schedule from due date
+            AND chore_completion_id NOT IN (SELECT chore_completion_id
+                    FROM chore_sessions);
 END$$
 
 DELIMITER ;
