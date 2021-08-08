@@ -1,4 +1,5 @@
 library(dplyr)
+options(dplyr.summarise.inform = FALSE) # Suppress summarise info
 library(plotly)
 library(purrr)
 
@@ -6,9 +7,10 @@ source("avg_chore_duration.R")
 source("database.R")
 source("log_normal.R")
 
-# Suppress summarise info
-options(dplyr.summarise.inform = FALSE)
-
+#' Convert string-valued chore column into a factor ordered first by remaining minutes, then by completed minutes.
+#' @param data A tibble containing summary data for chore durations.
+#'             Must have is.completed (boolean), completed (number), and remaining.mean (number) columns
+#'             describing completed and remaining minutes and string chore column with chore name.
 arrange.by.remaining.then.completed <- function (data) {
   if (any(is.na(data$order_hint))) {
     # Sort in descending order of remaining duration, then by completed
@@ -29,11 +31,16 @@ arrange.by.remaining.then.completed <- function (data) {
     arrange(chore)
 }
 
+#' Add 95th percentile column to a tibble
+#' @param data A tibble containing summary data for chore durations.
+#'             Must have mean_log_duration_minutes and sd_log_duration_minutes columns describing the log-normal fit.
 calculate.q.95 <- function (data) {
   # Add 0.95 quantile -- data from database is difference between quantile and completed, not the actual quantile
   mutate(data, q.95 = qlnorm(0.95, mean_log_duration_minutes, sd_log_duration_minutes))
 }
 
+#' Calculate remaining duration in minutes for each chore.
+#' @param data A tibble containing completed minutes and average duration for each chore.
 calculate.remaining <- function (data) {
   remaining <- function (is.completed, total.count, completed, summary.metric) {
     ifelse(
@@ -54,7 +61,7 @@ calculate.remaining <- function (data) {
   # Recalculate summary metrics for all chores with more than one incompletion
   data %>%
     mutate(
-      mode_duration_minutes = summarize.sims(is.completed, incomplete.count, mode_duration_minutes, remaining.sims, mode.sims),
+      mode_duration_minutes = summarize.sims(is.completed, incomplete.count, mode_duration_minutes, remaining.sims, fit.mode.to.data),
       median_duration_minutes = summarize.sims(is.completed, incomplete.count, median_duration_minutes, remaining.sims, median),
       mean_duration_minutes = summarize.sims(is.completed, incomplete.count, mean_duration_minutes, remaining.sims, mean),
       q.95 = summarize.sims(is.completed, incomplete.count, q.95, remaining.sims, q.95.sims)) %>%
@@ -67,6 +74,10 @@ calculate.remaining <- function (data) {
       remaining.q.95 = remaining(is.completed, total.count, completed, q.95))
 }
 
+#' Generate chart of completed and remaining chores.
+#' @param data A tibble containing the data needed to generate the chart.
+#'             Must have columns chore, {mode, median, mean, q.95}.diff, completed,
+#'             and cumulative.{mode, median, mean, q.95, completed}
 chores.completed.and.remaining.chart <- function (data) {
   data %>%
     plot_ly(x = ~chore) %>%
@@ -97,6 +108,13 @@ chores.completed.and.remaining.chart <- function (data) {
     )
 }
 
+#' Generate numerical data for a stacked chart.
+#' Mode is represented unchanged.
+#' Median is represented as difference between median and mode.
+#' Mean is represented as difference between mean and median.
+#' 95th percentile is represented as difference with mean.
+#' @param data A tibble containing data to convert to a stacked format.
+#'             Must have columns remaining.{mode, median, mean, q.95}.
 chores.completed.and.remaining.stack <- function (data) {
   # Truncated difference, 0 if subtrahend greater than minuend
   diff <- function (minuend, subtrahend) {
@@ -120,6 +138,9 @@ chores.completed.and.remaining.stack <- function (data) {
       q.95.diff)
 }
 
+#' Generate mode, median, mean, and 0.95th quantile summary values
+#' for cumulative duration of each chore.
+#' @param data A Tibble containing chore duration data from which to generate cumulative values.
 cumulative.sims <- function (data) {
   if (nrow(data) == 0) {
     return(data.frame(
@@ -141,7 +162,7 @@ cumulative.sims <- function (data) {
     # Remaining
     sims <- c(data$remaining.sims[[i]])
     cumulative.sims <- cumulative.sims + ifelse(sims >= 0, sims, 0)
-    cumulative.mode <- c(cumulative.mode, mode.sims(cumulative.sims))
+    cumulative.mode <- c(cumulative.mode, fit.mode.to.data(cumulative.sims))
     cumulative.median <- c(cumulative.median, median(cumulative.sims))
     cumulative.mean <- c(cumulative.mean, mean(cumulative.sims))
     cumulative.q.95 <- c(cumulative.q.95, q.95.sims(cumulative.sims))
@@ -158,6 +179,9 @@ cumulative.sims <- function (data) {
     cumulative.completed)
 }
 
+#' If chore has been completed 1 or fewer times, use average duration of all chores as fallback value.
+#' @param data A Tibble containing chore progress data from database.
+#' @param avg.chore.duration The average length of all chores ever completed.
 fallback.on.avg.chore.duration <- function (data, avg.chore.duration) {
   # If chore has been completed 1 or fewer times, fall back on average chore duration
   data %>%
@@ -190,6 +214,8 @@ fallback.on.avg.chore.duration <- function (data, avg.chore.duration) {
         mean_duration_minutes))
 }
 
+#' Group chore duration data by chore.
+#' @param data A Tibble containing chore duration data to be grouped.
 group.by.chore <- function (data) {
   # Group by chore to sum up completed and remaining minutes
   completed.and.remaining <- data %>%
@@ -207,19 +233,25 @@ group.by.chore <- function (data) {
     merge(completed.and.remaining)
 }
 
-mode.sims <- function (sims) {
-  if (length(sims) == 1) return(sims[[1]])
+#' Estimate the mode of some data by fitting a log-normal distribution to it.
+#' @param data A vector of numbers whose mode to estimate.
+fit.mode.to.data <- function (data) {
+  if (length(data) == 1) return(data[[1]])
   # Negative remaining duration is really 0
   one.hundredth.of.a.second <- 0.01 / 60
-  sims <- ifelse(sims >= one.hundredth.of.a.second, sims, one.hundredth.of.a.second)
+  data <- ifelse(data >= one.hundredth.of.a.second, data, one.hundredth.of.a.second)
   # Assume log normal distribution to estimate mode
-  log.normal.mode(mean(log(sims)), sd(log(sims)))
+  log.normal.mode(mean(log(data)), sd(log(data)))
 }
 
-q.95.sims <- function (sims) {
-  quantile(sims, 0.95)[["95%"]]
+#' Get the 0.95th quantile.
+#' @param data A vector of data whose 0.95th quantile to get.
+q.95.sims <- function (data) {
+  quantile(data, 0.95)[["95%"]]
 }
 
+#' Query the database for the data needed to generate the progress charts.
+#' @param fetch.query.results Function that executes an SQL query and returns the results.
 query.time_remaining_by_chore <- function (fetch.query.results) {
   "SELECT chores.chore, time_remaining_by_chore.*, order_hint, period_days, category_id, frequency_category
       FROM time_remaining_by_chore
@@ -238,16 +270,26 @@ query.time_remaining_by_chore <- function (fetch.query.results) {
     fetch.query.results()
 }
 
+#' Use rv to simulate distribution of remaining chore duration.
+#' @param is_completed Is the chore completed?
+#' @param completed_minutes The number of minutes of the chore completed.
+#' @param mean_log_duration_minutes The mean of log chore duration (minutes).
+#' @param sd_log_duration_minutes The standard deviation of the log chore duration (minutes).
+#' @param ... Needed so this function can be passed to pmap.
 rv.remaining <- function (is_completed, completed_minutes, mean_log_duration_minutes, sd_log_duration_minutes, ...) {
   if (is_completed) return(0)
   # Use RV to simulate distribution of remaining chore duration
   rvlnorm(mean = mean_log_duration_minutes, sd = sd_log_duration_minutes) - completed_minutes
 }
 
+#' Use rv to simulate distribution of remaining chore durations.
+#' @param data A Tibble containing data on the completed minutes and log normal fit.
 simulate.remaining <- function (data) {
   mutate(data, remaining.sims = pmap(data, rv.remaining))
 }
 
+#' Sum simulations of remaining time by chore.
+#' @param remaining.sims A Tibble containing simulations of remaining time by chore.
 sum.remaining.sims <- function (remaining.sims) {
   remaining.sims %>%
     map(function (remaining.sims) {
@@ -259,6 +301,8 @@ sum.remaining.sims <- function (remaining.sims) {
     list()
 }
 
+#' The main entry point of the script.
+#' @param charts A string vector.  The frequencies to add to the chart.
 main <- function (charts = "daily") {
   setnsims(4000)
   # Load data
