@@ -16,7 +16,7 @@ WITH due_dates_from_chore_due_dates AS (SELECT chore_completion_id
             YEAR(schedule_from_date)
                 + (`month` < MONTH(schedule_from_date)
                     OR (`month` = MONTH(schedule_from_date)
-                        AND `day` <= DAY(schedule_from_date))),
+                        AND `day` <= DAYOFMONTH(schedule_from_date))),
             '-', `month`, '-', `day`), '%Y-%m-%d') AS next_due_date
     FROM chore_completions_schedule_from_dates
     JOIN chore_due_dates USING (chore_id)),
@@ -25,11 +25,11 @@ nearest_due_dates_from_chore_due_dates AS (SELECT chore_completion_id
     FROM due_dates_from_chore_due_dates
     GROUP BY chore_completion_id),
 due_dates_from_chore_day_of_week AS (SELECT chore_completion_id
-        , DATE_ADD(DATE(schedule_from_date), INTERVAL CASE
+        , (DATE(schedule_from_date) + INTERVAL (CASE
             WHEN WEEKDAY(schedule_from_date) = day_of_week
                 THEN 7
-            ELSE MOD((day_of_week - WEEKDAY(schedule_from_date)) + 7, 7)
-            END DAY) AS next_due_date
+            ELSE (day_of_week - WEEKDAY(schedule_from_date) + 7) % 7
+            END) DAY) AS next_due_date
     FROM chore_completions_schedule_from_dates
     JOIN chore_day_of_week USING (chore_id)),
 nearest_due_dates_from_chore_day_of_week AS (SELECT chore_completion_id, MIN(next_due_date) AS next_due_date
@@ -60,9 +60,9 @@ nearest_due_dates_from_chore_day_of_week AS (SELECT chore_completion_id, MIN(nex
         , schedule_from_date
         , CASE
             WHEN time_unit = 'day'
-                THEN DATE_ADD(schedule_from_date, INTERVAL frequency DAY)
+                THEN schedule_from_date + INTERVAL frequency DAY
             WHEN time_unit = 'month'
-                THEN DATE_ADD(schedule_from_date, INTERVAL frequency MONTH)
+                THEN schedule_from_date + INTERVAL frequency MONTH
             END AS next_due_date
     FROM chore_completions_schedule_from_dates
     JOIN chore_frequencies USING (chore_id)
@@ -116,10 +116,11 @@ SELECT 3 AS period_type_id
         ON chore_completions_schedule_from_dates.chore_id = chore_day_of_week.chore_id
         AND WEEKDAY(next_due_date) = day_of_week
     WHERE chore_completions_schedule_from_dates.chore_id NOT IN (SELECT chore_id
-            FROM chore_frequencies))
-SELECT period_type_id
+            FROM chore_frequencies)),
+repetitions as (SELECT period_type_id
         , chore_completion_id
         , chore_id
+        , ROW_NUMBER() OVER (PARTITION BY chore_id, DATE(due_date) ORDER BY due_date) AS repetition
         , chore_completion_status_id
         , chore_completion_status_since
         , due_date
@@ -140,4 +141,28 @@ SELECT period_type_id
                 THEN nearest_day_of_week(next_due_date, day_of_week)
             ELSE next_due_date
             END) AS next_due_date
-    FROM `union`;
+    FROM `union`)
+SELECT period_type_id
+        , chore_completion_id
+        , chore_id
+        , repetition
+        , chore_completion_status_id
+        , chore_completion_status_since
+        , due_date
+        , frequency
+        , frequency_unit_id
+        , frequency_unit
+        , frequency_since
+        , day_of_week
+        , day_of_week_since
+        , chore_schedule_from_id
+        , chore_schedule_from_since
+        , chore_completion_status_schedule_from_id
+        , schedule_from_id
+        , schedule_from_date
+        , next_due_date_raw
+        , chore_time_of_day_id
+        , `time`
+        , CAST(ADDTIME(next_due_date, COALESCE(chore_time_of_day.`time`, 0)) AS DATETIME) AS next_due_date
+    FROM repetitions
+    LEFT JOIN chore_time_of_day USING (chore_id, repetition);
