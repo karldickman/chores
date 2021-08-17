@@ -10,6 +10,8 @@ BEGIN
     CALL get_chore_completion(chore_name, found_chore_completion_id);
     CALL record_chore_completed(found_chore_completion_id, NULL, 2, TRUE);
     CALL schedule_next_chore(found_chore_completion_id, next_chore_completion_id);
+    DELETE FROM chore_completion_hierarchy
+        WHERE chore_completion_id = found_chore_completion_id;
 END$$
 
 DELIMITER ;
