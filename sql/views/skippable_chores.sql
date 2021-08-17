@@ -15,5 +15,5 @@ SELECT chore_completion_id
         , next_due_date
     FROM chore_completion_next_due_dates
     WHERE chore_completion_status_id = 1 # Status = scheduled
-        AND next_due_date <= NOW()
+        AND DATE(next_due_date) <= DATE(NOW())
         AND chore_schedule_from_id != 2; # Schedule from due date
