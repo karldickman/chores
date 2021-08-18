@@ -44,27 +44,53 @@ calculate.q.95 <- function (data) {
 #'             Must have columns chore, {mode, median, mean, q.95}.diff, completed,
 #'             and cumulative.{mode, median, mean, q.95, completed}
 chores.completed.and.remaining.chart <- function (data) {
+  data <- data %>% mutate(
+    cumulative.mode = cumulative.mode / 60,
+    cumulative.median = cumulative.median / 60,
+    cumulative.mean = cumulative.mean / 60,
+    cumulative.q.95 = cumulative.q.95 / 60,
+    cumulative.completed = -cumulative.completed / 60)
+  min.duration <- -max(data$completed)
+  max.duration <- max(data$mode.diff + data$median.diff + data$mean.diff + data$q.95.diff)
+  min.cumulative <- min(data$cumulative.completed)
+  max.cumulative <- max(data$cumulative.q.95)
+  range.length.duration <- max.duration - min.duration
+  range.length.cumulative <- max.cumulative - min.cumulative
+  range.length <- max(range.length.duration, range.length.cumulative)
+  coeff.duration <- range.length / range.length.duration
+  coeff.cumulative <- range.length / range.length.cumulative
+  extrema <- c(c(min.duration, max.duration) * coeff.duration, c(min.cumulative, max.cumulative) * coeff.cumulative)
+  common.range <- c(min(extrema), max(extrema)) * 1.01
+  range.duration <- common.range / coeff.duration
+  range.cumulative <- common.range / coeff.cumulative
   data %>%
     plot_ly(x = ~chore) %>%
+    add_bars(y = min(extrema), name = "", marker = list(color = "rgb(256, 256, 256)"), showlegend = FALSE) %>%
+    add_bars(y = -min(extrema), name = "", marker = list(color = "rgb(240, 240, 240)"), showlegend = FALSE) %>%
+    add_bars(y = ~-completed, name = "completed", marker = list(color = "rgb(0, 0, 0)"), showlegend = FALSE) %>%
+    add_bars(y = ~completed, name = "completed", marker = list(color = "rgb(0, 0, 0)")) %>%
     add_bars(y = ~mode.diff, name = "mode", marker = list(color = "rgb(51.2, 51.2, 51.2)")) %>%
     add_bars(y = ~median.diff, name = "median", marker = list(color = "rgb(102.4, 102.4, 102.4)")) %>%
     add_bars(y = ~mean.diff, name = "mean", marker = list(color = "rgb(153.6, 153.6, 153.6)")) %>%
     add_bars(y = ~q.95.diff, name = "95 %ile", marker = list(color = "rgb(204.8, 204.8, 204.8)")) %>%
-    add_bars(y = ~completed, name = "completed", marker = list(color = "rgb(0, 0, 0)")) %>%
-    add_lines(yaxis = "y2", y = ~cumulative.mode / 60, name = "mode", line = list(color = "rgb(128, 128, 128)")) %>%
-    add_lines(yaxis = "y2", y = ~cumulative.median / 60, name = "median", line = list(color = "rgb(128, 128, 128)")) %>%
-    add_lines(yaxis = "y2", y = ~cumulative.mean / 60, name = "mean", line = list(color = "rgb(128, 128, 128)")) %>%
-    add_lines(yaxis = "y2", y = ~cumulative.q.95 / 60, name = "95 %ile", line = list(color = "rgb(128, 128, 128)")) %>%
-    add_lines(yaxis = "y2", y = ~cumulative.completed / 60, name = "completed", line = list(color = "rgb(128, 128, 128)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.completed, name = "completed", line = list(color = "rgb(128, 128, 128)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.mode, name = "mode", line = list(color = "rgb(128, 128, 128)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.median, name = "median", line = list(color = "rgb(128, 128, 128)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.mean, name = "mean", line = list(color = "rgb(128, 128, 128)")) %>%
+    add_lines(yaxis = "y2", y = ~cumulative.q.95, name = "95 %ile", line = list(color = "rgb(128, 128, 128)")) %>%
     layout(
       barmode = "stack",
-      yaxis = list(title = "Duration (minutes)"),
+      yaxis = list(
+        title = "Remaining duration (minutes)",
+        autorange = FALSE,
+        range = range.duration),
       yaxis2 = list(
         overlaying = "y",
         side = "right",
         title = "Cumulative duration (hours)",
-        rangemode = "tozero",
         automargin = TRUE,
+        autorange = FALSE,
+        range = range.cumulative,
         showgrid = FALSE),
       legend = list(
         orientation = "h",
