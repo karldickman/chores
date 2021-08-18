@@ -65,6 +65,8 @@ chores.completed.and.remaining.chart <- function (data) {
   range.cumulative <- common.range / coeff.cumulative
   data %>%
     plot_ly(x = ~chore) %>%
+    add_bars(y = min(extrema), name = "", marker = list(color = "rgb(256, 256, 256)"), showlegend = FALSE) %>%
+    add_bars(y = -min(extrema), name = "", marker = list(color = "rgb(240, 240, 240)"), showlegend = FALSE) %>%
     add_bars(y = ~-completed, name = "completed", marker = list(color = "rgb(0, 0, 0)"), showlegend = FALSE) %>%
     add_bars(y = ~completed, name = "completed", marker = list(color = "rgb(0, 0, 0)")) %>%
     add_bars(y = ~mode.diff, name = "mode", marker = list(color = "rgb(51.2, 51.2, 51.2)")) %>%
