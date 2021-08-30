@@ -344,8 +344,8 @@ summarize.completed.and.remaining.by.chore <- function (data) {
 }
 
 #' The main entry point of the script.
-#' @param charts A string vector.  The frequencies to add to the chart.
-main <- function (charts = "daily") {
+#' @param frequency_categories A string vector.  The frequencies to add to the chart.
+main <- function (frequency_categories = "daily") {
   setnsims(4000)
   # Load data
   database.results <- using.database(function (fetch.query.results) {
@@ -368,13 +368,17 @@ main <- function (charts = "daily") {
           # Convert category_id = 2 (physical therapy) to daily
           !is.na(category_id) & category_id == 2,
           "daily",
-          frequency_category)))
+          frequency_category))) %>%
+    # Filter to selected frequency categories
+    subset(frequency_category %in% frequency_categories)
+  if (nrow(completed.and.remaining) == 0) {
+    stop(c("No chores found with frequency category ", paste(frequency_categories, sep = ",")))
+  }
   # Fit average chore duration (fallback when chore has been completed 1 or fewer times)
   avg.chore.duration <- avg.chore.duration$duration_minutes %>%
     fitted.avg.chore.duration() # Fit log-normal distribution to observed durations
   # Calculate total remaining duration by chore
   completed.and.remaining <- completed.and.remaining %>%
-    subset(frequency_category %in% charts) %>%
     # For chores completed once or fewer, use mean and sd of all chore completions as fallback
     fallback.on.avg.chore.duration(avg.chore.duration) %>%
     # Use rv to simulate remaining duration for each chore completion based on mean log and sd log
