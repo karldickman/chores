@@ -20,7 +20,12 @@ chore.histogram <- function (chore.name, duration.minutes, fitted.density, xlim,
     xlab = xlab,
     ylab = "Density")
   # Plot histogram
-  hist(duration.minutes, breaks = "Freedman-Diaconis", freq = FALSE, add = TRUE)
+  hist(
+    duration.minutes,
+    breaks = "Freedman-Diaconis",
+    freq = FALSE,
+    add = TRUE,
+    col = NULL)
 }
 
 chore.histograms <- function (fitted.chore.durations, chore.completion.durations, left.tail = 0.0001, right.tail = 0.995) {
