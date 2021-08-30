@@ -43,5 +43,6 @@ main <- function () {
   hist(
     chore.durations,
     probability = TRUE,
-    add = TRUE)
+    add = TRUE,
+    col = NULL)
 }
