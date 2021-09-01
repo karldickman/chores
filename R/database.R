@@ -1,3 +1,4 @@
+library(dplyr)
 library(RMariaDB)
 
 connect <- function () {
@@ -14,7 +15,7 @@ fetch.query.results <- function (database, query) {
       dbClearResult(result)
       result <- NULL
     }
-    return(fetched)
+    return(fetched %>% as_tibble())
   },
   error = function (message) {
     if (!is.null(result)) {
