@@ -226,7 +226,13 @@ q.95.sims <- function (data) {
 #' Query the database for the data needed to generate the progress charts.
 #' @param fetch.query.results Function that executes an SQL query and returns the results.
 query.time_remaining_by_chore <- function (fetch.query.results) {
-  "SELECT chores.chore, time_remaining_by_chore.*, order_hint, period_days, category_id, frequency_category
+  "SELECT chores.chore
+          , time_remaining_by_chore.*
+          , order_hint
+          , period_days
+          , category_id
+          , frequency_category
+          , WEEKDAY(due_date) AS day_of_week
       FROM time_remaining_by_chore
       JOIN chores USING (chore_id)
       LEFT JOIN chore_order USING (chore_id)
@@ -366,7 +372,9 @@ main <- function (frequency_categories = "daily") {
         "meals",
         ifelse(
           # Convert category_id = 2 (physical therapy) to daily
-          !is.na(category_id) & category_id == 2,
+          !is.na(category_id) & category_id == 2
+            # Convert weekly due on a weekday to daily
+            | frequency_category == "weekly" & day_of_week < 5,
           "daily",
           frequency_category))) %>%
     # Filter to selected frequency categories
