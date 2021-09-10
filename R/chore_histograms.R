@@ -3,7 +3,7 @@ library(dplyr)
 source("database.R")
 source("log_normal.R")
 
-chore.histogram <- function (chore.name, duration.minutes, fitted.density, xlim, ylim) {
+chore.histogram <- function (chore.name, duration.minutes, summary.statistics, fitted.density, xlim, ylim) {
   title <- paste("Histogram of", chore.name, "duration")
   xlab <- paste(chore.name, "duration (minutes)")
   histogram <- hist(duration.minutes, breaks = "Freedman-Diaconis", plot = FALSE)
@@ -26,6 +26,8 @@ chore.histogram <- function (chore.name, duration.minutes, fitted.density, xlim,
     freq = FALSE,
     add = TRUE,
     col = NULL)
+  # Reference lines
+  abline(v = summary.statistics, col = "red")
 }
 
 chore.histograms <- function (fitted.chore.durations, chore.completion.durations, left.tail = 0.0001, right.tail = 0.995) {
@@ -68,7 +70,8 @@ chore.histograms <- function (fitted.chore.durations, chore.completion.durations
         dlnorm(x, mean.log, sd.log)
       }
     }
-    chore.histogram(chore.name, duration.minutes, fitted.density, xlim, ylim)
+    summary.statistics = c(log.normal.mode(mean.log, sd.log), mean(duration.minutes), quantile(duration.minutes, c(0.95)))
+    chore.histogram(chore.name, duration.minutes, summary.statistics, fitted.density, xlim, ylim)
     if (chore.name == "put away dishes") {
       cat("\"Put away dishes\" is a bimodal distribution for which a log normal fit is inappropriate.")
       put.away.dishes.histogram(fitted.chore.durations, chore.completion.durations)
