@@ -90,7 +90,7 @@ put.away.dishes.histogram <- function (fitted.chore.durations, chore.completion.
   prob.empty.dishwasher <- num.empty.dishwasher / num.put.away.dishes
   prob.empty.drainer <- num.empty.drainer / num.put.away.dishes
   prob.both <- (prob.empty.dishwasher + prob.empty.drainer) - 1
-  random.selections <- runif(nsims)
+  random.selections <- runif(getnsims())
   ifelse(
     random.selections <= prob.both,
     empty.dishwasher + empty.drainer,
