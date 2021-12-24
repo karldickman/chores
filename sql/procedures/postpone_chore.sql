@@ -11,6 +11,11 @@ BEGIN
         WHERE chore_completion_id = chore_completion_to_postpone_id;
     SET new_due_date = DATE_ADD(new_due_date, INTERVAL days DAY);
     CALL update_chore_completion_due_date(chore_completion_to_postpone_id, new_due_date);
+    IF days >= 2
+    THEN
+        DELETE FROM chore_completion_hierarchy
+            WHERE chore_completion_id = chore_completion_to_postpone_id;
+    END IF;
 END$$
 
 DELIMITER ;
