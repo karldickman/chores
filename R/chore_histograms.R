@@ -28,6 +28,7 @@ chore.histogram <- function (chore.name, duration.minutes, summary.statistics, f
     col = NULL)
   # Reference lines
   abline(v = summary.statistics, col = "red")
+  cat(chore.name, "\nMode:", summary.statistics[[1]], "\nMean:", summary.statistics[[2]], "\n95% CI UB:", summary.statistics[[3]], "\n\n")
 }
 
 chore.histograms <- function (fitted.chore.durations, chore.completion.durations, left.tail = 0.0001, right.tail = 0.995) {
