@@ -352,6 +352,9 @@ summarize.completed.and.remaining.by.chore <- function (data) {
 #' The main entry point of the script.
 #' @param frequency_categories A string vector.  The frequencies to add to the chart.
 main <- function (frequency_categories = "daily") {
+  if (frequency_categories[[1]] == "all") {
+    frequency_categories = c("meals", "daily", "weekly", "monthly", "quarterly", "biannual", "annual", "biennial")
+  }
   setnsims(4000)
   # Load data
   database.results <- using.database(function (fetch.query.results) {
@@ -378,7 +381,7 @@ main <- function (frequency_categories = "daily") {
           "daily",
           frequency_category))) %>%
     # Filter to selected frequency categories
-    subset(frequency_category %in% frequency_categories)
+    subset(frequency_category %in% frequency_categories | is_completed)
   if (nrow(completed.and.remaining) == 0) {
     stop(c("No chores found with frequency category ", paste(frequency_categories, sep = ",")))
   }
