@@ -225,8 +225,10 @@ q.95.sims <- function (data) {
 
 #' Query the database for the data needed to generate the progress charts.
 #' @param fetch.query.results Function that executes an SQL query and returns the results.
-query.time_remaining_by_chore <- function (fetch.query.results) {
-  "SELECT chores.chore
+query.time_remaining_by_chore <- function (fetch.query.results, from, to) {
+  from <- ifelse(is.null(from), "NOW()", from)
+  to <- ifelse(is.null(to), paste0("DATE_ADD(DATE(", from, "), INTERVAL 1 DAY)"), to)
+  sql <- paste0("SELECT chores.chore
           , time_remaining_by_chore.*
           , order_hint
           , period_days
@@ -243,10 +245,10 @@ query.time_remaining_by_chore <- function (fetch.query.results) {
           OR period_days = minimum_period_days AND minimum_period_inclusive
           OR period_days = maximum_period_days AND maximum_period_inclusive
       WHERE is_completed
-              AND when_completed BETWEEN DATE(NOW()) AND DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)
+              AND when_completed BETWEEN DATE(", from, ") AND ", to, "
           OR NOT is_completed
-              AND due_date < NOW()" %>%
-    fetch.query.results()
+              AND due_date < ", from)
+  fetch.query.results(sql)
 }
 
 #' Summarize remaining duration in minutes for each chore using standard summary metrics.
@@ -351,14 +353,14 @@ summarize.completed.and.remaining.by.chore <- function (data) {
 
 #' The main entry point of the script.
 #' @param frequency_categories A string vector.  The frequencies to add to the chart.
-main <- function (frequency_categories = "daily") {
+main <- function (frequency_categories = "daily", from = NULL, to = NULL) {
   if (frequency_categories[[1]] == "all") {
     frequency_categories = c("meals", "daily", "weekly", "monthly", "quarterly", "biannual", "annual", "biennial")
   }
   setnsims(4000)
   # Load data
   database.results <- using.database(function (fetch.query.results) {
-    completed.and.remaining <- query.time_remaining_by_chore(fetch.query.results)
+    completed.and.remaining <- query.time_remaining_by_chore(fetch.query.results, from, to)
     chore.durations <- query.chore_durations(fetch.query.results)
     list(completed.and.remaining, chore.durations)
   })
@@ -381,7 +383,7 @@ main <- function (frequency_categories = "daily") {
           "daily",
           frequency_category))) %>%
     # Filter to selected frequency categories
-    subset(frequency_category %in% frequency_categories | is_completed)
+    filter(frequency_category %in% frequency_categories | is_completed)
   if (nrow(completed.and.remaining) == 0) {
     stop(c("No chores found with frequency category ", paste(frequency_categories, sep = ",")))
   }
