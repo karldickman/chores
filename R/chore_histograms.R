@@ -128,8 +128,7 @@ query.fitted.chore.durations <- function (fetch.query.results) {
         , sd_log_duration_minutes
         , mode_duration_minutes
       FROM chores
-      LEFT JOIN chore_durations USING (chore_id)
-      WHERE chores.is_active" %>%
+      LEFT JOIN chore_durations USING (chore_id)" %>%
     fetch.query.results()
 }
 
