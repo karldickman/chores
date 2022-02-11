@@ -12,11 +12,15 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = @message;
     END IF;
     SET @weekendity = weekendity(NOW());
-    WITH to_30_s_and_5_percent AS (SELECT confidence_interval_type
-            , times_completed
+    WITH confidence_interval_types AS (SELECT 'relative' AS confidence_interval_type
+        UNION
+        SELECT 'absolute'),
+    to_30_s_and_5_percent AS (SELECT confidence_interval_type
+            , COALESCE(times_completed, 0) AS times_completed
             , completions_needed
-        FROM completions_needed
-        JOIN chores USING (chore_id, aggregate_by_id)
+        FROM chores
+        CROSS JOIN confidence_interval_types
+        LEFT JOIN completions_needed USING (chore_id, aggregate_by_id, confidence_interval_type)
         WHERE chore = chore_name
             AND (aggregate_by_id = 0 # empty
                 OR aggregate_by_id = 2 # weekendity
