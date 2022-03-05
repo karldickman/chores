@@ -28,7 +28,6 @@ chore.histogram <- function (chore.name, duration.minutes, summary.statistics, f
     col = NULL)
   # Reference lines
   abline(v = summary.statistics, col = "red")
-  cat(chore.name, "\nMode:", summary.statistics[[1]], "\nMean:", summary.statistics[[2]], "\n95% CI UB:", summary.statistics[[3]], "\n\n")
 }
 
 chore.histograms <- function (fitted.chore.durations, chore.completion.durations, left.tail = 0.0001, right.tail = 0.995) {
@@ -71,8 +70,19 @@ chore.histograms <- function (fitted.chore.durations, chore.completion.durations
         dlnorm(x, mean.log, sd.log)
       }
     }
-    summary.statistics = c(log.normal.mode(mean.log, sd.log), mean(duration.minutes), quantile(duration.minutes, c(0.95)))
+    quantiles <- quantile(duration.minutes, c(0.25, 0.75, 0.95))
+    summary.statistics = c(log.normal.mode(mean.log, sd.log), mean(duration.minutes), quantiles[[3]])
     chore.histogram(chore.name, duration.minutes, summary.statistics, fitted.density, xlim, ylim)
+    cat(
+      chore.name,
+      "\n    Count:", length(duration.minutes),
+      "\n    1st quartile:", quantiles[[1]],
+      "\n    Mode:", summary.statistics[[1]],
+      "\n    Mean:", summary.statistics[[2]],
+      "\n    3rd quartile:", quantiles[[2]],
+      "\n    95% CI UB:", summary.statistics[[3]],
+      "\n    IQR:", quantiles[[2]] - quantiles[[1]],
+      "\n")
     if (chore.name == "put away dishes") {
       cat("\"Put away dishes\" is a bimodal distribution for which a log normal fit is inappropriate.")
       put.away.dishes.histogram(fitted.chore.durations, chore.completion.durations)
