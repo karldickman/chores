@@ -27,7 +27,7 @@ BEGIN
         LEFT OUTER JOIN chore_completion_durations
             ON chore_completions.chore_completion_id = chore_completion_durations.chore_completion_id
         WHERE chore = chore_name
-        ORDER BY due_date DESC, when_completed DESC;
+        ORDER BY CASE WHEN due_date IS NOT NULL THEN due_date ELSE chore_completions_when_completed.when_completed END DESC, when_completed DESC;
 END$$
 
 DELIMITER ;

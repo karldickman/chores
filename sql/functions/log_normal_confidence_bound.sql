@@ -13,6 +13,7 @@ BEGIN
     THEN
         RETURN NULL;
     END IF;
+    # http://jse.amstat.org/v13n1/olsson.html 3.4 Cox method: a modified version
     RETURN sample_mean + @sample_variance / 2 + critical_value * SQRT(@sample_variance / sample_size + POWER(@sample_variance, 2) / (2 * (sample_size - 1)));
 END$$
 

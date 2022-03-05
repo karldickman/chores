@@ -18,13 +18,16 @@ BEGIN
             , DATE_FORMAT(schedule_from_date, @date_format) AS schedule_from_date
             , frequency
             , frequency_unit AS unit
+            , COALESCE(duration_minutes, 0) AS duration_minutes
         FROM chore_completion_next_due_dates
         JOIN chores USING (chore_id)
         JOIN schedule_from
             ON chore_completion_next_due_dates.schedule_from_id = schedule_from.schedule_from_id
+        LEFT JOIN chore_completion_durations
+            USING (chore_completion_id)
         WHERE chore_completion_status_id = 1 # Status = scheduled
-            AND next_due_date <= skippable_as_of
-            AND chore_schedule_from_id != 2; # Schedule from due date
+            AND DATE(next_due_date) <= DATE(skippable_as_of)
+            AND chore_schedule_from_id != 2; # Schedule from due date;
 END$$
 
 DELIMITER ;

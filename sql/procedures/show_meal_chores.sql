@@ -53,7 +53,7 @@ BEGIN
         FROM total
         WHERE show_totals)
     SELECT chore
-            , COALESCE(DATE_FORMAT(due_date, '%Y-%m-%d'), '') AS due_date
+            , COALESCE(DATE_FORMAT(due_date, '%Y-%m-%d %H:%i'), '') AS due_date
             , COALESCE(DATE_FORMAT(last_completed, '%Y-%m-%d %H:%i'), '') AS last_completed
             , format_duration(completed_minutes) AS completed
             , format_duration(remaining_minutes) AS remaining

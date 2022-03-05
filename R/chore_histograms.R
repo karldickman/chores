@@ -3,9 +3,7 @@ library(dplyr)
 source("database.R")
 source("log_normal.R")
 
-nsims <- 10000
-
-chore.histogram <- function (chore.name, duration.minutes, fitted.density, xlim, ylim) {
+chore.histogram <- function (chore.name, duration.minutes, summary.statistics, fitted.density, xlim, ylim) {
   title <- paste("Histogram of", chore.name, "duration")
   xlab <- paste(chore.name, "duration (minutes)")
   histogram <- hist(duration.minutes, breaks = "Freedman-Diaconis", plot = FALSE)
@@ -22,7 +20,14 @@ chore.histogram <- function (chore.name, duration.minutes, fitted.density, xlim,
     xlab = xlab,
     ylab = "Density")
   # Plot histogram
-  hist(duration.minutes, breaks = "Freedman-Diaconis", freq = FALSE, add = TRUE)
+  hist(
+    duration.minutes,
+    breaks = "Freedman-Diaconis",
+    freq = FALSE,
+    add = TRUE,
+    col = NULL)
+  # Reference lines
+  abline(v = summary.statistics, col = "red")
 }
 
 chore.histograms <- function (fitted.chore.durations, chore.completion.durations, left.tail = 0.0001, right.tail = 0.995) {
@@ -65,7 +70,19 @@ chore.histograms <- function (fitted.chore.durations, chore.completion.durations
         dlnorm(x, mean.log, sd.log)
       }
     }
-    chore.histogram(chore.name, duration.minutes, fitted.density, xlim, ylim)
+    quantiles <- quantile(duration.minutes, c(0.25, 0.75, 0.95))
+    summary.statistics = c(log.normal.mode(mean.log, sd.log), mean(duration.minutes), quantiles[[3]])
+    chore.histogram(chore.name, duration.minutes, summary.statistics, fitted.density, xlim, ylim)
+    cat(
+      chore.name,
+      "\n    Count:", length(duration.minutes),
+      "\n    1st quartile:", quantiles[[1]],
+      "\n    Mode:", summary.statistics[[1]],
+      "\n    Mean:", summary.statistics[[2]],
+      "\n    3rd quartile:", quantiles[[2]],
+      "\n    95% CI UB:", summary.statistics[[3]],
+      "\n    IQR:", quantiles[[2]] - quantiles[[1]],
+      "\n")
     if (chore.name == "put away dishes") {
       cat("\"Put away dishes\" is a bimodal distribution for which a log normal fit is inappropriate.")
       put.away.dishes.histogram(fitted.chore.durations, chore.completion.durations)
@@ -84,7 +101,7 @@ put.away.dishes.histogram <- function (fitted.chore.durations, chore.completion.
   prob.empty.dishwasher <- num.empty.dishwasher / num.put.away.dishes
   prob.empty.drainer <- num.empty.drainer / num.put.away.dishes
   prob.both <- (prob.empty.dishwasher + prob.empty.drainer) - 1
-  random.selections <- runif(nsims)
+  random.selections <- runif(getnsims())
   ifelse(
     random.selections <= prob.both,
     empty.dishwasher + empty.drainer,
@@ -121,13 +138,12 @@ query.fitted.chore.durations <- function (fetch.query.results) {
         , sd_log_duration_minutes
         , mode_duration_minutes
       FROM chores
-      LEFT JOIN chore_durations USING (chore_id)
-      WHERE chores.is_active" %>%
+      LEFT JOIN chore_durations USING (chore_id)" %>%
     fetch.query.results()
 }
 
 main <- function (chore.names = NULL) {
-  setnsims(nsims)
+  setnsims(10000)
   database.results <- using.database(function (fetch.query.results) {
     fitted.chore.durations <- query.fitted.chore.durations(fetch.query.results)
     chore.completion.durations <- query.chore.completion.durations(fetch.query.results)
