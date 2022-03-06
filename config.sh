@@ -7,7 +7,7 @@ then
 fi
 
 # Install required packages
-apt-get -y install libclang-dev make mysql-server python3 python-is-python3 r-base > /dev/null
+apt-get -y install libclang-dev libcurl4-openssl-dev libssl-dev libmariadb-dev make mysql-server python3 python-is-python3 r-base > /dev/null
 
 dpkg -l rstudio > /dev/null
 if [[ $? -ne 0 ]]
