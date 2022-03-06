@@ -4,3 +4,4 @@ bin/
 .Rhistory
 .Rproj.user
 R/Rplot*
+cli/chores_password.txt

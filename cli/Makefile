@@ -6,6 +6,7 @@ clean:
 	$(RM) -r *.pyc bin
 install:
 	cp bin/* ~/.local/bin
+	./install-cnf.sh
 bin:
 	mkdir bin
 # Copy scripts to installation names
