@@ -26,3 +26,6 @@ else
 fi
 
 mysql < sql/permissions.sql
+
+# Add time zone info
+mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
