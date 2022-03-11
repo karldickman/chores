@@ -95,7 +95,7 @@ chores.completed.and.remaining.chart <- function (data) {
       legend = list(
         orientation = "h",
         traceorder = "normal",
-        y = -0.3
+        y = 1.2
       )
     )
 }
