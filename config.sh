@@ -7,13 +7,14 @@ then
 fi
 
 # Install required packages
-apt-get -y install libclang-dev libcurl4-openssl-dev libssl-dev libmariadb-dev make mysql-server python3 python-is-python3 r-base > /dev/null
+apt-get -y install libclang-dev libcurl4-openssl-dev libssl-dev libmariadb-dev make mysql-server python3 python-is-python3 r-base
 
 dpkg -l rstudio > /dev/null
 if [[ $? -ne 0 ]]
 then
-	wget "https://download1.rstudio.org/desktop/bionic/amd64/rstudio-2022.02.0-443-amd64.deb" > /dev/null
-	dpkg -i "rstudio-2022.02.0-443-amd64.deb" > /dev/null
+	wget "https://download1.rstudio.org/desktop/bionic/amd64/rstudio-2022.02.0-443-amd64.deb"
+	dpkg -i "rstudio-2022.02.0-443-amd64.deb"
+	rm "rstudio-2022.02.0-443-amd64.deb"
 fi
 
 # Create chores database
