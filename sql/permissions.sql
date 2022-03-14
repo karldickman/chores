@@ -26,6 +26,7 @@ GRANT EXECUTE ON PROCEDURE complete_chore_session TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE complete_chore_without_data TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE complete_unscheduled_chore TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE delete_chore_completion TO 'chores'@'localhost';
+GRANT EXECUTE ON PROCEDURE hierarchize_chore_completion TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE get_chore_completion TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE postpone_chore_by_name TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE record_chore_completed TO 'chores'@'localhost';
