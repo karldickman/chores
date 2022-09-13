@@ -157,5 +157,8 @@ main <- function (chore.names = NULL) {
   if (!is.null(chore.names)) {
     fitted.chore.durations <- subset(fitted.chore.durations, chore %in% chore.names)
   }
+  if (nrow(fitted.chore.durations) == 0) {
+    stop("No matching chores found")
+  }
   chore.histograms(fitted.chore.durations, chore.completion.durations)
 }
