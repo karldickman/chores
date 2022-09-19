@@ -385,7 +385,7 @@ main <- function (frequency_categories = "daily", from = NULL, to = NULL) {
     # Filter to selected frequency categories
     filter(frequency_category %in% frequency_categories | is_completed)
   if (nrow(completed.and.remaining) == 0) {
-    stop(c("No chores found with frequency category ", paste(frequency_categories, sep = ",")))
+    stop(c("No chores found with frequency category ", paste(frequency_categories, collapse = ", ")))
   }
   # Fit average chore duration (fallback when chore has been completed 1 or fewer times)
   avg.chore.duration <- avg.chore.duration$duration_minutes %>%
