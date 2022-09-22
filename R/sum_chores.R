@@ -25,17 +25,19 @@ sum.chores.histogram <- function (sims, title, left.tail = 0.0001, right.tail = 
   xmax <- ceiling(quantiles[[4]])
   mean.log <- mean(log(sims))
   sd.log <- sd(log(sims))
-  cat(title, "
-    Mode:", log.normal.mode(mean.log, sd.log), "
-    Median:", quantiles[["50%"]], "
-    Mean:", mean(sims), "
-    95% CI UB:", quantiles[["95%"]], "\n")
-  Filter(function (value) {
+  histogram <- Filter(function (value) {
     value >= xmin & value <= xmax
   }, sims) %>%
     hist(breaks = 100, freq = FALSE, main = title, xlab = paste(title, "duration (minutes)"))
+  index.of.mode <- which(histogram$counts == max(histogram$counts))
+  mode <- histogram$mids[[index.of.mode]]
+  cat(title, "
+    Mode:", mode, "
+    Median:", quantiles[["50%"]], "
+    Mean:", mean(sims), "
+    95% CI UB:", quantiles[["95%"]], "\n")
   # Reference lines
-  summary.statistics = c(log.normal.mode(mean.log, sd.log), mean(sims), quantile(sims, c(0.95)))
+  summary.statistics = c(mode, quantiles[["50%"]], mean(sims), quantiles[["95%"]])
   abline(v = summary.statistics, col = "red")
 }
 
