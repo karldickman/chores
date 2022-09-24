@@ -70,20 +70,21 @@ chore.histograms <- function (fitted.chore.durations, chore.completion.durations
         dlnorm(x, mean.log, sd.log)
       }
     }
-    quantiles <- quantile(duration.minutes, c(0.25, 0.75, 0.95))
-    summary.statistics = c(log.normal.mode(mean.log, sd.log), mean(duration.minutes), quantiles[[3]])
+    quantiles <- quantile(duration.minutes, c(0.25, 0.5, 0.75, 0.95))
+    summary.statistics = c(log.normal.mode(mean.log, sd.log), quantiles[[2]], mean(duration.minutes), quantiles[[4]])
     chore.histogram(chore.name, duration.minutes, summary.statistics, fitted.density, xlim, ylim)
     count <- length(duration.minutes)
-    iqr <- quantiles[[2]] - quantiles[[1]]
+    iqr <- quantiles[[3]] - quantiles[[1]]
     bin.width <- 2 * iqr / (count ^ (1/3))
     cat(
       chore.name,
       "\n    Count:", count,
       "\n    1st quartile:", quantiles[[1]],
       "\n    Mode:", summary.statistics[[1]],
-      "\n    Mean:", summary.statistics[[2]],
-      "\n    3rd quartile:", quantiles[[2]],
-      "\n    95% CI UB:", summary.statistics[[3]],
+      "\n    Median:", summary.statistics[[2]],
+      "\n    Mean:", summary.statistics[[3]],
+      "\n    3rd quartile:", quantiles[[3]],
+      "\n    95% CI UB:", summary.statistics[[4]],
       "\n    IQR:", iqr,
       "\n    Bin width:", bin.width,
       "\n")
