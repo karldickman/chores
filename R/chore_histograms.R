@@ -3,7 +3,7 @@ library(dplyr)
 source("database.R")
 source("log_normal.R")
 
-chore.histogram <- function (chore.name, duration.minutes, summary.statistics, fitted.density, xlim, ylim) {
+chore.histogram <- function (chore.name, duration.minutes, summary.statistics, confidence.interval, fitted.density, xlim, ylim) {
   title <- paste("Histogram of", chore.name, "duration")
   xlab <- paste(chore.name, "duration (minutes)")
   histogram <- hist(duration.minutes, breaks = "Freedman-Diaconis", plot = FALSE)
@@ -28,6 +28,7 @@ chore.histogram <- function (chore.name, duration.minutes, summary.statistics, f
     col = NULL)
   # Reference lines
   abline(v = summary.statistics, col = "red")
+  abline(v = confidence.interval, col = "blue")
 }
 
 chore.histograms <- function (fitted.chore.durations, chore.completion.durations, left.tail = 0.0001, right.tail = 0.995) {
@@ -71,23 +72,26 @@ chore.histograms <- function (fitted.chore.durations, chore.completion.durations
       }
     }
     quantiles <- quantile(duration.minutes, c(0.25, 0.5, 0.75, 0.95))
-    summary.statistics = c(log.normal.mode(mean.log, sd.log), quantiles[[2]], mean(duration.minutes), quantiles[[4]])
-    chore.histogram(chore.name, duration.minutes, summary.statistics, fitted.density, xlim, ylim)
     count <- length(duration.minutes)
+    summary.statistics <- c(log.normal.mode(mean.log, sd.log), quantiles[[2]], mean(duration.minutes), quantiles[[4]])
+    confidence.interval <- exp(log.normal.confidence.bound(mean.log, sd.log, count, 0.05))
+    chore.histogram(chore.name, duration.minutes, summary.statistics, confidence.interval, fitted.density, xlim, ylim)
     iqr <- quantiles[[3]] - quantiles[[1]]
     bin.width <- 2 * iqr / (count ^ (1/3))
     cat(
       chore.name,
-      "\n    Count:", count,
-      "\n    1st quartile:", quantiles[[1]],
-      "\n    Mode:", summary.statistics[[1]],
-      "\n    Median:", summary.statistics[[2]],
-      "\n    Mean:", summary.statistics[[3]],
-      "\n    3rd quartile:", quantiles[[3]],
-      "\n    95% CI UB:", summary.statistics[[4]],
-      "\n    IQR:", iqr,
-      "\n    Bin width:", bin.width,
-      "\n")
+      "\n    Count: ", count,
+      "\n    Min: ", min(duration.minutes),
+      "\n    0.25ile: ", quantiles[[1]],
+      "\n    Mode: ", summary.statistics[[1]],
+      "\n    Median: ", summary.statistics[[2]],
+      "\n    Mean: ", summary.statistics[[3]], " (", confidence.interval[[1]], "–", confidence.interval[[2]], ")",
+      "\n    0.75ile: ", quantiles[[3]],
+      "\n    0.95ile: ", summary.statistics[[4]],
+      "\n    Max: ", max(duration.minutes),
+      "\n    IQR: ", iqr,
+      "\n    Bin width: ", bin.width,
+      "\n", sep = "")
     if (chore.name == "put away dishes") {
       cat("\"Put away dishes\" is a bimodal distribution for which a log normal fit is inappropriate.")
       put.away.dishes.histogram(fitted.chore.durations, chore.completion.durations)
@@ -139,6 +143,7 @@ query.fitted.chore.durations <- function (fetch.query.results) {
         , chores.chore
         , chores.aggregate_by_id
         , aggregate_key
+        , times_completed
         , mean_log_duration_minutes
         , sd_log_duration_minutes
         , mode_duration_minutes

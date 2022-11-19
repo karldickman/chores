@@ -4,7 +4,7 @@ source("chore_histograms.R")
 source("database.R")
 source("log_normal.R")
 
-density.plots <- function (chore.name, duration.minutes, mean.logs, sd.logs, xlim, ylim) {
+density.plots <- function (chore.name, duration.minutes, mean.logs, sd.logs, confidence.intervals, xlim, ylim) {
   title <- paste("Weekday versus weekend", chore.name, "duration")
   xlab <- paste(chore.name, "duration (minutes)")
   histogram <- hist(duration.minutes, breaks = "Freedman-Diaconis", plot = FALSE)
@@ -39,13 +39,15 @@ density.plots <- function (chore.name, duration.minutes, mean.logs, sd.logs, xli
     add = TRUE,
     col = NULL)
   ## Reference lines
-  #abline(v = summary.statistics, col = "red")
+  abline(v = confidence.intervals[[1]], col = "red")
+  abline(v = confidence.intervals[[2]], col = "blue")
 }
 
 chore.histograms <- function (fitted.chore.durations, chore.completion.durations, left.tail = 0.0001, right.tail = 0.995) {
   duration.minutes <- c()
   mean.logs <- c()
   sd.logs <- c()
+  confidence.intervals <- list()
   xmin <- c()
   xmax <- c()
   ymax <- c()
@@ -79,11 +81,12 @@ chore.histograms <- function (fitted.chore.durations, chore.completion.durations
       xmin <- min(xmin, qlnorm(left.tail, mean.log, sd.log))
       xmax <- max(xmax, qlnorm(right.tail, mean.log, sd.log))
       ymax <- max(ymax, fit.max.density)
+      confidence.intervals[[i]] <- exp(log.normal.confidence.bound(mean.log, sd.log, chore.data$times_completed, 0.05))
     }
   }
   xlim <- c(xmin, xmax)
   ylim <- c(0, ymax)
-  density.plots(chore.name, duration.minutes, mean.logs, sd.logs, xlim, ylim)
+  density.plots(chore.name, duration.minutes, mean.logs, sd.logs, confidence.intervals, xlim, ylim)
 }
 
 main <- function (chore.name = NULL) {
