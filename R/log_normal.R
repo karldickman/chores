@@ -1,4 +1,4 @@
-library(rv)
+suppressPackageStartupMessages(library(rv))
 
 log.normal.mean <- function (mean.log, sd.log) {
   exp(mean.log + (sd.log ** 2) / 2)

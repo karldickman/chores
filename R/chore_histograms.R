@@ -1,4 +1,6 @@
-library(dplyr)
+#!/usr/bin/env r
+
+suppressPackageStartupMessages(library(dplyr))
 
 source("database.R")
 source("log_normal.R")
@@ -171,4 +173,8 @@ main <- function (chore.names = NULL) {
     stop("No matching chores found")
   }
   chore.histograms(fitted.chore.durations, chore.completion.durations)
+}
+
+if (exists("argv")) {
+  main(argv)
 }

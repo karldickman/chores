@@ -1,5 +1,5 @@
-library(dplyr)
-library(RMariaDB)
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(RMariaDB))
 
 connect <- function () {
   settings <- paste(Sys.getenv("HOME"), ".my.cnf", sep = "/")
