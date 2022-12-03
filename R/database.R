@@ -6,10 +6,10 @@ connect <- function () {
   dbConnect(MariaDB(), default.file = settings, groups = "clientchores", timezone = Sys.timezone())
 }
 
-fetch.query.results <- function (database, query) {
+fetch.query.results <- function (database, query, params) {
   result <- NULL
   withCallingHandlers({
-    result <- dbSendQuery(database, query)
+    result <- dbSendQuery(database, query, params)
     fetched <- dbFetch(result)
     if (!is.null(result)) {
       dbClearResult(result)
@@ -41,8 +41,8 @@ using.database <- function (operation) {
   result <- NULL
   withCallingHandlers({
     database <- connect()
-    result <- operation(function (query) {
-      fetch.query.results(database, query)
+    result <- operation(function (query, params = NULL) {
+      fetch.query.results(database, query, params)
     })
     if (!is.null(database)) {
       dbDisconnect(database)
