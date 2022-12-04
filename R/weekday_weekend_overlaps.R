@@ -1,4 +1,6 @@
-library(dplyr)
+#!/usr/bin/env r
+
+suppressPackageStartupMessages(library(dplyr))
 
 source("chore_histograms.R")
 source("database.R")
@@ -23,14 +25,16 @@ density.plots <- function (chore.name, duration.minutes, mean.logs, sd.logs, con
     ylim = ylim,
     main = title,
     xlab = xlab,
-    ylab = "Density")
+    ylab = "Density",
+    col = "green")
   plot(
     function (x) {
       dlnorm(x, mean.logs[[2]], sd.logs[[2]])
     },
     xlim = xlim,
     ylim = ylim,
-    add = TRUE)
+    add = TRUE,
+    col = "purple")
   # Plot histogram
   hist(
     duration.minutes,
@@ -39,8 +43,8 @@ density.plots <- function (chore.name, duration.minutes, mean.logs, sd.logs, con
     add = TRUE,
     col = NULL)
   ## Reference lines
-  abline(v = confidence.intervals[[1]], col = "red")
-  abline(v = confidence.intervals[[2]], col = "blue")
+  abline(v = confidence.intervals[[1]], col = "green")
+  abline(v = confidence.intervals[[2]], col = "purple")
 }
 
 chore.histograms <- function (fitted.chore.durations, chore.completion.durations, left.tail = 0.0001, right.tail = 0.995) {
@@ -90,6 +94,9 @@ chore.histograms <- function (fitted.chore.durations, chore.completion.durations
 }
 
 main <- function (chore.name = NULL) {
+  if (length(chore.name) > 1) {
+    stop("Too many arguments\nUsage: weekday-weekend-overlaps CHORE_NAME")
+  }
   setnsims(10000)
   database.results <- using.database(function (fetch.query.results) {
     fitted.chore.durations <- query.fitted.chore.durations(fetch.query.results)
@@ -108,4 +115,8 @@ main <- function (chore.name = NULL) {
     stop("Chore is not aggregated by weekendity")
   }
   chore.histograms(fitted.chore.durations, chore.completion.durations)
+}
+
+if (!interactive() & basename(sys.frame(1)$ofile) == "weekday_weekend_overlaps.R") {
+  main(argv)
 }

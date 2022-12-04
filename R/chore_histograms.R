@@ -175,6 +175,6 @@ main <- function (chore.names = NULL) {
   chore.histograms(fitted.chore.durations, chore.completion.durations)
 }
 
-if (exists("argv")) {
+if (!interactive() & basename(sys.frame(1)$ofile) == "chore_histograms.R") {
   main(argv)
 }
