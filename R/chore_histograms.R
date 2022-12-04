@@ -76,7 +76,7 @@ chore.histograms <- function (fitted.chore.durations, chore.completion.durations
     quantiles <- quantile(duration.minutes, c(0.25, 0.5, 0.75, 0.95))
     count <- length(duration.minutes)
     summary.statistics <- c(log.normal.mode(mean.log, sd.log), quantiles[[2]], mean(duration.minutes), quantiles[[4]])
-    confidence.interval <- exp(log.normal.confidence.bound(mean.log, sd.log, count, 0.05))
+    confidence.interval <- log.normal.confidence.bound(mean.log, sd.log, count, 0.05)
     chore.histogram(chore.name, duration.minutes, summary.statistics, confidence.interval, fitted.density, xlim, ylim)
     iqr <- quantiles[[3]] - quantiles[[1]]
     bin.width <- 2 * iqr / (count ^ (1/3))

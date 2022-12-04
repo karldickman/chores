@@ -30,20 +30,54 @@ log.normal.confidence.bound <- function (sample.mean, sample.sd, sample.size, si
   }
   critical.value <- qt(significance, df = sample.size - 1, lower.tail = FALSE)
   addend <- critical.value * sqrt(sample.variance / sample.size + sample.variance ^ 2 / (2 * (sample.size - 1)))
-  lower <- augend - addend
-  upper <- augend + addend
+  lower <- exp(augend - addend)
+  upper <- exp(augend + addend)
   if (tail == "lower") {
     return (lower)
   }
   if (tail == "upper") {
     return (upper)
   }
-  c(lower, upper)
+  list(lower, upper)
+}
+
+.sample.size.needed.two.tailed <- function (mean.log, sd.log, sample.size, significance, target, target.type) {
+  mean <- log.normal.mean(mean.log, sd.log)
+  if (target.type == "relative") {
+    target <- target * mean
+  } else if (target.type != "absolute") {
+    stop(paste("target.type", target.type), " not supported")
+  }
+  error <- function (sample.size) {
+    confidence.bounds <- log.normal.confidence.bound(mean.log, sd.log, sample.size, significance, "both")
+    confidence.interval <- confidence.bounds[[2]] - confidence.bounds[[1]]
+    confidence.interval - target
+  }
+  bisection <- function (lower, upper, lower.error, upper.error) {
+    if (upper - lower <= 1) {
+      return(upper)
+    }
+    midpoint <- round((lower + upper) / 2)
+    midpoint.error <- error(midpoint)
+    if (midpoint.error > 0) {
+      lower <- midpoint
+      lower.error <- midpoint.error
+    } else {
+      upper <- midpoint
+      upper.error <- midpoint.error
+    }
+    bisection(lower, upper, lower.error, upper.error)
+  }
+  lower.bound <- 3
+  upper.bound <- 2147483647
+  lower.error <- error(lower.bound)
+  upper.error <- error(upper.bound)
+  bisection(lower.bound, upper.bound, lower.error, upper.error)
 }
 
 sample.size.needed <- function (mean.log, sd.log, sample.size, significance, target, target.type, tail = "upper") {
   if (tail == "both") {
-    stop("Two-tailed confidence intervals not supported")
+    return(.sample.size.needed.two.tailed(mean.log, sd.log, sample.size, significance, target, target.type))
   }
   if (tail == "lower") {
     stop("Lower-bound confidence intervals not supported")

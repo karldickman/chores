@@ -1,4 +1,6 @@
 USE chores;
+GRANT SELECT ON aggregate_by TO 'chores'@'localhost';
+GRANT SELECT ON aggregate_keys TO 'chores'@'localhost';
 GRANT SELECT ON chores TO 'chores'@'localhost';
 GRANT SELECT ON chore_categories TO 'chores'@'localhost';
 GRANT SELECT ON chore_completions TO 'chores'@'localhost';
@@ -15,6 +17,7 @@ GRANT SELECT ON hierarchical_chore_completion_durations TO 'chores'@'localhost';
 GRANT SELECT ON skippable_chores TO 'chores'@'localhost';
 GRANT SELECT ON time_remaining_by_chore TO 'chores'@'localhost';
 GRANT SELECT ON weekday_weekend_overlaps TO 'chores'@'localhost';
+GRANT SELECT ON weekendities TO 'chores'@'localhost';
 GRANT EXECUTE ON FUNCTION weekendity TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE change_due_date TO 'chores'@'localhost';
 GRANT EXECUTE ON PROCEDURE create_chore TO 'chores'@'localhost';

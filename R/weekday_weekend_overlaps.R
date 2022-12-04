@@ -85,7 +85,7 @@ chore.histograms <- function (fitted.chore.durations, chore.completion.durations
       xmin <- min(xmin, qlnorm(left.tail, mean.log, sd.log))
       xmax <- max(xmax, qlnorm(right.tail, mean.log, sd.log))
       ymax <- max(ymax, fit.max.density)
-      confidence.intervals[[i]] <- exp(log.normal.confidence.bound(mean.log, sd.log, chore.data$times_completed, 0.05))
+      confidence.intervals[[i]] <- log.normal.confidence.bound(mean.log, sd.log, chore.data$times_completed, 0.05)
     }
   }
   xlim <- c(xmin, xmax)
