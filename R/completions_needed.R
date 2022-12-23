@@ -78,7 +78,7 @@ plot.completions.needed.two.tailed <- function (
   cat(chore, "\n")
   cat("Times completed:", times.completed, "\n")
   title <- paste(chore, "completions needed for", 1 - significance, "confidence")
-  ylab <- paste(1 - significance, "confidence interval upper bound")
+  ylab <- paste(1 - significance, "confidence interval bound")
   mean <- log.normal.mean(mean.log, sd.log)
   # Completions needed for relative target
   needed.for.relative.target <- sample.size.needed(mean.log, sd.log, times.completed, significance, relative.target, "relative", "both")
