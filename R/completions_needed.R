@@ -178,7 +178,7 @@ main <- function (argv) {
     mean.log <- row$mean_log_duration_minutes
     sd.log <- row$sd_log_duration_minutes
     times.completed <- as.integer(row$times_completed)
-    if (row$aggregate_by == "weekendity" | "--to-tailed" %in% argv) {
+    if (row$aggregate_by == "weekendity" | "--two-tailed" %in% argv) {
       plot.completions.needed.two.tailed(chore, mean.log, sd.log, times.completed)
     } else {
       plot.completions.needed.upper.bound(chore, mean.log, sd.log, times.completed)
