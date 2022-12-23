@@ -63,10 +63,7 @@ bisection <- function (lower, upper, error) {
 }
 
 sample.size.needed <- function (mean.log, sd.log, sample.size, significance, target, target.type, tail = "upper") {
-  if (tail == "lower") {
-    stop("Lower-bound confidence intervals not implemented")
-  }
-  if (tail != "both" & tail != "upper") {
+  if (!(tail %in% c("both", "lower", "upper"))) {
     stop(paste("tail", tail), " not supported")
   }
   mean <- log.normal.mean(mean.log, sd.log)
@@ -79,9 +76,9 @@ sample.size.needed <- function (mean.log, sd.log, sample.size, significance, tar
     get.actual <- function (confidence.bounds) {
       confidence.bounds[[2]] - confidence.bounds[[1]]
     }
-  } else if (tail == "upper") {
+  } else {
     get.actual <- function (confidence.bound) {
-      confidence.bound - mean
+      (confidence.bound - mean) * ifelse(tail == "upper", 1, -1)
     }
   }
   error <- function (sample.size) {
