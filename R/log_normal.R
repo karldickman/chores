@@ -41,19 +41,8 @@ log.normal.confidence.bound <- function (sample.mean, sample.sd, sample.size, si
   list(lower, upper)
 }
 
-.sample.size.needed.two.tailed <- function (mean.log, sd.log, sample.size, significance, target, target.type) {
-  mean <- log.normal.mean(mean.log, sd.log)
-  if (target.type == "relative") {
-    target <- target * mean
-  } else if (target.type != "absolute") {
-    stop(paste("target.type", target.type), " not supported")
-  }
-  error <- function (sample.size) {
-    confidence.bounds <- log.normal.confidence.bound(mean.log, sd.log, sample.size, significance, "both")
-    confidence.interval <- confidence.bounds[[2]] - confidence.bounds[[1]]
-    confidence.interval - target
-  }
-  bisection <- function (lower, upper, lower.error, upper.error) {
+bisection <- function (lower, upper, error) {
+  .bisection <- function (lower, upper, lower.error, upper.error) {
     if (upper - lower <= 1) {
       return(upper)
     }
@@ -66,34 +55,41 @@ log.normal.confidence.bound <- function (sample.mean, sample.sd, sample.size, si
       upper <- midpoint
       upper.error <- midpoint.error
     }
-    bisection(lower, upper, lower.error, upper.error)
+    .bisection(lower, upper, lower.error, upper.error)
   }
-  lower.bound <- 3
-  upper.bound <- 2147483647
-  lower.error <- error(lower.bound)
-  upper.error <- error(upper.bound)
-  bisection(lower.bound, upper.bound, lower.error, upper.error)
+  lower.error <- error(lower)
+  upper.error <- error(upper)
+  .bisection(lower, upper, lower.error, upper.error)
 }
 
 sample.size.needed <- function (mean.log, sd.log, sample.size, significance, target, target.type, tail = "upper") {
-  if (tail == "both") {
-    return(.sample.size.needed.two.tailed(mean.log, sd.log, sample.size, significance, target, target.type))
-  }
   if (tail == "lower") {
-    stop("Lower-bound confidence intervals not supported")
+    stop("Lower-bound confidence intervals not implemented")
+  }
+  if (tail != "both" & tail != "upper") {
+    stop(paste("tail", tail), " not supported")
   }
   mean <- log.normal.mean(mean.log, sd.log)
   if (target.type == "relative") {
-    target <- 1 + target
-  } else if (target.type == "absolute") {
-    target <- 1 + target / mean
-  } else {
+    target <- target * mean
+  } else if (target.type != "absolute") {
     stop(paste("target.type", target.type), " not supported")
   }
-  critical.value <- qt(significance, df = sample.size - 1, lower.tail = FALSE)
-  log.target.over.critical.value <- (log(target) / (critical.value * sd.log)) ** 2
-  a <- -2 * log.target.over.critical.value
-  b <- sd.log ** 2 + 2 * log.target.over.critical.value + 2
-  c <- -2
-  ceiling((-b - sqrt(b ** 2) - 4 * a * c) / (2 * a))
+  if (tail == "both") {
+    get.actual <- function (confidence.bounds) {
+      confidence.bounds[[2]] - confidence.bounds[[1]]
+    }
+  } else if (tail == "upper") {
+    get.actual <- function (confidence.bound) {
+      confidence.bound - mean
+    }
+  }
+  error <- function (sample.size) {
+    confidence.bound <- log.normal.confidence.bound(mean.log, sd.log, sample.size, significance, tail)
+    actual <- get.actual(confidence.bound)
+    actual - target
+  }
+  lower.bound <- 3
+  upper.bound <- 2147483647
+  bisection(lower.bound, upper.bound, error)
 }
