@@ -1,4 +1,6 @@
-library(dplyr)
+#!/usr/bin/env r
+
+suppressPackageStartupMessages(library(dplyr))
 
 source("database.R")
 source("log_normal.R")
@@ -63,4 +65,8 @@ main <- function (chore.names, aggregate.keys = 0) {
     subset(chore %in% chore.names & aggregate_key %in% aggregate.keys) %>%
     sum.chores() %>%
     sum.chores.histogram("Sum of chores")
+}
+
+if (!interactive() & basename(sys.frame(1)$ofile) == "sum_chores.R") {
+  main(argv)
 }
