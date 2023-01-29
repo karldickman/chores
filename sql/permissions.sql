@@ -4,6 +4,7 @@ GRANT SELECT ON aggregate_keys TO 'chores'@'localhost';
 GRANT SELECT ON chores TO 'chores'@'localhost';
 GRANT SELECT ON chore_categories TO 'chores'@'localhost';
 GRANT SELECT ON chore_completions TO 'chores'@'localhost';
+GRANT SELECT ON chore_completion_statuses TO 'chores'@'localhost';
 GRANT SELECT ON chore_duration_confidence_intervals TO 'chores'@'localhost';
 GRANT SELECT ON chore_durations TO 'chores'@'localhost';
 GRANT SELECT ON chore_durations_per_day TO 'chores'@'localhost';
