@@ -1,3 +1,8 @@
+#!/usr/bin/env r
+
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(tidyquant))
+
 source("database.R")
 
 query.chore.completion.history <- function (fetch.query.results, chore.name) {
