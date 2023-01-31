@@ -13,6 +13,15 @@ query.chore.completion.history <- function (fetch.query.results, chore.name) {
   fetch.query.results(list(chore.name))
 }
 
+plot.completion.rate <- function (data, chore.name) {
+  ggplot(data, aes(x = due_date, y = num_completed)) +
+    geom_point() +
+    geom_ma(ma_fun = SMA, n = 7) +
+    ggtitle(paste("Completion rate of", chore.name)) +
+    xlab("Due date") +
+    ylab("0 = incomplete, 1 = complete")
+}
+
 main <- function (chore.name = NULL) {
   if (length(chore.name) > 1) {
     stop("Too many arguments\nUsage: chore-completion-history CHORE_NAME")
@@ -20,7 +29,7 @@ main <- function (chore.name = NULL) {
   chore.completion.history <- using.database(function (fetch.query.results) {
     query.chore.completion.history(fetch.query.results, chore.name)
   })
-  chore.completion.history
+  plot.completion.rate(chore.completion.history, chore.name)
 }
 
 if (!interactive() & basename(sys.frame(1)$ofile) == "chore_completion_history.R") {

@@ -13,3 +13,4 @@ install.packages("purrr")
 #  * brew: mariadb-connector-c (OSX)
 install.packages("RMariaDB") # Minimum version 1.1.0, needed to support using server time zone
 install.packages("rv")
+install.packages("tidyquant")
