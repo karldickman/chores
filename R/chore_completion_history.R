@@ -6,25 +6,34 @@ suppressPackageStartupMessages(library(tidyquant))
 source("database.R")
 
 query.chore.completion.history <- function (fetch.query.results, chore.name) {
-  "SELECT DATE(due_date) AS due_date, SUM(is_complete) AS num_completed
-      FROM chore_completions
-      JOIN chores USING (chore_id)
-      JOIN chore_completion_statuses USING (chore_completion_status_id)
-      JOIN chore_schedule USING (chore_completion_id)
-      WHERE chore = ?
-          AND due_date BETWEEN DATE_ADD(NOW(), INTERVAL -30 DAY) AND DATE(NOW())
-      GROUP BY DATE(due_date)
-      ORDER BY due_date" %>%
-  fetch.query.results(list(chore.name))
+  "WITH due_dates_and_completion_times AS (SELECT due_date
+		    , when_completed
+        , CASE WHEN when_completed < due_date
+    			THEN when_completed
+                ELSE due_date
+                END AS `date`
+            , is_complete
+          FROM chore_completions
+          JOIN chores USING (chore_id)
+          JOIN chore_completion_statuses USING (chore_completion_status_id)
+          JOIN chore_schedule USING (chore_completion_id)
+          LEFT JOIN chore_completions_when_completed USING (chore_completion_id)
+          WHERE chore = ?
+              AND due_date BETWEEN DATE_ADD(NOW(), INTERVAL -? DAY) AND DATE(NOW()))
+    SELECT DATE(`date`) AS `date`, SUM(is_complete) AS num_completed
+    	FROM due_dates_and_completion_times
+          GROUP BY DATE(`date`)
+          ORDER BY `date`" %>%
+  fetch.query.results(list(chore.name, 60))
 }
 
 plot.completion.rate <- function (data, chore.name) {
-  ggplot(data, aes(x = due_date, y = num_completed)) +
+  ggplot(data, aes(x = date, y = num_completed)) +
     geom_point() +
     geom_ma(ma_fun = SMA, n = 7) +
     ggtitle(paste("Completion rate of", chore.name)) +
     xlab("Due date") +
-    ylab("0 = incomplete, 1 = complete")
+    ylab("Times completed per due date")
 }
 
 main <- function (chore.name = NULL) {
