@@ -6,43 +6,14 @@ connect <- function () {
   dbConnect(MariaDB(), default.file = settings, groups = "clientchores", timezone = Sys.timezone())
 }
 
-fetch.query.results <- function (database, query, params) {
-  result <- NULL
-  withCallingHandlers({
-    result <- dbSendQuery(database, query, params)
-    fetched <- dbFetch(result)
-    if (!is.null(result)) {
-      dbClearResult(result)
-      result <- NULL
-    }
-    return(fetched %>% as_tibble())
-  },
-  error = function (message) {
-    if (!is.null(result)) {
-      dbClearResult(result)
-      result <- NULL
-    }
-    stop(message)
-  },
-  warning = function (message) {
-    if (!is.null(result)) {
-      dbClearResult(result)
-      result <- NULL
-    }
-    stop(message)
-  })
-  if (!is.null(result)) {
-    dbClearResult(result)
-  }
-}
-
 using.database <- function (operation) {
   database <- NULL
   result <- NULL
   withCallingHandlers({
     database <- connect()
     result <- operation(function (query, params = NULL) {
-      fetch.query.results(database, query, params)
+      dbGetQuery(database, query, params = params) %>%
+        as_tibble()
     })
     if (!is.null(database)) {
       dbDisconnect(database)
