@@ -26,13 +26,6 @@ using.database <- function (operation) {
       database <- NULL
     }
     stop(message)
-  },
-  warning = function (message) {
-    if (!is.null(database)) {
-      dbDisconnect(database)
-      database <- NULL
-    }
-    stop(message)
   })
   if (!is.null(database)) {
     dbDisconnect(database)

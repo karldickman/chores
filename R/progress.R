@@ -226,8 +226,23 @@ q.95.sims <- function (data) {
 #' Query the database for the data needed to generate the progress charts.
 #' @param fetch.query.results Function that executes an SQL query and returns the results.
 query.time_remaining_by_chore <- function (fetch.query.results, from, to) {
-  from <- ifelse(is.null(from), "NOW()", from)
-  to <- ifelse(is.null(to), paste0("DATE_ADD(DATE(", from, "), INTERVAL 1 DAY)"), to)
+  if (is.null(from) & is.null(to)) {
+    params <- c()
+    from <- "NOW()"
+    to <- "DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)"
+  } else if (is.null(from)) {
+    params <- c(to)
+    from <- "NOW()"
+    to <- "?"
+  } else if (is.null(to)) {
+    params <- c(from, from, from)
+    from <- "?"
+    to <- "DATE_ADD(DATE(?), INTERVAL 1 DAY)"
+  } else {
+    params <- c(from, to, from)
+    from <- "?"
+    to <- "?"
+  }
   sql <- paste0("SELECT chores.chore
           , time_remaining_by_chore.*
           , order_hint
@@ -248,7 +263,7 @@ query.time_remaining_by_chore <- function (fetch.query.results, from, to) {
               AND when_completed BETWEEN DATE(", from, ") AND ", to, "
           OR NOT is_completed
               AND due_date < ", from)
-  fetch.query.results(sql)
+  fetch.query.results(sql, params)
 }
 
 #' Summarize remaining duration in minutes for each chore using standard summary metrics.
