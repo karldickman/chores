@@ -7,7 +7,7 @@ source("database.R")
 
 query.chore.completion.history <- function (fetch.query.results, chore.names) {
   chore.params <- paste(rep("?", length(chore.names)), collapse = ", ")
-  arguments <- append(as.list(chore.names), 60)
+  arguments <- append(as.list(chore.names), 90)
   paste0("WITH due_dates_and_completion_times AS (SELECT due_date
     	    , when_completed
           , CASE WHEN when_completed < due_date
