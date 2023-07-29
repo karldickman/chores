@@ -93,10 +93,28 @@ chore.histograms <- function (fitted.chore.durations, chore.completion.durations
   density.plots(chore.name, duration.minutes, mean.logs, sd.logs, confidence.intervals, xlim, ylim)
 }
 
-main <- function (chore.name = NULL) {
-  if (length(chore.name) > 1) {
-    stop("Too many arguments\nUsage: weekday-weekend-overlaps CHORE_NAME")
+usage <- function (error = NULL) {
+  if (!is.null(error)) {
+    cat(error, "\n")
   }
+  cat("Usage: weekday-weekend-overlaps CHORE_NAME [OPTIONS]\n")
+  cat("    -h, --help  Display this message and exit\n")
+  opt <- options(show.error.messages = FALSE)
+  on.exit(options(opt))
+  stop()
+}
+
+main <- function (argv = NULL) {
+  if ("-h" %in% argv | "--help" %in% argv) {
+    usage()
+  }
+  if (length(argv) == 0) {
+    usage("Too few arguments")
+  }
+  if (length(argv) > 1) {
+    usage("Too many arguments")
+  }
+  chore.name <- argv[[1]]
   setnsims(10000)
   database.results <- using.database(function (fetch.query.results) {
     fitted.chore.durations <- query.fitted.chore.durations(fetch.query.results)
