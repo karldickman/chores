@@ -63,6 +63,9 @@ bisection <- function (lower, upper, error) {
 }
 
 sample.size.needed <- function (mean.log, sd.log, sample.size, significance, target, target.type, tail = "upper") {
+  if (sample.size < 2) {
+    return(Inf)
+  }
   if (!(tail %in% c("both", "lower", "upper"))) {
     stop(paste("tail", tail), " not supported")
   }

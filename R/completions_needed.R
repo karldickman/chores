@@ -15,6 +15,9 @@ plot.completions.needed.one.tailed <- function (
     absolute.target.seconds = 30,
     significance = 0.05
   ) {
+  if (times.completed < 2) {
+    stop("Need a minimum of two times completed to calculation completions needed")
+  }
   cat(chore, "\n")
   cat("Times completed:", times.completed, "\n")
   title <- paste(chore, "completions needed for", 1 - significance, "confidence")
