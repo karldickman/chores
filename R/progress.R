@@ -366,11 +366,40 @@ summarize.completed.and.remaining.by.chore <- function (data) {
     merge(completed.and.remaining)
 }
 
+usage <- function(error = NULL) {
+  if (!is.null(error)) {
+    cat(error, "\n")
+  }
+  cat("Usage: progress.R [...FREQUENCY_CATEGORIES] [OPTIONS]\n")
+  cat("    -h, --help   Display this message and exit.\n")
+  cat("    --from FROM  Progress from date.\n")
+  cat("    --to TO      Progress to date.\n")
+  opt <- options(show.error.messages = FALSE)
+  on.exit(options(opt))
+  stop()
+}
+
 #' The main entry point of the script.
 #' @param frequency_categories A string vector.  The frequencies to add to the chart.
-main <- function (frequency_categories = "daily", from = NULL, to = NULL) {
+main <- function (argv = c()) {
+  if ("-h" %in% argv | "--help" %in% argv) {
+    usage()
+  }
+  options <- argv[substr(argv, 1, 1) == "-"]
+  frequency_categories <- argv[substr(argv, 1, 1) != "-"]
   if (frequency_categories[[1]] == "all") {
     frequency_categories = c("meals", "daily", "weekly", "monthly", "quarterly", "biannual", "annual", "biennial")
+  }
+  from <- NULL
+  to <- NULL
+  for (option in options) {
+    if (substr(option, 3, 6) == "from") {
+      from <- gsub("--from=", "", option)
+    } else if (substr(option, 3, 4) == "to") {
+      to <- gsub("--to=", "", option)
+    } else {
+      usage(paste("Unknown option", option))
+    }
   }
   setnsims(4000)
   # Load data
