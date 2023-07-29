@@ -1,4 +1,6 @@
-library(dplyr)
+#!/usr/bin/env r
+
+suppressPackageStartupMessages(library(dplyr))
 
 source("database.R")
 source("log_normal.R")
@@ -28,4 +30,14 @@ main <- function (minuend.chore, subtrahend.chore, aggregate.keys = 0) {
   subtrahend <- filter(fitted.chore.durations, chore == subtrahend.chore)
   subtract.chores(minuend, subtrahend) %>%
     sum.chores.histogram("Sum of chores")
+}
+
+if (!interactive() & basename(sys.frame(1)$ofile) == "subtract_chores.R") {
+  if (length(argv) == 2) {
+    main(argv[[1]], argv[[2]])
+  } else if (length(argv) == 3) {
+    main(argv[[1]], argv[[2]], argv[[3]])
+  } else {
+    stop("Incorrect number of arguments")
+  }
 }
