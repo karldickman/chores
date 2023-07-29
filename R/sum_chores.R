@@ -62,7 +62,8 @@ main <- function (chore.names, aggregate.keys = 0) {
   using.database(function (fetch.query.results) {
     query.fitted.chore.durations(fetch.query.results)
   }) %>%
-    subset(chore %in% chore.names & aggregate_key %in% aggregate.keys) %>%
+    mutate(aggregate_key = as.integer(aggregate_key)) %>%
+    filter(chore %in% chore.names & (aggregate_by_id == 0 | aggregate_key %in% aggregate.keys)) %>%
     sum.chores() %>%
     sum.chores.histogram("Sum of chores")
 }
