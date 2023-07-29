@@ -7,7 +7,7 @@ source("database.R")
 
 query.chore.completion.history <- function (fetch.query.results, chore.names) {
   chore.params <- paste(rep("?", length(chore.names)), collapse = ", ")
-  arguments <- append(as.list(chore.names), 90)
+  arguments <- as.list(chore.names)
   paste0("WITH due_dates_and_completion_times AS (SELECT due_date
     	    , when_completed
           , CASE WHEN when_completed < due_date
@@ -21,7 +21,7 @@ query.chore.completion.history <- function (fetch.query.results, chore.names) {
       JOIN chore_schedule USING (chore_completion_id)
       LEFT JOIN chore_completions_when_completed USING (chore_completion_id)
       WHERE chore IN (", chore.params, ")
-          AND due_date BETWEEN DATE_ADD(NOW(), INTERVAL -? DAY) AND DATE(NOW()))
+          AND chore_completion_status_id NOT IN (1)) -- scheduled
   SELECT DATE(`date`) AS `date`, SUM(is_complete) AS num_completed
     	FROM due_dates_and_completion_times
       GROUP BY DATE(`date`)
