@@ -57,7 +57,23 @@ query.fitted.chore.durations <- function (fetch.query.results) {
     fetch.query.results()
 }
 
-main <- function (chore.names, aggregate.keys = 0) {
+usage <- function (error = NULL) {
+  if (!is.null(error)) {
+    cat(error, "\n")
+  }
+  cat("Usage: sum_chores.R CHORE_NAME [CHORE_NAME...] [OPTIONS]\n")
+  cat("    -h, --help  Display this message and exit.\n")
+  opt <- options(show.error.messages = FALSE)
+  on.exit(options(opt))
+  stop()
+}
+
+main <- function (argv) {
+  if ("-h" %in% argv | "--help" %in% argv) {
+    usage()
+  }
+  chore.names <- argv
+  aggregate.keys <- 0
   setnsims(1000000)
   using.database(function (fetch.query.results) {
     query.fitted.chore.durations(fetch.query.results)
