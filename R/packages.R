@@ -1,4 +1,3 @@
-install.packages("data.table")
 install.packages("dplyr")
 # Configuration failed because libcurl was not found. Try installing:
 #  * deb: libcurl4-openssl-dev (Debian, Ubuntu, etc)
@@ -13,4 +12,3 @@ install.packages("purrr")
 #  * brew: mariadb-connector-c (OSX)
 install.packages("RMariaDB") # Minimum version 1.1.0, needed to support using server time zone
 install.packages("rv")
-install.packages("tidyquant")
