@@ -231,8 +231,8 @@ query.time_remaining_by_chore <- function (fetch.query.results, from, to) {
     from <- "NOW()"
     to <- "DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)"
   } else if (is.null(from)) {
-    params <- c(to)
-    from <- "NOW()"
+    params <- c(to, to, to)
+    from <- "DATE_ADD(?, INTERVAL -1 DAY)"
     to <- "?"
   } else if (is.null(to)) {
     params <- c(from, from, from)
@@ -262,7 +262,7 @@ query.time_remaining_by_chore <- function (fetch.query.results, from, to) {
       WHERE is_completed
               AND when_completed BETWEEN DATE(", from, ") AND ", to, "
           OR NOT is_completed
-              AND due_date < ", from)
+              AND due_date < ", to)
   fetch.query.results(sql, params)
 }
 
