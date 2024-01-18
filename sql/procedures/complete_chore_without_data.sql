@@ -13,6 +13,12 @@ CREATE PROCEDURE complete_chore_without_data (
 BEGIN
     SET found_chore_completion_id = NULL;
     CALL get_chore_completion(chore_name, found_chore_completion_id);
+    IF when_completed IS NULL
+    THEN
+		SELECT due_date INTO when_completed
+			FROM chore_schedule
+            WHERE chore_completion_id = found_chore_completion_id;
+    END IF;
     CALL record_chore_completed(found_chore_completion_id, when_completed, 3, TRUE);
     CALL schedule_next_chore(found_chore_completion_id, next_chore_completion_id);
 END$$
