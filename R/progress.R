@@ -227,19 +227,22 @@ q.95.sims <- function (data) {
 #' @param fetch.query.results Function that executes an SQL query and returns the results.
 query.time_remaining_by_chore <- function (fetch.query.results, from, to) {
   if (is.null(from) & is.null(to)) {
+    complete.from <- "DATE(NOW())"
+    complete.to <- "DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)"
+    incomplete.to <- "NOW()"
     params <- c()
-    from <- "NOW()"
-    to <- "DATE_ADD(DATE(NOW()), INTERVAL 1 DAY)"
   } else if (is.null(from)) {
-    params <- c(to, to, to)
-    from <- "DATE_ADD(?, INTERVAL -1 DAY)"
-    to <- "?"
+    params <- c(to - 1, to, to)
+    complete.from <- "?"
+    complete.to <- "?"
+    incomplete.to <- "?"
   } else if (is.null(to)) {
     params <- c(from, from, from)
-    from <- "?"
-    to <- "DATE_ADD(DATE(?), INTERVAL 1 DAY)"
+    complete.from <- "?"
+    complete.to <- "DATE_ADD(DATE(?), INTERVAL 1 DAY)"
+    incomplete.to <- complete.to
   } else {
-    params <- c(from, to, from)
+    params <- c(from, to, to)
     from <- "?"
     to <- "?"
   }
@@ -260,9 +263,9 @@ query.time_remaining_by_chore <- function (fetch.query.results, from, to) {
           OR period_days = minimum_period_days AND minimum_period_inclusive
           OR period_days = maximum_period_days AND maximum_period_inclusive
       WHERE is_completed
-              AND when_completed BETWEEN DATE(", from, ") AND ", to, "
+              AND when_completed BETWEEN ", complete.from, " AND ", complete.to, "
           OR NOT is_completed
-              AND due_date < ", to)
+              AND due_date < ", incomplete.to)
   fetch.query.results(sql, params)
 }
 
@@ -394,9 +397,9 @@ main <- function (argv = c()) {
   to <- NULL
   for (option in options) {
     if (substr(option, 3, 6) == "from") {
-      from <- gsub("--from=", "", option)
+      from <- as.Date(gsub("--from=", "", option))
     } else if (substr(option, 3, 4) == "to") {
-      to <- gsub("--to=", "", option)
+      to <- as.Date(gsub("--to=", "", option))
     } else {
       usage(paste("Unknown option", option))
     }
