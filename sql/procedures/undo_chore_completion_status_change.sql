@@ -23,6 +23,8 @@ BEGIN
         SET chore_completion_status_id = @previous_chore_completion_status_id
             , chore_completion_status_since = @previous_status_since
         WHERE chore_completion_id = chore_completion_to_undo_id;
+    DELETE FROM chore_completion_times
+        WHERE chore_completion_id = chore_completion_to_undo_id;
     DELETE FROM chore_completion_status_history
         WHERE chore_completion_id = chore_completion_to_undo_id
             AND chore_completion_status_id = @previous_chore_completion_status_id
