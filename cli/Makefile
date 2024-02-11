@@ -6,6 +6,7 @@ clean:
 	$(RM) -r *.pyc bin
 install:
 	cp bin/* ~/.local/bin
+	cp chore-aliases.sh ~/.chore_aliases
 	./install-cnf.sh
 bin:
 	mkdir bin
