@@ -1,6 +1,6 @@
 #!/usr/bin/env r
 
-library(purrr)
+suppressPackageStartupMessages(library(purrr))
 
 source("database.R")
 source("log_normal.R")
