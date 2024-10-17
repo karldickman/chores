@@ -21,7 +21,8 @@ sum.chores <- function (fitted.chore.durations) {
   return(accumulator)
 }
 
-sum.chores.histogram <- function (sims, title, left.tail = 0.0001, right.tail = 0.995) {
+sum.chores.histogram <- function (sims, description, chores, left.tail = 0.0001, right.tail = 0.995) {
+  title <- paste(description, chores)
   quantiles <- quantile(sims, c(0.5, 0.95, left.tail, right.tail))
   xmin <- floor(quantiles[[3]])
   xmax <- ceiling(quantiles[[4]])
@@ -30,7 +31,7 @@ sum.chores.histogram <- function (sims, title, left.tail = 0.0001, right.tail = 
   histogram <- Filter(function (value) {
     value >= xmin & value <= xmax
   }, sims) %>%
-    hist(breaks = 100, freq = FALSE, main = title, xlab = paste(title, "duration (minutes)"))
+    hist(breaks = 100, freq = FALSE, main = title, xlab = paste(description, "duration (minutes)"))
   index.of.mode <- which(histogram$counts == max(histogram$counts))
   mode <- histogram$mids[[index.of.mode]]
   cat(title, "
@@ -74,6 +75,7 @@ main <- function (argv) {
   }
   chore.names <- argv
   aggregate.keys <- 0
+  chore.list <- paste(chore.names, collapse = ", ")
   setnsims(1000000)
   using.database(function (fetch.query.results) {
     query.fitted.chore.durations(fetch.query.results)
@@ -81,7 +83,7 @@ main <- function (argv) {
     mutate(aggregate_key = as.integer(aggregate_key)) %>%
     filter(chore %in% chore.names & (aggregate_by_id == 0 | aggregate_key %in% aggregate.keys)) %>%
     sum.chores() %>%
-    sum.chores.histogram("Sum of chores")
+    sum.chores.histogram("Sum of", chore.list)
 }
 
 if (!interactive() & basename(sys.frame(1)$ofile) == "sum_chores.R") {
