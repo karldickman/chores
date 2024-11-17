@@ -14,7 +14,7 @@ def main():
                 alternative_calc: datetime = cursor.fetchone()[0]
                 if next_due_date is None and alternative_calc is None:
                     continue
-                if abs((next_due_date - alternative_calc).days) > 1:
+                if next_due_date is None or alternative_calc is None or abs((next_due_date - alternative_calc).days) > 1:
                     print(chore_completion_id, next_due_date, alternative_calc)
 
 if __name__ == "__main__":
