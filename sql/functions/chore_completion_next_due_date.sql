@@ -1,12 +1,13 @@
-DELIMITER $$
 -- DROP FUNCTION chore_completion_next_due_date;
+DELIMITER $$
 CREATE FUNCTION chore_completion_next_due_date(completed_chore_completion_id INT)
 RETURNS DATETIME
 READS SQL DATA
 BEGIN
     DECLARE schedule_from_date_for_completion DATETIME;
-    DECLARE day_of_week INT;
     DECLARE next_due_date DATETIME;
+    DECLARE next_due_date_any_day_of_week DATETIME;
+    DECLARE day_of_week INT;
     DECLARE time_of_day TIME;
 	SELECT schedule_from_date
 		INTO schedule_from_date_for_completion
@@ -46,28 +47,27 @@ BEGIN
 			JOIN chore_day_of_week USING (chore_id)
 			WHERE chore_completion_id = completed_chore_completion_id;
 	ELSE
-		WITH next_due_date_any_day_of_week AS (SELECT CASE
-					WHEN frequency_unit_id = 1 # day
-						THEN DATE(schedule_from_date_for_completion) + INTERVAL frequency DAY
-					WHEN frequency_unit_id = 2 # month
-						THEN DATE(schedule_from_date_for_completion) + INTERVAL frequency MONTH
-					END AS next_due_date_any_day_of_week
-				, COALESCE(chore_day_of_week.day_of_week, CASE
-					WHEN chore_frequencies.frequency >= 7 AND chore_frequencies.frequency_unit_id = 1
-							OR chore_frequencies.frequency > 0.25 AND chore_frequencies.frequency_unit_id = 2
-						THEN 5
-					END) AS day_of_week
+		SELECT CASE
+				WHEN frequency_unit_id = 1 # day
+					THEN DATE(schedule_from_date_for_completion) + INTERVAL frequency DAY
+				WHEN frequency_unit_id = 2 # month
+					THEN DATE(schedule_from_date_for_completion) + INTERVAL frequency MONTH
+				END
+                INTO next_due_date_any_day_of_week
+			FROM chore_completions
+			JOIN chore_frequencies USING (chore_id)
+			WHERE chore_completion_id = completed_chore_completion_id;
+		SELECT COALESCE(chore_day_of_week.day_of_week, CASE
+				WHEN chore_frequencies.frequency >= 7 AND chore_frequencies.frequency_unit_id = 1
+						OR chore_frequencies.frequency > 0.25 AND chore_frequencies.frequency_unit_id = 2
+					THEN 5
+				END)
+                INTO day_of_week
 			FROM chore_completions
 			JOIN chore_frequencies USING (chore_id)
 			LEFT JOIN chore_day_of_week USING (chore_id)
-			WHERE chore_completion_id = completed_chore_completion_id)
-		SELECT MIN(CASE
-				WHEN day_of_week IS NOT NULL
-					THEN nearest_day_of_week(next_due_date_any_day_of_week, day_of_week)
-				ELSE next_due_date_any_day_of_week
-				END)
-			INTO next_due_date
-			FROM next_due_date_any_day_of_week;
+			WHERE chore_completion_id = completed_chore_completion_id;
+        SET next_due_date = nearest_day_of_week(next_due_date_any_day_of_week, day_of_week);
 	END IF;
 	RETURN CAST(ADDTIME(next_due_date, COALESCE(time_of_day, 0)) AS DATETIME);
 END $$
