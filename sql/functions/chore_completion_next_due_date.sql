@@ -67,7 +67,12 @@ BEGIN
 			JOIN chore_frequencies USING (chore_id)
 			LEFT JOIN chore_day_of_week USING (chore_id)
 			WHERE chore_completion_id = completed_chore_completion_id;
-        SET next_due_date = nearest_day_of_week(next_due_date_any_day_of_week, day_of_week);
+		IF day_of_week IS NOT NULL
+        THEN
+			SET next_due_date = nearest_day_of_week(next_due_date_any_day_of_week, day_of_week);
+		ELSE
+			SET next_due_date = next_due_date_any_day_of_week;
+        END IF;
 	END IF;
 	RETURN CAST(ADDTIME(next_due_date, COALESCE(time_of_day, 0)) AS DATETIME);
 END $$
