@@ -74,5 +74,20 @@ BEGIN
 			SET next_due_date = next_due_date_any_day_of_week;
         END IF;
 	END IF;
+    # Get time of day
+    WITH `schedule` AS (SELECT chore_id, chore_completion_id, due_date
+		FROM chore_completions
+		JOIN chore_schedule USING (chore_completion_id)),
+	repetitions AS (SELECT the_completion.chore_id, COUNT(other_completions.chore_completion_id) + 1 AS repetition
+		FROM `schedule` AS the_completion
+		LEFT JOIN `schedule` AS other_completions
+			ON the_completion.chore_id = other_completions.chore_id
+			AND DATE(the_completion.due_date) = DATE(other_completions.due_date)
+			AND the_completion.due_date > other_completions.due_date
+		WHERE the_completion.chore_completion_id = completed_chore_completion_id
+		GROUP BY the_completion.chore_completion_id)
+	SELECT `time` INTO time_of_day
+		FROM chore_time_of_day
+		JOIN repetitions USING (chore_id, repetition);
 	RETURN CAST(ADDTIME(next_due_date, COALESCE(time_of_day, 0)) AS DATETIME);
 END $$
