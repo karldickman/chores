@@ -35,9 +35,7 @@ this_procedure:BEGIN
         LEAVE this_procedure;
     END IF;
     # Get the next chore schedule date
-    SELECT next_due_date INTO v_next_due_date 
-        FROM chore_completion_next_due_dates
-        WHERE chore_completion_id = completed_chore_completion_id;
+    SET v_next_due_date = chore_completion_next_due_date(completed_chore_completion_id);
     IF v_next_due_date IS NULL
     THEN
         SET v_message = CONCAT('Could not find next due date for chore id ', v_chore_id, '.');
