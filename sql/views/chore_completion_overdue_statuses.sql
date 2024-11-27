@@ -5,6 +5,7 @@ SELECT chore_completion_id
         , chore
         , due_date
         , next_due_date
+        , chores.schedule_from_id
         , frequency
         , overdue_chore_completion_status_id
         , chore_completion_status AS overdue_chore_completion_status
