@@ -38,7 +38,8 @@ def main():
             SELECT chore, overdue_chore_completion_status_id
             FROM chore_completion_overdue_statuses
             WHERE due_date < DATE_ADD(%s, INTERVAL 1 DAY)
-                AND DATE(next_due_date) <= DATE_ADD(%s, INTERVAL 1 DAY)
+                AND (DATE(next_due_date) <= DATE_ADD(%s, INTERVAL 1 DAY)
+					OR schedule_from_id = 2) -- due date
                 AND overdue_chore_completion_status_id IS NOT NULL
             ORDER BY overdue_chore_completion_status DESC, next_due_date, due_date;
         """, [args.date, args.date])
